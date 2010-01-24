@@ -69,7 +69,7 @@ class croniter:
             t = self.ALPHACONV[i][t.lower()]
           if t in self.LOWMAP[i]:
             t = self.LOWMAP[i][t]
-          if not t or (t != '*' and (int(t) < self.RANGES[i][0] or int(t) > self.RANGES[i][1])):
+          if t != '*' and (int(t) < self.RANGES[i][0] or int(t) > self.RANGES[i][1]):
             raise ValueError("[%s] is not acceptable, out of range" % expr_format)
           try:
             res.append(int(t))
@@ -77,7 +77,7 @@ class croniter:
             res.append(t)
       res.sort()
       expanded.append(['*'] if (len(res) == 1 and res[0] == '*') else res)
-      self.expanded = expanded
+    self.expanded = expanded
 
   def get_next(self, ret_type=float):
     expanded = self.expanded[:]
@@ -165,7 +165,12 @@ class croniter:
 
 if __name__ == '__main__':
   base = datetime(2010, 1, 25)
-  itr = dateiter('0 0 1 * 3', base)
+  itr = croniter('0 0 * * sun,mon', base)
+  print itr.get_next(datetime)
+  print itr.get_next(datetime)
+  
+  base = datetime(2010, 1, 25)
+  itr = croniter('0 0 1 * 3', base)
   n1 = itr.get_next(datetime)
   n2 = itr.get_next(datetime)
   print n1
@@ -173,24 +178,24 @@ if __name__ == '__main__':
   print "#" * 10
   
   base = datetime(2010, 1, 25)
-  itr = dateiter('0 0 1 * 3', base)
+  itr = croniter('0 0 1 * 3', base)
   n1 = itr.get_next(datetime)
   n2 = itr.get_next(datetime)
   
   base = datetime(2010, 2, 24, 12, 9)
-  itr = dateiter('0 0 */3 * *', base)
+  itr = croniter('0 0 */3 * *', base)
   n1 = itr.get_next(datetime)
   n2 = itr.get_next(datetime)
   print n1
   print n2
   base = datetime(1997, 2, 27)
-  itr = dateiter('0 0 * * *', base)
+  itr = croniter('0 0 * * *', base)
   n1 = itr.get_next(datetime)
   n2 = itr.get_next(datetime)
   print n1
   print n2
   base2 = datetime(2000, 2, 27)
-  itr2 = dateiter('0 0 * * *', base2)
+  itr2 = croniter('0 0 * * *', base2)
   n3 = itr2.get_next(datetime)
   print n3
   n4 = itr2.get_next(datetime)

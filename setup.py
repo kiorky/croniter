@@ -28,7 +28,7 @@ if __name__ == '__main__':
     long_description = croniter.__doc__,
     author           = __author__,
     author_email     = 'taichino@gmail.com',
-    url              = 'http://github.com/taichino/jcconv',
+    url              = 'http://github.com/taichino/croniter',
     keywords         = 'datetime, iterator, cron',
     license          = __license__,
     classifiers      = ["Development Status :: 3 - Alpha",
