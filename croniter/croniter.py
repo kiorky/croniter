@@ -142,6 +142,8 @@ class croniter:
           if diff_sec > 0:
             dst += relativedelta(seconds = diff_sec)            
             continue
+      else:
+        dst += relativedelta(second = 0)
       return time.mktime(dst.timetuple())
     raise "failed to find next date"
         
