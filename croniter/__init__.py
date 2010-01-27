@@ -14,7 +14,7 @@
     >>> iter = croniter('2 4 * * mon,fri', base)  # 04:02 on every Monday and Friday
     >>> print iter.get_next(datetime)   # 2010-01-26 04:02:00
     >>> print iter.get_next(datetime)   # 2010-01-30 04:02:00
-    >>> print iter.get_next(datetime)   # 2010-01-25 05:00:00
+    >>> print iter.get_next(datetime)   # 2010-02-02 04:02:00
 
     All you need to know is constructor and get_next, these signature are following.
 
@@ -32,7 +32,7 @@
 """
 
 __author__  = "Matsumoto Taichi (taichino@gmail.com)"
-__version__ = "0.1.3"
+__version__ = "0.1.5"
 __license__ = "MIT License"
 
 from croniter import croniter
