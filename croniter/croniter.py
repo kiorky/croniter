@@ -23,9 +23,9 @@ class croniter:
     { },
     { },
     { },
-    { 'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5,  'jun':6,
+    { 'jan':1, 'feb':2, 'mar':3, 'apr':4,  'may':5,  'jun':6,
       'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12 },
-    { 'sun':0, 'mon':1, 'tue':2, 'wed':3, 'thu':4, 'fri':5, 'sat':6 },
+    { 'mon':0, 'tue':1, 'wed':2, 'thu':3, 'fri':4, 'sat':5, 'sun':6 },
     {  }
   )
 
@@ -59,7 +59,7 @@ class croniter:
             low = self.ALPHACONV[i][low.lower()]
           if not re.search(r'^\d+', high):
             high = self.ALPHACONV[i][high.lower()]
-          if not low or not high or low > high or not re.search(r'^\d+$', str(step)):
+          if not low or not high or int(low) > int(high) or not re.search(r'^\d+$', str(step)):
             raise ValueError("[%s] is not acceptable" % expr_format)
           for j in range(int(low), int(high)+1):
             if j % int(step) == 0:
@@ -202,4 +202,23 @@ if __name__ == '__main__':
   print n3
   n4 = itr2.get_next(datetime)
   print n4
+
+  base3 = datetime(2010, 8, 8, 14, 2)
+  itr3 = croniter('5-15 * * * *', base3)
+  for i in range(20):
+    print itr3.get_next(datetime)
+
+  print "#" * 10
+  base = datetime(2010, 8, 1, 0, 0)
+  itr4 = croniter('0 9 * * mon,tue,wed,thu,fri', base)
+  for i in range(10):
+    print itr4.get_next(datetime)
+
+  base = datetime(2010, 1, 25)
+  itr = croniter('0 0 1 * *', base)
+  n1 = itr.get_next(datetime)
+  print n1
+
+  base = datetime(2100, 1, 1)   # accept only 1970 ~ 2038
+  itr = croniter('0 0 1 * *', base)
 

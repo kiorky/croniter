@@ -99,7 +99,7 @@ class CroniterTest(unittest.TestCase):
 
   def testMonth(self):
     base = datetime(2010, 1, 25)
-    itr = croniter('0 0 1 * *')
+    itr = croniter('0 0 1 * *', base)
     n1 = itr.get_next(datetime)
     self.assertEqual(n1.month, 2)
     self.assertEqual(n1.day, 1)
@@ -116,8 +116,6 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n4.year, 2011)
 
   def testError(self):
-    base = datetime(2100, 1, 1)   # accept only 1970 ~ 2038
-    self.assertRaises(OverflowError, croniter, '* * * * *', base)
     base = datetime(2010, 1, 25)
     itr = croniter('* * * * *')
     self.assertRaises(TypeError, itr.get_next, str)
