@@ -80,84 +80,118 @@ class croniter:
     self.expanded = expanded
 
   def get_next(self, ret_type=float):
+    return self._get_next(ret_type, is_prev=False)
+
+  def get_prev(self, ret_type=float):
+    return self._get_next(ret_type, is_prev=True)
+
+  def _get_next(self, ret_type=float, is_prev=False):
     expanded = self.expanded[:]
     if ret_type not in [float, datetime]:
       raise TypeError("invalid ret_type, only 'float' or 'datetime' is acceptable")
+
     if expanded[2][0] != '*' and expanded[4][0] != '*':
       bak = expanded[4]
       expanded[4] = ['*']
-      t1 = self._calc_time(self.cur, expanded)
+      t1 = self._calc(self.cur, expanded, is_prev)
       expanded[4] = bak
       expanded[2] = ['*']
-      t2 = self._calc_time(self.cur, expanded)
-      result = t1 if t1 < t2 else t2
+      t2 = self._calc(self.cur, expanded, is_prev)
+      if not is_prev:
+        result = t1 if t1 < t2 else t2
+      else:
+        result = t1 if t1 > t2 else t2
     else:
-      result = self._calc_time(self.cur, expanded)
+      result = self._calc(self.cur, expanded, is_prev)
     self.cur = result
     if ret_type == datetime:
       result = datetime.fromtimestamp(result)
     return result
+  
+  def _calc(self, now, expanded, is_prev):
+    nearest_method      = self._get_prev_nearest      if is_prev else self._get_next_nearest
+    nearest_diff_method = self._get_prev_nearest_diff if is_prev else self._get_next_nearest_diff
 
-  def _calc_time(self, now, expanded):
+    sign = -1 if is_prev else 1
     offset = len(expanded) == 6 and 1 or 60
-    dst = now = datetime.fromtimestamp(now + offset)
-    while dst.year <= now.year + 1:
+    dst = now = datetime.fromtimestamp(now + sign * offset)
+    while abs(dst.year - now.year) <= 1:
       # check month
       if expanded[3][0] != '*':
-        diff_month = self._get_nearest_diff(dst.month, expanded[3], 12)
-        if diff_month > 0:
-          dst += relativedelta(months=diff_month, day=1, hour=0, minute=0, second=0)
+        diff_month = nearest_diff_method(dst.month, expanded[3], 12)
+        days = self.DAYS[dst.month - 1]
+        if dst.month == 2 and self.is_leap(dst.year) == True:
+          days += 1
+        reset_day = days if is_prev else 1
+        if diff_month != None and diff_month != 0:
+          dst += relativedelta(months=diff_month, day=reset_day, hour=0, minute=0, second=0)
           continue
       # check day of month
       if expanded[2][0] != '*':
         days = self.DAYS[dst.month - 1]
         if dst.month == 2 and self.is_leap(dst.year) == True:
           days += 1
-        diff_day = self._get_nearest_diff(dst.day, expanded[2], days)
-        if diff_day > 0:
+        diff_day = nearest_diff_method(dst.day, expanded[2], days)
+        if diff_day != None and diff_day != 0:
           dst += relativedelta(days=diff_day, hour=0, minute=0, second=0)
           continue
       # check day of week
       if expanded[4][0] != '*':
-        dst_day_of_week = self._get_nearest(dst.weekday(), expanded[4]) or expanded[4][0]
-        if dst_day_of_week != dst.weekday():
-          dst += relativedelta(weekday=dst_day_of_week, hour=0, minute=0, second=0)
+        diff_day_of_week = nearest_diff_method(dst.weekday(), expanded[4], 7)
+        if diff_day_of_week != None and diff_day_of_week != 0:
+          dst += relativedelta(days=diff_day_of_week, hour=0, minute=0, second=0)
           continue
       # check hour
       if expanded[1][0] != '*':
-        diff_hour = self._get_nearest_diff(dst.hour, expanded[1], 24)
-        if diff_hour > 0:
+        diff_hour = nearest_diff_method(dst.hour, expanded[1], 24)
+        if diff_hour != None and diff_hour != 0:
           dst += relativedelta(hours = diff_hour, minute=0, second=0)
           continue
       # check minute
       if expanded[0][0] != '*':
-        diff_min = self._get_nearest_diff(dst.minute, expanded[0], 60)
-        if diff_min > 0:
+        diff_min = nearest_diff_method(dst.minute, expanded[0], 60)
+        if diff_min != None and diff_min != 0:
           dst += relativedelta(minutes = diff_min, second=0)
           continue
       # check second
       if len(expanded) == 6:
         if expanded[5][0] != '*':
-          diff_sec = self._get_nearest_diff(dst.second, expanded[5], 60)
-          if diff_sec > 0:
+          diff_sec = nearest_diff_method(dst.second, expanded[5], 60)
+          if diff_sec != None and diff_sec != 0:
             dst += relativedelta(seconds = diff_sec)            
             continue
       else:
         dst += relativedelta(second = 0)
       return time.mktime(dst.timetuple())
-    raise "failed to find next date"
-        
-  def _get_nearest(self, x, to_check):
-    for i, d in enumerate(to_check):
-      if d >= x:
-        return d
-    return None
+    raise "failed to find prev date"
 
-  def _get_nearest_diff(self, x, to_check, range_val):
+  def _get_next_nearest(self, x, to_check):
+    small = [item for item in to_check if item < x]
+    large = [item for item in to_check if item >= x]
+    large.extend(small)
+    return large[0]
+
+  def _get_prev_nearest(self, x, to_check):
+    small = [item for item in to_check if item <= x]
+    large = [item for item in to_check if item > x]
+    small.reverse()
+    large.reverse()
+    small.extend(large)
+    return small[0]
+
+  def _get_next_nearest_diff(self, x, to_check, range_val):
     for i, d in enumerate(to_check):
       if d >= x:
         return d - x
     return to_check[0] - x + range_val
+
+  def _get_prev_nearest_diff(self, x, to_check, range_val):
+    candidates = to_check[:]
+    candidates.reverse()
+    for d in candidates:
+      if d <= x:
+        return d - x
+    return (candidates[0]) - x - range_val
 
   def is_leap(self, year):
     if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):
@@ -219,6 +253,19 @@ if __name__ == '__main__':
   n1 = itr.get_next(datetime)
   print n1
 
-  base = datetime(2100, 1, 1)   # accept only 1970 ~ 2038
+  print '#' * 30
+  base = datetime(2010, 8, 25)
+  itr = croniter('0 0 * * *', base)
+  print itr.get_prev(datetime)
+  for i in range(10):
+    print itr.get_prev(datetime)
+  print '#' * 30    
+  base = datetime(2010, 8, 25)
   itr = croniter('0 0 1 * *', base)
+  print itr.get_prev(datetime)
+  print itr.get_prev(datetime)
+  print itr.get_prev(datetime)
 
+  base = datetime(2010, 8, 25, 15, 56)
+  itr = croniter('0 0 * * sat,sun', base)
+  print itr.get_prev(datetime)

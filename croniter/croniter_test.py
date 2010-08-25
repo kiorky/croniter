@@ -122,7 +122,58 @@ class CroniterTest(unittest.TestCase):
     self.assertRaises(ValueError, croniter, '* * * *')
     self.assertRaises(ValueError, croniter, '* * 5-1 * *')
     self.assertRaises(KeyError, croniter, '* * * janu-jun *')
-    
+
+  def testPrevMinute(self):
+    base = datetime(2010, 8, 25, 15, 56)
+    itr = croniter('*/1 * * * *', base)
+    prev = itr.get_prev(datetime)
+    self.assertEqual(base.year,   prev.year)
+    self.assertEqual(base.month,  prev.month)
+    self.assertEqual(base.day,    prev.day)
+    self.assertEqual(base.hour,   prev.hour)
+    self.assertEqual(base.minute, prev.minute+1)
+
+    base = datetime(2010, 8, 25, 15, 0)
+    itr = croniter('*/1 * * * *', base)
+    prev = itr.get_prev(datetime)
+    self.assertEqual(base.year,   prev.year)
+    self.assertEqual(base.month,  prev.month)
+    self.assertEqual(base.day,    prev.day)
+    self.assertEqual(base.hour,   prev.hour+1)
+    self.assertEqual(59, prev.minute)
+
+    base = datetime(2010, 8, 25, 0, 0)
+    itr = croniter('*/1 * * * *', base)
+    prev = itr.get_prev(datetime)
+    self.assertEqual(base.year,   prev.year)
+    self.assertEqual(base.month,  prev.month)
+    self.assertEqual(base.day,    prev.day+1)
+    self.assertEqual(23, prev.hour)
+    self.assertEqual(59, prev.minute)
+
+  def testPrevWeekDay(self):
+    base = datetime(2010, 8, 25, 15, 56)
+    itr = croniter('0 0 * * sat,sun', base)
+    prev1 = itr.get_prev(datetime)
+    self.assertEqual(prev1.year, base.year)
+    self.assertEqual(prev1.month, base.month)
+    self.assertEqual(prev1.day, 22)
+    self.assertEqual(prev1.hour, 0)
+    self.assertEqual(prev1.minute, 0)
+
+    prev2 = itr.get_prev(datetime)
+    self.assertEqual(prev2.year, base.year)
+    self.assertEqual(prev2.month, base.month)
+    self.assertEqual(prev2.day, 21)
+    self.assertEqual(prev2.hour, 0)
+    self.assertEqual(prev2.minute, 0)
+
+    prev3 = itr.get_prev(datetime)
+    self.assertEqual(prev3.year, base.year)
+    self.assertEqual(prev3.month, base.month)
+    self.assertEqual(prev3.day, 15)
+    self.assertEqual(prev3.hour, 0)
+    self.assertEqual(prev3.minute, 0)
         
 if __name__ == '__main__':
   unittest.main()

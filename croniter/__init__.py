@@ -28,11 +28,18 @@
     
     get_next return next time in iteration with 'ret_type'.
     And ret_type accept only 'float' or 'datetime'.
+
+    Now, supported get_prev method. (>= 0.2.0)
     
+    >>> base = datetime(2010, 8, 25)
+    >>> itr = croniter('0 0 1 * *', base)
+    >>> print itr.get_prev(datetime)  # 2010-08-01 00:00:00
+    >>> print itr.get_prev(datetime)  # 2010-07-01 00:00:00
+    >>> print itr.get_prev(datetime)  # 2010-06-01 00:00:00
 """
 
 __author__  = "Matsumoto Taichi"
-__version__ = "0.1.6"
+__version__ = "0.2.0"
 __license__ = "MIT License"
 
 from croniter import croniter
