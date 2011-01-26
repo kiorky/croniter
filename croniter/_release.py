@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __author__  = "Matsumoto Taichi"
-__version__ = "0.2.1"
+__version__ = "0.2.3"
 __license__ = "MIT License"
 __doc__ = """
     Simple example of usage is followings

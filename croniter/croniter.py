@@ -25,7 +25,8 @@ class croniter:
     { },
     { 'jan':1, 'feb':2, 'mar':3, 'apr':4,  'may':5,  'jun':6,
       'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12 },
-    { 'mon':0, 'tue':1, 'wed':2, 'thu':3, 'fri':4, 'sat':5, 'sun':6 },
+#    { 'mon':0, 'tue':1, 'wed':2, 'thu':3, 'fri':4, 'sat':5, 'sun':6 },
+    { 'sun':0, 'mon':1, 'tue':2, 'wed':3, 'thu':4, 'fri':5, 'sat':6 },
     {  }
   )
 
@@ -137,7 +138,7 @@ class croniter:
           continue
       # check day of week
       if expanded[4][0] != '*':
-        diff_day_of_week = nearest_diff_method(dst.weekday(), expanded[4], 7)
+        diff_day_of_week = nearest_diff_method(dst.isoweekday() % 7, expanded[4], 7)
         if diff_day_of_week != None and diff_day_of_week != 0:
           dst += relativedelta(days=diff_day_of_week, hour=0, minute=0, second=0)
           continue
