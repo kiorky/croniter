@@ -178,6 +178,12 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(prev3.day, 15)
     self.assertEqual(prev3.hour, 0)
     self.assertEqual(prev3.minute, 0)
-        
+
+  def testISOWeekday(self):
+    base = datetime(2010, 2, 25)
+    itr = croniter('0 0 * * 7', base)
+    n1 = itr.get_next(datetime)
+    self.assertEqual(n1.isoweekday(), 7)
+    
 if __name__ == '__main__':
   unittest.main()
