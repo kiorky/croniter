@@ -184,6 +184,11 @@ class CroniterTest(unittest.TestCase):
     itr = croniter('0 0 * * 7', base)
     n1 = itr.get_next(datetime)
     self.assertEqual(n1.isoweekday(), 7)
+    self.assertEqual(n1.day, 28)
+    n2 = itr.get_next(datetime)
+    self.assertEqual(n2.isoweekday(), 7)
+    self.assertEqual(n2.day, 7)
+    self.assertEqual(n2.month, 3)    
     
 if __name__ == '__main__':
   unittest.main()
