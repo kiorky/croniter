@@ -193,21 +193,30 @@ class croniter(object):
                 diff_day_of_week = nearest_diff_method(dst.isoweekday() % 7, expanded[4], 7)
 
                 if diff_day_of_week != None and diff_day_of_week != 0:
-                    dst += relativedelta(days=diff_day_of_week, hour=0, minute=0, second=0)
+                    if is_prev:
+                        dst += relativedelta(days=diff_day_of_week, hour=23, minute=59, second=59)
+                    else:
+                        dst += relativedelta(days=diff_day_of_week, hour=0, minute=0, second=0)
                     continue
 
             # check hour
             if expanded[1][0] != '*':
                 diff_hour = nearest_diff_method(dst.hour, expanded[1], 24)
                 if diff_hour != None and diff_hour != 0:
-                    dst += relativedelta(hours = diff_hour, minute=0, second=0)
+                    if is_prev:
+                        dst += relativedelta(hours = diff_hour, minute=59, second=59)
+                    else:
+                        dst += relativedelta(hours = diff_hour, minute=0, second=0)
                     continue
 
             # check minute
             if expanded[0][0] != '*':
                 diff_min = nearest_diff_method(dst.minute, expanded[0], 60)
                 if diff_min != None and diff_min != 0:
-                    dst += relativedelta(minutes = diff_min, second=0)
+                    if is_prev:
+                        dst += relativedelta(minutes = diff_min, second=59)
+                    else:
+                        dst += relativedelta(minutes = diff_min, second=0)
                     continue
 
             # check second
@@ -327,4 +336,8 @@ if __name__ == '__main__':
 
     base = datetime(2010, 8, 25, 15, 56)
     itr = croniter('0 0 * * sat,sun', base)
+    print itr.get_prev(datetime)
+
+    base = datetime(2010, 8, 25, 15, 56)
+    itr = croniter('10 0 * * 0', base)
     print itr.get_prev(datetime)
