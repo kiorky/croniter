@@ -198,6 +198,14 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n2.day, 7)
     self.assertEqual(n2.month, 3)
 
+  def testBug1(self):
+    base = datetime(2012, 2, 24)
+    itr = croniter('5 0 */2 * *', base)
+    n1 = itr.get_prev(datetime)
+    self.assertEqual(n1.day, 22)
+    self.assertEqual(n1.hour, 0)
+    self.assertEqual(n1.minute, 5)
+    
     
 if __name__ == '__main__':
   unittest.main()
