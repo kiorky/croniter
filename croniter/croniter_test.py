@@ -178,7 +178,7 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(prev3.hour, 0)
     self.assertEqual(prev3.minute, 0)
 
-  def testPrevWeekDay(self):
+  def testPrevWeekDay2(self):
     base = datetime(2010, 8, 25, 15, 56)
     itr = croniter('10 0 * * 0', base)
     prev = itr.get_prev(datetime)
