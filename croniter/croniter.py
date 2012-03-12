@@ -230,7 +230,7 @@ class croniter(object):
                 if expanded[5][0] != '*':
                     diff_sec = nearest_diff_method(d.second, expanded[5], 60)
                     if diff_sec != None and diff_sec != 0:
-                        dst += relativedelta(seconds = diff_sec)                        
+                        d += relativedelta(seconds = diff_sec)                        
                         return True, d
             else:
                 d += relativedelta(second = 0)
