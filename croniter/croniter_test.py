@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import time
-from datetime import datetime, date
+from datetime import datetime
 from croniter import croniter
 
 class CroniterTest(unittest.TestCase):
