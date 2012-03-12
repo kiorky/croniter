@@ -145,11 +145,9 @@ class croniter(object):
     
     def _calc(self, now, expanded, is_prev):
         if is_prev:
-            nearest_method = self._get_prev_nearest
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
         else:
-            nearest_method = self._get_next_nearest
             nearest_diff_method = self._get_next_nearest_diff
             sign = 1
             

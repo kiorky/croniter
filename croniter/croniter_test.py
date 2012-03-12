@@ -119,7 +119,6 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n4.year, 2011)
 
   def testError(self):
-    base = datetime(2010, 1, 25)
     itr = croniter('* * * * *')
     self.assertRaises(TypeError, itr.get_next, str)
     self.assertRaises(ValueError, croniter, '* * * *')
