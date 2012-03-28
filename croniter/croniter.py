@@ -31,13 +31,13 @@ class croniter(object):
         { },
         { },
         { },
-        { 'jan':1, 'feb':2, 'mar':3, 'apr':4,  'may':5,  'jun':6,
+        { 'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6,
           'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12 },
         { 'sun':0, 'mon':1, 'tue':2, 'wed':3, 'thu':4, 'fri':5, 'sat':6 },
         { }
     )
 
-    LOWMAP = ( 
+    LOWMAP = (
         {},
         {},
         {0: 1},
@@ -162,7 +162,7 @@ class croniter(object):
 
         def proc_month(d):
             if expanded[3][0] != '*':
-                diff_month = nearest_diff_method(month, expanded[3], 12)
+                diff_month = nearest_diff_method(d.month, expanded[3], 12)
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) == True:
                     days += 1
@@ -232,7 +232,7 @@ class croniter(object):
                 if expanded[5][0] != '*':
                     diff_sec = nearest_diff_method(d.second, expanded[5], 60)
                     if diff_sec != None and diff_sec != 0:
-                        dst += relativedelta(seconds = diff_sec)                        
+                        dst += relativedelta(seconds = diff_sec)
                         return True, d
             else:
                 d += relativedelta(second = 0)
@@ -243,7 +243,7 @@ class croniter(object):
                      proc_minute,
                      proc_hour,
                      proc_day_of_week,
-                     proc_day_of_month,                     
+                     proc_day_of_month,
                      proc_month]
         else:
             procs = [proc_month,
