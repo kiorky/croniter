@@ -214,6 +214,31 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n1.day, 22)
     self.assertEqual(n1.hour, 0)
     self.assertEqual(n1.minute, 5)
+
+  def testBug2(self):
+    base = datetime(2012, 01, 01, 00, 00)
+    iter = croniter('0 * * 3 *', base)
+    n1 = iter.get_next(datetime)
+    self.assertEqual(n1.year, base.year)
+    self.assertEqual(n1.month, 3)
+    self.assertEqual(n1.day, base.day)
+    self.assertEqual(n1.hour, base.hour)
+    self.assertEqual(n1.minute, base.minute)
+
+    n2 = iter.get_next(datetime)
+    self.assertEqual(n2.year, base.year)
+    self.assertEqual(n2.month, 3)
+    self.assertEqual(n2.day, base.day)
+    self.assertEqual(n2.hour, base.hour + 1)
+    self.assertEqual(n2.minute, base.minute)
+
+    n3 = iter.get_next(datetime)
+    self.assertEqual(n3.year, base.year)
+    self.assertEqual(n3.month, 3)
+    self.assertEqual(n3.day, base.day)
+    self.assertEqual(n3.hour, base.hour + 2)
+    self.assertEqual(n3.minute, base.minute)
+    
     
     
 if __name__ == '__main__':
