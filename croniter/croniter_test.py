@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import time
-from datetime import datetime, date
+from datetime import datetime
 from croniter import croniter
 
 class CroniterTest(unittest.TestCase):
@@ -120,7 +119,6 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n4.year, 2011)
 
   def testError(self):
-    base = datetime(2010, 1, 25)
     itr = croniter('* * * * *')
     self.assertRaises(TypeError, itr.get_next, str)
     self.assertRaises(ValueError, croniter, '* * * *')
@@ -179,7 +177,7 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(prev3.hour, 0)
     self.assertEqual(prev3.minute, 0)
 
-  def testPrevWeekDay(self):
+  def testPrevWeekDay2(self):
     base = datetime(2010, 8, 25, 15, 56)
     itr = croniter('10 0 * * 0', base)
     prev = itr.get_prev(datetime)

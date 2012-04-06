@@ -3,7 +3,7 @@
 
 import re
 from time import time, mktime
-from datetime import datetime, date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
@@ -145,11 +145,9 @@ class croniter(object):
     
     def _calc(self, now, expanded, is_prev):
         if is_prev:
-            nearest_method = self._get_prev_nearest
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
         else:
-            nearest_method = self._get_next_nearest
             nearest_diff_method = self._get_next_nearest_diff
             sign = 1
             
@@ -232,7 +230,7 @@ class croniter(object):
                 if expanded[5][0] != '*':
                     diff_sec = nearest_diff_method(d.second, expanded[5], 60)
                     if diff_sec != None and diff_sec != 0:
-                        dst += relativedelta(seconds = diff_sec)                        
+                        d += relativedelta(seconds = diff_sec)                        
                         return True, d
             else:
                 d += relativedelta(second = 0)
