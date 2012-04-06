@@ -16,7 +16,7 @@ setup(
     keywords         = 'datetime, iterator, cron',
     install_requires = ["python-dateutil", "setuptools",],
     license          = __license__,
-    classifiers      = ["Development Status :: 3 - Alpha",
+    classifiers      = ["Development Status :: 4 - Beta",
                         "Intended Audience :: Developers",
                         "License :: OSI Approved :: MIT License",
                         "Operating System :: POSIX",
