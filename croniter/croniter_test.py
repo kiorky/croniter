@@ -164,6 +164,17 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(23, prev.hour)
     self.assertEqual(59, prev.minute)
 
+  def testPrevDayOfMonthWithCrossing(self):
+    """Test getting previous occurrence that crosses into previous month."""
+    base = datetime(2012, 3, 15, 0, 0)
+    itr = croniter('0 0 22 * *', base)
+    prev = itr.get_prev(datetime)
+    self.assertEqual(prev.year, 2012)
+    self.assertEqual(prev.month, 2)
+    self.assertEqual(prev.day, 22)
+    self.assertEqual(prev.hour, 0)
+    self.assertEqual(prev.minute, 0)
+
   def testPrevWeekDay(self):
     base = datetime(2010, 8, 25, 15, 56)
     itr = croniter('0 0 * * sat,sun', base)

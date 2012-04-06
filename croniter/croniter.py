@@ -15,6 +15,7 @@ __all__ = ('croniter',)
 
 
 class croniter(object):
+    MONTHS_IN_YEAR = 12
     RANGES = (
         (0, 59),
         (0, 23),
@@ -160,7 +161,7 @@ class croniter(object):
 
         def proc_month(d):
             if expanded[3][0] != '*':
-                diff_month = nearest_diff_method(d.month, expanded[3], 12)
+                diff_month = nearest_diff_method(d.month, expanded[3], self.MONTHS_IN_YEAR)
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) == True:
                     days += 1
@@ -182,7 +183,11 @@ class croniter(object):
                 if month == 2 and self.is_leap(year) == True:
                     days += 1
 
-                diff_day = nearest_diff_method(d.day, expanded[2], days)
+                if is_prev:
+                    days_in_prev_month = DAYS[(month - 2) % self.MONTHS_IN_YEAR]
+                    diff_day = nearest_diff_method(d.day, expanded[2], days_in_prev_month)
+                else:
+                    diff_day = nearest_diff_method(d.day, expanded[2], days)
 
                 if diff_day != None and diff_day != 0:
                     if is_prev:
