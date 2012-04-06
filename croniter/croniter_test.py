@@ -6,6 +6,17 @@ from datetime import datetime
 from croniter import croniter
 
 class CroniterTest(unittest.TestCase):
+  def testSecond(self):
+    base = datetime(2012, 4, 6, 13, 26, 10)
+    itr = croniter('*/1 * * * * *', base)
+    n1 = itr.get_next(datetime)    
+    self.assertEqual(base.year,   n1.year)
+    self.assertEqual(base.month,  n1.month)
+    self.assertEqual(base.day,    n1.day)
+    self.assertEqual(base.hour,   n1.hour)
+    self.assertEqual(base.minute, n1.minute)
+    self.assertEqual(base.second + 1, n1.second)    
+  
   def testMinute(self):
     # minute asterisk
     base = datetime(2010, 1, 23, 12, 18)
