@@ -505,7 +505,8 @@ class CroniterTest(base.TestCase):
         itr = croniter('* * * * *')
         sleep(.01)
         itr2 = croniter('* * * * *')
-        self.assertGreater(itr2.cur, itr.cur)
+        # Greater dosnt exists in py26
+        self.assertTrue(itr2.cur > itr.cur)
 
     def assertScheduleTimezone(self, callback, expected_schedule):
         for expected_date, expected_offset in expected_schedule:
