@@ -394,8 +394,8 @@ class CroniterTest(base.TestCase):
         itr = croniter('* * 31 2 *', base)
         try:
             itr.get_next(datetime)
-        except CroniterBadDateError, ex:
-            self.assertEqual(ex.message,
+        except (CroniterBadDateError,) as ex:
+            self.assertEqual("{0}".format(ex),
                              'failed to find next date')
 
     def testBug57(self):
@@ -512,7 +512,8 @@ class CroniterTest(base.TestCase):
         for expected_date, expected_offset in expected_schedule:
             d = callback()
             self.assertEqual(expected_date, d.replace(tzinfo=None))
-            self.assertEqual(expected_offset, croniter._timedelta_to_seconds(d.utcoffset()))
+            self.assertEqual(expected_offset,
+                             croniter._timedelta_to_seconds(d.utcoffset()))
 
     def testTimezoneWinterTime(self):
         tz = pytz.timezone('Europe/Athens')
