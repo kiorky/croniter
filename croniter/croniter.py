@@ -308,4 +308,4 @@ if __name__ == '__main__':
     base = datetime(2010, 1, 25)
     itr = croniter('0 0 1 * *', base)
     n1 = itr.get_next(datetime)
-    print n1
+    print(n1)

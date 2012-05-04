@@ -210,4 +210,4 @@ class CroniterTest(timerTest):
 if __name__ == '__main__':
     from timeit import Timer
     t = Timer('c=CroniterTest();c.run()', 'from __main__ import CroniterTest')
-    print t.timeit(200)
+    print(t.timeit(200))
