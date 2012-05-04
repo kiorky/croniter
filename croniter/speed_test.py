@@ -3,7 +3,7 @@
 
 import time
 from datetime import datetime, date
-from croniter import croniter
+from .croniter import croniter
 
 class timerTest(object):
     def __init__(self):

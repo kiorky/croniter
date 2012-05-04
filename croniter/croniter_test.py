@@ -3,7 +3,7 @@
 
 import unittest
 from datetime import datetime
-from croniter import croniter
+from .croniter import croniter
 
 class CroniterTest(unittest.TestCase):
   def testSecond(self):

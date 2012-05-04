@@ -85,10 +85,14 @@ class croniter(object):
                     if (not low or not high or int(low) > int(high)
                         or not only_int_re.search(str(step))):
                         raise ValueError("[%s] is not acceptable" %expr_format)
-
-                    for j in xrange(int(low), int(high)+1):
-                        if j % int(step) == 0:
-                            e_list.append(j)
+                    try: 
+                        for j in xrange(int(low), int(high)+1):
+                            if j % int(step) == 0:
+                                e_list.append(j)
+                    except NameError:
+                        for j in range(int(low), int(high)+1):
+                            if j % int(step) == 0:
+                                e_list.append(j)
                 else:
                     if not star_or_int_re.search(t):
                         t = self.ALPHACONV[i][t.lower()]
@@ -267,7 +271,7 @@ class croniter(object):
                 continue
             return mktime(dst.timetuple())
 
-        raise "failed to find prev date"
+        raise Exception("failed to find prev date")
 
     def _get_next_nearest(self, x, to_check):
         small = [item for item in to_check if item < x]
