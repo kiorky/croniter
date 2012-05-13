@@ -249,8 +249,46 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n3.day, base.day)
     self.assertEqual(n3.hour, base.hour + 2)
     self.assertEqual(n3.minute, base.minute)
-    
-    
+
+  def testPreviousHour(self):
+    base = datetime(2012, 6, 23, 17, 41)
+    itr = croniter('* 10 * * *', base)
+    prev1 = itr.get_prev(datetime)
+    self.assertEqual(prev1.year, base.year)
+    self.assertEqual(prev1.month, base.month)
+    self.assertEqual(prev1.day, base.day)
+    self.assertEqual(prev1.hour, 10)
+    self.assertEqual(prev1.minute, 59)
+
+  def testPreviousDay(self):
+    base = datetime(2012, 6, 27, 00, 15)
+    itr = croniter('* * 26 * *', base)
+    prev1 = itr.get_prev(datetime)
+    self.assertEqual(prev1.year, base.year)
+    self.assertEqual(prev1.month, base.month)
+    self.assertEqual(prev1.day, 26)
+    self.assertEqual(prev1.hour, 23)
+    self.assertEqual(prev1.minute, 59)
+
+  def testPreviousMonth(self):
+    base = datetime(2012, 6, 18, 00, 15)
+    itr = croniter('* * * 5 *', base)
+    prev1 = itr.get_prev(datetime)
+    self.assertEqual(prev1.year, base.year)
+    self.assertEqual(prev1.month, 5)
+    self.assertEqual(prev1.day, 31)
+    self.assertEqual(prev1.hour, 23)
+    self.assertEqual(prev1.minute, 59)
+
+  def testPreviousDow(self):
+    base = datetime(2012, 5, 13, 18, 48)
+    itr = croniter('* * * * sat', base)
+    prev1 = itr.get_prev(datetime)
+    self.assertEqual(prev1.year, base.year)
+    self.assertEqual(prev1.month, base.month)
+    self.assertEqual(prev1.day, 12)
+    self.assertEqual(prev1.hour, 23)
+    self.assertEqual(prev1.minute, 59)
     
 if __name__ == '__main__':
   unittest.main()

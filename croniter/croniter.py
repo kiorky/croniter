@@ -166,11 +166,13 @@ class croniter(object):
                 if month == 2 and self.is_leap(year) == True:
                     days += 1
 
-                reset_day = days if is_prev else 1
+                reset_day = 1
 
                 if diff_month != None and diff_month != 0:
                     if is_prev:
                         d += relativedelta(months=diff_month)
+                        reset_day = DAYS[d.month - 1]
+                        d += relativedelta(day=reset_day, hour=23, minute=59, second=59)
                     else:
                         d += relativedelta(months=diff_month, day=reset_day,
                                            hour=0, minute=0, second=0)
@@ -191,7 +193,7 @@ class croniter(object):
 
                 if diff_day != None and diff_day != 0:
                     if is_prev:
-                        d += relativedelta(days=diff_day)
+                        d += relativedelta(days=diff_day, hour=23, minute=59, second=59)
                     else:
                         d += relativedelta(days=diff_day, hour=0, minute=0, second=0)
                     return True, d
@@ -202,7 +204,7 @@ class croniter(object):
                 diff_day_of_week = nearest_diff_method(d.isoweekday() % 7, expanded[4], 7)
                 if diff_day_of_week != None and diff_day_of_week != 0:
                     if is_prev:
-                        d += relativedelta(days=diff_day_of_week)
+                        d += relativedelta(days=diff_day_of_week, hour=23, minute=59, second=59)
                     else:
                         d += relativedelta(days=diff_day_of_week, hour=0, minute=0, second=0)
                     return True, d
@@ -213,7 +215,7 @@ class croniter(object):
                 diff_hour = nearest_diff_method(d.hour, expanded[1], 24)
                 if diff_hour != None and diff_hour != 0:
                     if is_prev:
-                        d += relativedelta(hours = diff_hour)
+                        d += relativedelta(hours = diff_hour, minute=59, second=59)
                     else:
                         d += relativedelta(hours = diff_hour, minute=0, second=0)
                     return True, d
@@ -224,7 +226,7 @@ class croniter(object):
                 diff_min = nearest_diff_method(d.minute, expanded[0], 60)
                 if diff_min != None and diff_min != 0:
                     if is_prev:
-                        d += relativedelta(minutes = diff_min)
+                        d += relativedelta(minutes = diff_min, second=59)
                     else:
                         d += relativedelta(minutes = diff_min, second=0)
                     return True, d
