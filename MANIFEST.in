@@ -1,6 +1,7 @@
-include *.txt *.cfg *.rst
+include *.txt *.cfg *.rst *.ini
 
 recursive-include docs *
+recursive-include requirements *
 recursive-include src *
 
 global-exclude *pyc
