@@ -8,6 +8,12 @@ def read(*rnames):
         os.path.join('.', *rnames)
     ).read()
 
+install_requires = [
+    a.strip()
+    for a in read('requirements/base.txt').splitlines()
+    if a.strip() and not a.startswith(('#', '-'))
+]
+
 long_description = "\n\n".join(
     [
         read('README.rst'),
@@ -28,10 +34,7 @@ setup(
     author_email='taichino@gmail.com, kiorky@cryptelium.net',
     url='http://github.com/kiorky/croniter',
     keywords='datetime, iterator, cron',
-    install_requires=[
-        "python-dateutil",
-        "setuptools",
-    ],
+    install_requires=install_requires,
     license="MIT License",
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -45,9 +48,4 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    extras_require={
-        'test': [
-            "pytz",
-        ],
-    },
 )
