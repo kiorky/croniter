@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.13 (unreleased)
+0.3.13 (2016-11-01)
 -------------------
 
 - `Real fix for #34 <https://github.com/taichino/croniter/pull/73>`_
