@@ -3,7 +3,7 @@
 
 import re
 from time import time, mktime
-from datetime import datetime
+import datetime
 from dateutil.relativedelta import relativedelta
 
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
@@ -51,7 +51,7 @@ class croniter(object):
                  'expression.'
     
     def __init__(self, expr_format, start_time=time()):
-        if isinstance(start_time, datetime):
+        if isinstance(start_time, datetime.datetime):
             start_time = mktime(start_time.timetuple())
 
         self.cur = start_time
@@ -120,7 +120,7 @@ class croniter(object):
     def _get_next(self, ret_type=float, is_prev=False):
         expanded = self.expanded[:]
 
-        if ret_type not in (float, datetime):
+        if ret_type not in (float, datetime.datetime):
             raise TypeError("Invalid ret_type, only 'float' or 'datetime' " \
                             "is acceptable.")
 
@@ -140,8 +140,8 @@ class croniter(object):
             result = self._calc(self.cur, expanded, is_prev)
         self.cur = result
 
-        if ret_type == datetime:
-            result = datetime.fromtimestamp(result)
+        if ret_type == datetime.datetime:
+            result = datetime.datetime.fromtimestamp(result)
         return result
     
     def _calc(self, now, expanded, is_prev):
@@ -153,7 +153,7 @@ class croniter(object):
             sign = 1
             
         offset = len(expanded) == 6 and 1 or 60
-        dst = now = datetime.fromtimestamp(now + sign * offset)
+        dst = now = datetime.datetime.fromtimestamp(now + sign * offset)
 
         day, month, year = dst.day, dst.month, dst.year
         current_year = now.year
@@ -307,7 +307,7 @@ class croniter(object):
 
 if __name__ == '__main__':
 
-    base = datetime(2010, 1, 25)
+    base = datetime.datetime(2010, 1, 25)
     itr = croniter('0 0 1 * *', base)
-    n1 = itr.get_next(datetime)
+    n1 = itr.get_next(datetime.datetime)
     print n1
