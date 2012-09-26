@@ -117,6 +117,11 @@ class croniter(object):
     def get_prev(self, ret_type=float):
         return self._get_next(ret_type, is_prev=True)
 
+    def get_current(self, ret_type=float):
+        if ret_type == datetime.datetime:
+            return datetime.datetime.fromtimestamp(self.cur)
+        return self.cur
+
     def _get_next(self, ret_type=float, is_prev=False):
         expanded = self.expanded[:]
 

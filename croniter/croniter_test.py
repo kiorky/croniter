@@ -289,6 +289,17 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(prev1.day, 12)
     self.assertEqual(prev1.hour, 23)
     self.assertEqual(prev1.minute, 59)
+
+  def testGetCurrent(self):
+    base = datetime(2012, 9, 25, 11, 24)
+    itr = croniter('* * * * *', base)
+    res = itr.get_current(datetime)
+    self.assertEqual(base.year, res.year)
+    self.assertEqual(base.month, res.month)
+    self.assertEqual(base.day, res.day)
+    self.assertEqual(base.hour, res.hour)
+    self.assertEqual(base.minute, res.minute)
+    
     
 if __name__ == '__main__':
   unittest.main()
