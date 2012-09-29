@@ -1,9 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import unittest
 import time
 from datetime import datetime, date
 from croniter import croniter
+
+from croniter.tests import base
 
 class timerTest(object):
     def __init__(self):
@@ -12,7 +15,6 @@ class timerTest(object):
     def run(self):
         for test in self.tests:
             test()
-                
 
 class CroniterTest(timerTest):
     def testMinute(self):
@@ -205,8 +207,14 @@ class CroniterTest(timerTest):
         n2 = itr.get_next(datetime)
         n2.isoweekday() == 7
         n2.day == 7
-        n2.month == 3        
-        
+        n2.month == 3
+
+
+class TestCase(base.TestCase):
+    """make zope.testrunner happy"""
+    def test_Noop(self):
+        self.assertEqual(1,1)
+
 if __name__ == '__main__':
     from timeit import Timer
     t = Timer('c=CroniterTest();c.run()', 'from __main__ import CroniterTest')

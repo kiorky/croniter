@@ -1,8 +1,0 @@
-                          _ _
-      ___ _ __ ___  _ __ (_) |_ ___ _ __
-     / __| '__/ _ \| '_ \| | __/ _ \ '__|
-    | (__| | | (_) | | | | | ||  __/ |
-     \___|_|  \___/|_| |_|_|\__\___|_|
-
-croniter provides iteration for datetime object with cron like format.
-Website: https://github.com/taichino/croniter

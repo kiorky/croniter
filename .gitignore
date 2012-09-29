@@ -1,4 +1,13 @@
-*.pyc
+*app.pyc
+t/
+eggs
+\.*.cfg
+b.sh
+develop-eggs
+parts
+bin
+
+*minitage*
 *.egg-info
 *.pyc
 *.swp
