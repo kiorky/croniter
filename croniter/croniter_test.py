@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 import unittest
 from datetime import datetime
 from croniter import croniter
@@ -227,7 +228,7 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n1.minute, 5)
 
   def testBug2(self):
-    base = datetime(2012, 01, 01, 00, 00)
+    base = datetime(2012, 1, 1, 0, 0)
     iter = croniter('0 * * 3 *', base)
     n1 = iter.get_next(datetime)
     self.assertEqual(n1.year, base.year)

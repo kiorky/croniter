@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup
+
 __version__, __doc__, __license__, __author__ = None, None, None, None
 # get __version__, __doc__, __license__, __author__
-execfile("croniter/_release.py")
+
+exec(open("croniter/_release.py").read())
+
 setup(
     packages         = ('croniter',),
     name             = 'croniter',

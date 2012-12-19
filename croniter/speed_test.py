@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time
-from datetime import datetime, date
+from __future__ import absolute_import, print_function
+from datetime import datetime
 from croniter import croniter
 
 class timerTest(object):
@@ -210,4 +210,4 @@ class CroniterTest(timerTest):
 if __name__ == '__main__':
     from timeit import Timer
     t = Timer('c=CroniterTest();c.run()', 'from __main__ import CroniterTest')
-    print t.timeit(200)
+    print(t.timeit(200))
