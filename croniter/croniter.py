@@ -86,9 +86,8 @@ class croniter(object):
                         or not only_int_re.search(str(step))):
                         raise ValueError("[%s] is not acceptable" %expr_format)
 
-                    for j in xrange(int(low), int(high)+1):
-                        if j % int(step) == 0:
-                            e_list.append(j)
+                    for j in xrange(int(low), int(high)+1, int(step)):
+                        e_list.append(j)
                 else:
                     if not star_or_int_re.search(t):
                         t = self.ALPHACONV[i][t.lower()]
