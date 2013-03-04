@@ -63,9 +63,11 @@ class CroniterTest(unittest.TestCase):
     base = datetime(2010, 2, 24, 12, 9)
     itr = croniter('0 0 */3 * *', base)
     n1 = itr.get_next(datetime)
-    self.assertEqual(n1.day, 27)
+    self.assertEqual(n1.day, 25)
     n2 = itr.get_next(datetime)
-    self.assertEqual(n2.day, 3)
+    self.assertEqual(n2.day, 28)
+    n3 = itr.get_next(datetime)
+    self.assertEqual(n3.day, 1)
 
     # test leap year
     base = datetime(1996, 2, 27)
@@ -77,7 +79,7 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n2.day, 29)
     self.assertEqual(n2.month, 2)
 
-    base2 = datetime(2000, 2, 27)
+    base2 = datetime(2000, 2, 27, 0, 0)
     itr2 = croniter('0 0 * * *', base2)
     n3 = itr2.get_next(datetime)
     self.assertEqual(n3.day, 28)
@@ -220,10 +222,10 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n2.month, 3)
 
   def testBug1(self):
-    base = datetime(2012, 2, 24)
+    base = datetime(2012, 2, 24, 0, 0)
     itr = croniter('5 0 */2 * *', base)
     n1 = itr.get_prev(datetime)
-    self.assertEqual(n1.day, 22)
+    self.assertEqual(n1.day, 23)
     self.assertEqual(n1.hour, 0)
     self.assertEqual(n1.minute, 5)
 
