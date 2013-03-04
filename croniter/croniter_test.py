@@ -251,6 +251,20 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n3.hour, base.hour + 2)
     self.assertEqual(n3.minute, base.minute)
 
+  def test_rangeGenerator(self):
+    base = datetime(2013, 3, 4, 0, 0)
+    itr = croniter('1-9/2 0 1 * *', base)
+    n1 = itr.get_next(datetime)
+    n2 = itr.get_next(datetime)
+    n3 = itr.get_next(datetime)
+    n4 = itr.get_next(datetime)
+    n5 = itr.get_next(datetime)
+    self.assertEqual(n1.minute, 1)
+    self.assertEqual(n2.minute, 3)
+    self.assertEqual(n3.minute, 5)
+    self.assertEqual(n4.minute, 7)
+    self.assertEqual(n5.minute, 9)    
+
   def testPreviousHour(self):
     base = datetime(2012, 6, 23, 17, 41)
     itr = croniter('* 10 * * *', base)
