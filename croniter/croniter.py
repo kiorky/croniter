@@ -249,20 +249,12 @@ class croniter(object):
                 d += relativedelta(second = 0)
             return False, d
 
-        if is_prev:
-            procs = [proc_second,
-                     proc_minute,
-                     proc_hour,
-                     proc_day_of_week,
-                     proc_day_of_month,
-                     proc_month]
-        else:
-            procs = [proc_month,
-                     proc_day_of_month,
-                     proc_day_of_week,
-                     proc_hour,
-                     proc_minute,
-                     proc_second]
+        procs = [proc_month,
+                 proc_day_of_month,
+                 proc_day_of_week,
+                 proc_hour,
+                 proc_minute,
+                 proc_second]
 
         while abs(year - current_year) <= 1:
             next = False
@@ -303,7 +295,13 @@ class croniter(object):
         for d in candidates:
             if d <= x:
                 return d - x
-        return (candidates[0]) - x - range_val
+        candidate = candidates[0]
+        for c in candidates:
+            if c < range_val:
+                candidate = c
+                break
+                
+        return (candidate - x - range_val)
 
     def is_leap(self, year):
         if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):

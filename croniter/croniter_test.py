@@ -253,6 +253,35 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(n3.hour, base.hour + 2)
     self.assertEqual(n3.minute, base.minute)
 
+  def testBug3(self):
+    base = datetime(2013, 3, 1, 12, 17, 34, 257877)
+    c = croniter('00 03 16,30 * *', base)
+    
+    n1 = c.get_next(datetime)
+    self.assertEqual(n1.month, 3)
+    self.assertEqual(n1.day, 16)
+    
+    n2 = c.get_next(datetime)
+    self.assertEqual(n2.month, 3)
+    self.assertEqual(n2.day, 30)
+    
+    n3 = c.get_next(datetime)
+    self.assertEqual(n3.month, 4)
+    self.assertEqual(n3.day, 16)
+
+    n4 = c.get_prev(datetime)
+    self.assertEqual(n4.month, 3)
+    self.assertEqual(n4.day, 30)
+    
+    n5 = c.get_prev(datetime)
+    self.assertEqual(n5.month, 3)
+    self.assertEqual(n5.day, 16)
+    
+    n6 = c.get_prev(datetime)
+    self.assertEqual(n6.month, 2)
+    self.assertEqual(n6.day, 16)
+    
+
   def test_rangeGenerator(self):
     base = datetime(2013, 3, 4, 0, 0)
     itr = croniter('1-9/2 0 1 * *', base)
