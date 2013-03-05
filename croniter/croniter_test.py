@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 import unittest
+import pytz
 from datetime import datetime
 from croniter import croniter
 
@@ -345,6 +346,17 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(base.day, res.day)
     self.assertEqual(base.hour, res.hour)
     self.assertEqual(base.minute, res.minute)
+
+  def testTimezone(self):
+    base = datetime(2013, 3, 4, 12, 15)
+    itr = croniter('* * * * *', base)
+    n1 = itr.get_next(datetime)
+    self.assertEqual(n1.tzinfo, None)
+
+    tokyo = pytz.timezone('Asia/Tokyo')
+    itr2 = croniter('* * * * *', tokyo.localize(base))
+    n2 = itr2.get_next(datetime)
+    self.assertEqual(n2.tzinfo.zone, 'Asia/Tokyo')
     
     
 if __name__ == '__main__':

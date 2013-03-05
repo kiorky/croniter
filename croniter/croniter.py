@@ -52,7 +52,9 @@ class croniter(object):
                  'expression.'
     
     def __init__(self, expr_format, start_time=time()):
+        self.tzinfo = None
         if isinstance(start_time, datetime.datetime):
+            self.tzinfo = start_time.tzinfo
             start_time = mktime(start_time.timetuple())
 
         self.cur = start_time
@@ -148,6 +150,8 @@ class croniter(object):
 
         if ret_type == datetime.datetime:
             result = datetime.datetime.fromtimestamp(result)
+            if self.tzinfo:
+                result = self.tzinfo.localize(result)
         return result
     
     def _calc(self, now, expanded, is_prev):
