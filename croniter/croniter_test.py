@@ -17,8 +17,33 @@ class CroniterTest(unittest.TestCase):
     self.assertEqual(base.day,    n1.day)
     self.assertEqual(base.hour,   n1.hour)
     self.assertEqual(base.minute, n1.minute)
-    self.assertEqual(base.second + 1, n1.second)    
-  
+    self.assertEqual(base.second + 1, n1.second) 
+
+  def testSecondRepeat(self):
+    base = datetime(2012, 4, 6, 13, 26, 36)
+    itr = croniter('* * * * * */15', base)
+    n1 = itr.get_next(datetime)
+    n2 = itr.get_next(datetime)
+    n3 = itr.get_next(datetime) 
+    self.assertEqual(base.year,   n1.year)
+    self.assertEqual(base.month,  n1.month)
+    self.assertEqual(base.day,    n1.day)
+    self.assertEqual(base.hour,   n1.hour)
+    self.assertEqual(base.minute, n1.minute)
+    self.assertEqual(45, n1.second)
+    self.assertEqual(base.year,   n2.year)
+    self.assertEqual(base.month,  n2.month)
+    self.assertEqual(base.day,    n2.day)
+    self.assertEqual(base.hour,   n2.hour)
+    self.assertEqual(base.minute+1, n2.minute)
+    self.assertEqual(0, n2.second)
+    self.assertEqual(base.year,   n3.year)
+    self.assertEqual(base.month,  n3.month)
+    self.assertEqual(base.day,    n3.day)
+    self.assertEqual(base.hour,   n3.hour)
+    self.assertEqual(base.minute+1, n3.minute)
+    self.assertEqual(15, n3.second)
+
   def testMinute(self):
     # minute asterisk
     base = datetime(2010, 1, 23, 12, 18)
