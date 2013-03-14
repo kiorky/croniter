@@ -90,8 +90,7 @@ class croniter(object):
                         raise ValueError("[%s] is not acceptable" %expr_format)
 
                     low, high, step = map(int, [low, high, step])
-                    for j in range(low, high+1, step):
-                        e_list.append(j)                        
+                    e_list += range(low, high+1, step)
                 else:
                     if not star_or_int_re.search(t):
                         t = self.ALPHACONV[i][t.lower()]
