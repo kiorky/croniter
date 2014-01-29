@@ -10,6 +10,7 @@ from croniter.tests import base
 
 
 class CroniterTest(base.TestCase):
+
     def testSecond(self):
         base = datetime(2012, 4, 6, 13, 26, 10)
         itr = croniter('*/1 * * * * *', base)
@@ -258,7 +259,7 @@ class CroniterTest(base.TestCase):
         self.assertEqual(n1.minute, 5)
 
     def testBug2(self):
-        base = datetime(2012, 1, 1, 00, 00)
+        base = datetime(2012, 1, 1, 0, 0)
         iter = croniter('0 * * 3 *', base)
         n1 = iter.get_next(datetime)
         self.assertEqual(n1.year, base.year)
@@ -334,7 +335,7 @@ class CroniterTest(base.TestCase):
         self.assertEqual(prev1.minute, 59)
 
     def testPreviousDay(self):
-        base = datetime(2012, 6, 27, 00, 15)
+        base = datetime(2012, 6, 27, 0, 15)
         itr = croniter('* * 26 * *', base)
         prev1 = itr.get_prev(datetime)
         self.assertEqual(prev1.year, base.year)
@@ -344,7 +345,7 @@ class CroniterTest(base.TestCase):
         self.assertEqual(prev1.minute, 59)
 
     def testPreviousMonth(self):
-        base = datetime(2012, 6, 18, 00, 15)
+        base = datetime(2012, 6, 18, 0, 15)
         itr = croniter('* * * 5 *', base)
         prev1 = itr.get_prev(datetime)
         self.assertEqual(prev1.year, base.year)

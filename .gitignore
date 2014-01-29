@@ -1,4 +1,7 @@
 *app.pyc
+distribute*
+.tox
+tox.ini
 t/
 eggs
 \.*.cfg
