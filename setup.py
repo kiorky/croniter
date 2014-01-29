@@ -26,7 +26,7 @@ setup(
     long_description=long_description,
     author="Matsumoto Taichi, kiorky",
     author_email='taichino@gmail.com, kiorky@cryptelium.net',
-    url='http://github.com/taichino/croniter',
+    url='http://github.com/kiorky/croniter',
     keywords='datetime, iterator, cron',
     install_requires=[
         "python-dateutil",
