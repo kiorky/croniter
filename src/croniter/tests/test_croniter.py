@@ -255,7 +255,7 @@ class CroniterTest(base.TestCase):
         self.assertEqual(n1.minute, 5)
 
     def testBug2(self):
-        base = datetime(2012, 01, 01, 00, 00)
+        base = datetime(2012, 1, 1, 00, 00)
         iter = croniter('0 * * 3 *', base)
         n1 = iter.get_next(datetime)
         self.assertEqual(n1.year, base.year)

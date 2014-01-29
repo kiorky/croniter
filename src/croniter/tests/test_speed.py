@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function
 import unittest
 import time
 from datetime import datetime, date
-from croniter import croniter
+from .croniter import croniter
 
 from croniter.tests import base
 
