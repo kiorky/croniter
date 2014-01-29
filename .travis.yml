@@ -7,10 +7,8 @@ python:
 # matrix:
 
 install:
-  - python bootstrap.py
-  - python -V
-  - 'echo $SHELL'
-  - if [ x"$(python -V)" = x"Python 4"* ];then bin/buidout -c py3.cfg;fi
-  - if [ x"$(python -V)" = x"Python 2"* ];then bin/buidout;fi
+    - python bootstrap.py
+    - 'if [[ x"$(python -V 2>&1)" == x"Python 3"* ]];then ./bin/buildout -c py3.cfg;fi'
+    - 'if [[ x"$(python -V 2>&1)" == x"Python 2"* ]];then ./bin/buildout;fi'
 
 script: bin/test

@@ -93,17 +93,17 @@ class croniter(object):
                         raise ValueError(
                             "[{0}] is not acceptable".format(expr_format))
 
-                    #low, high, step = map(int, [low, high, step])
-                    #e_list += range(low, high + 1, step)
+                    low, high, step = map(int, [low, high, step])
+                    e_list += range(low, high + 1, step)
                     # other solution
-                    try:
-                        for j in xrange(int(low), int(high) + 1):
-                            if j % int(step) == 0:
-                                e_list.append(j)
-                    except NameError:
-                        for j in range(int(low), int(high) + 1):
-                            if j % int(step) == 0:
-                                e_list.append(j)
+                    #try:
+                    #    for j in xrange(int(low), int(high) + 1):
+                    #        if j % int(step) == 0:
+                    #            e_list.append(j)
+                    #except NameError:
+                    #    for j in range(int(low), int(high) + 1):
+                    #        if j % int(step) == 0:
+                    #            e_list.append(j)
                 else:
                     if not star_or_int_re.search(t):
                         t = self.ALPHACONV[i][t.lower()]

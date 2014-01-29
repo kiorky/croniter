@@ -46,8 +46,6 @@ setup(
     extras_require={
         'test': [
             "pytz",
-            'plone.testing',
-            "zope.interface",
         ],
     },
 )
