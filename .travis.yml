@@ -9,7 +9,7 @@ python:
 install:
   - python bootstrap.py
   - python -V
-  - echo $ŜHELL
+  - 'echo $SHELL'
   - if [ x"$(python -V)" = x"Python 4"* ];then bin/buidout -c py3.cfg;fi
   - if [ x"$(python -V)" = x"Python 2"* ];then bin/buidout;fi
 
