@@ -5,8 +5,6 @@ Launching all doctests in the tests directory using:
 
 """
 
-from croniter.tests.base import FunctionalTestCase
-
 # GLOBALS avalaible in doctests
 # IMPORT/DEFINE objects there or inside ./user_globals.py (better)
 # globals from the testing product are also available.
@@ -14,7 +12,6 @@ from croniter.tests.base import FunctionalTestCase
 # from for import bar
 # and in your doctests, you can do:
 # >>> bar.something
-from croniter.tests.globals import *
 from croniter.testing import CRONITER_FUNCTIONAL_TESTING as FUNCTIONAL_TESTING
 
 
@@ -25,7 +22,10 @@ import logging
 import doctest
 from plone.testing import layered
 
-optionflags = (doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE| doctest.REPORT_ONLY_FIRST_FAILURE)
+optionflags = (doctest.ELLIPSIS
+               | doctest.NORMALIZE_WHITESPACE
+               | doctest.REPORT_ONLY_FIRST_FAILURE)
+
 
 def test_suite():
     """."""
@@ -35,7 +35,7 @@ def test_suite():
     try:
         files = glob.glob(os.path.join(cwd, '*txt'))
         files += glob.glob(os.path.join(cwd, '*rst'))
-    except Exception,e:
+    except Exception:
         logger.warn('No doctests for croniter')
     suite = unittest.TestSuite()
     globs = globals()
@@ -44,7 +44,7 @@ def test_suite():
             layered(
                 doctest.DocFileSuite(
                     s,
-                    globs = globs,
+                    globs=globs,
                     module_relative=False,
                     optionflags=optionflags,
                 ),
@@ -53,4 +53,4 @@ def test_suite():
         ])
     return suite
 
-
+#

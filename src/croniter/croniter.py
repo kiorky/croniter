@@ -93,17 +93,17 @@ class croniter(object):
                         raise ValueError(
                             "[{0}] is not acceptable".format(expr_format))
 
-                    low, high, step = map(int, [low, high, step])
-                    e_list += range(low, high + 1, step)
+                    #low, high, step = map(int, [low, high, step])
+                    #e_list += range(low, high + 1, step)
                     # other solution
-                    #try:
-                    #    for j in xrange(int(low), int(high)+1):
-                    #        if j % int(step) == 0:
-                    #            e_list.append(j)
-                    #except NameError:
-                    #    for j in range(int(low), int(high)+1):
-                    #        if j % int(step) == 0:
-                    #            e_list.append(j)
+                    try:
+                        for j in xrange(int(low), int(high) + 1):
+                            if j % int(step) == 0:
+                                e_list.append(j)
+                    except NameError:
+                        for j in range(int(low), int(high) + 1):
+                            if j % int(step) == 0:
+                                e_list.append(j)
                 else:
                     if not star_or_int_re.search(t):
                         t = self.ALPHACONV[i][t.lower()]
@@ -141,22 +141,29 @@ class croniter(object):
             return datetime.datetime.fromtimestamp(self.cur)
         return self.cur
 
-    # iterator protocol, to enable direct use of croniter objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
-    # or for combining multiple croniters into single dates feed using 'itertools' module
-    def __iter__(self): return self
-    __next__ = next = get_next          
+    # iterator protocol, to enable direct use of croniter
+    # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
+    # or for combining multiple croniters into single
+    # dates feed using 'itertools' module
+    def __iter__(self):
+        return self
+    __next__ = next = get_next
 
     def all_next(self, ret_type=float):
-        "Generator of all consecutive dates. Can be used instead of implicit call to __iter__, whenever non-default 'ret_type' has to be specified."
-        while True: yield self._get_next(ret_type, is_prev=False)
+        '''Generator of all consecutive dates. Can be used instead of
+        implicit call to __iter__, whenever non-default
+        'ret_type' has to be specified.
+        '''
+        while True:
+            yield self._get_next(ret_type, is_prev=False)
 
     def all_prev(self, ret_type=float):
-        "Generator of all previous dates."
-        while True: yield self._get_next(ret_type, is_prev=True)
-    
-    iter = all_next             # alias, you can call .iter() instead of .all_next()
-    
-    
+        '''Generator of all previous dates.'''
+        while True:
+            yield self._get_next(ret_type, is_prev=True)
+
+    iter = all_next  # alias, you can call .iter() instead of .all_next()
+
     def _get_next(self, ret_type=float, is_prev=False):
         expanded = self.expanded[:]
 

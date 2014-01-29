@@ -3,6 +3,7 @@
 
 import unittest
 from datetime import datetime
+import pytz
 from croniter import croniter
 
 from croniter.tests import base
@@ -13,10 +14,10 @@ class CroniterTest(base.TestCase):
         base = datetime(2012, 4, 6, 13, 26, 10)
         itr = croniter('*/1 * * * * *', base)
         n1 = itr.get_next(datetime)
-        self.assertEqual(base.year,     n1.year)
-        self.assertEqual(base.month,    n1.month)
-        self.assertEqual(base.day,        n1.day)
-        self.assertEqual(base.hour,     n1.hour)
+        self.assertEqual(base.year, n1.year)
+        self.assertEqual(base.month, n1.month)
+        self.assertEqual(base.day, n1.day)
+        self.assertEqual(base.hour, n1.hour)
         self.assertEqual(base.minute, n1.minute)
         self.assertEqual(base.second + 1, n1.second)
 
@@ -26,23 +27,23 @@ class CroniterTest(base.TestCase):
         n1 = itr.get_next(datetime)
         n2 = itr.get_next(datetime)
         n3 = itr.get_next(datetime)
-        self.assertEqual(base.year,   n1.year)
-        self.assertEqual(base.month,  n1.month)
-        self.assertEqual(base.day,    n1.day)
-        self.assertEqual(base.hour,   n1.hour)
+        self.assertEqual(base.year, n1.year)
+        self.assertEqual(base.month, n1.month)
+        self.assertEqual(base.day, n1.day)
+        self.assertEqual(base.hour, n1.hour)
         self.assertEqual(base.minute, n1.minute)
         self.assertEqual(45, n1.second)
-        self.assertEqual(base.year,   n2.year)
-        self.assertEqual(base.month,  n2.month)
-        self.assertEqual(base.day,    n2.day)
-        self.assertEqual(base.hour,   n2.hour)
-        self.assertEqual(base.minute+1, n2.minute)
+        self.assertEqual(base.year, n2.year)
+        self.assertEqual(base.month, n2.month)
+        self.assertEqual(base.day, n2.day)
+        self.assertEqual(base.hour, n2.hour)
+        self.assertEqual(base.minute + 1, n2.minute)
         self.assertEqual(0, n2.second)
-        self.assertEqual(base.year,   n3.year)
-        self.assertEqual(base.month,  n3.month)
-        self.assertEqual(base.day,    n3.day)
-        self.assertEqual(base.hour,   n3.hour)
-        self.assertEqual(base.minute+1, n3.minute)
+        self.assertEqual(base.year, n3.year)
+        self.assertEqual(base.month, n3.month)
+        self.assertEqual(base.day, n3.day)
+        self.assertEqual(base.hour, n3.hour)
+        self.assertEqual(base.minute + 1, n3.minute)
         self.assertEqual(15, n3.second)
 
     def testMinute(self):
@@ -50,12 +51,12 @@ class CroniterTest(base.TestCase):
         base = datetime(2010, 1, 23, 12, 18)
         itr = croniter('*/1 * * * *', base)
         n1 = itr.get_next(datetime)    # 19
-        self.assertEqual(base.year,     n1.year)
-        self.assertEqual(base.month,    n1.month)
-        self.assertEqual(base.day,        n1.day)
-        self.assertEqual(base.hour,     n1.hour)
+        self.assertEqual(base.year, n1.year)
+        self.assertEqual(base.month, n1.month)
+        self.assertEqual(base.day, n1.day)
+        self.assertEqual(base.hour, n1.hour)
         self.assertEqual(base.minute, n1.minute - 1)
-        for i in range(39): # ~ 58
+        for i in range(39):  # ~ 58
             itr.get_next()
         n2 = itr.get_next(datetime)
         self.assertEqual(n2.minute, 59)
@@ -168,32 +169,34 @@ class CroniterTest(base.TestCase):
         base = datetime(2010, 8, 25, 15, 56)
         itr = croniter('*/1 * * * *', base)
         prev = itr.get_prev(datetime)
-        self.assertEqual(base.year,     prev.year)
-        self.assertEqual(base.month,    prev.month)
-        self.assertEqual(base.day,        prev.day)
-        self.assertEqual(base.hour,     prev.hour)
-        self.assertEqual(base.minute, prev.minute+1)
+        self.assertEqual(base.year, prev.year)
+        self.assertEqual(base.month, prev.month)
+        self.assertEqual(base.day, prev.day)
+        self.assertEqual(base.hour, prev.hour)
+        self.assertEqual(base.minute, prev.minute + 1)
 
         base = datetime(2010, 8, 25, 15, 0)
         itr = croniter('*/1 * * * *', base)
         prev = itr.get_prev(datetime)
-        self.assertEqual(base.year,     prev.year)
-        self.assertEqual(base.month,    prev.month)
-        self.assertEqual(base.day,        prev.day)
-        self.assertEqual(base.hour,     prev.hour+1)
+        self.assertEqual(base.year, prev.year)
+        self.assertEqual(base.month, prev.month)
+        self.assertEqual(base.day, prev.day)
+        self.assertEqual(base.hour, prev.hour + 1)
         self.assertEqual(59, prev.minute)
 
         base = datetime(2010, 8, 25, 0, 0)
         itr = croniter('*/1 * * * *', base)
         prev = itr.get_prev(datetime)
-        self.assertEqual(base.year,     prev.year)
-        self.assertEqual(base.month,    prev.month)
-        self.assertEqual(base.day,        prev.day+1)
+        self.assertEqual(base.year, prev.year)
+        self.assertEqual(base.month, prev.month)
+        self.assertEqual(base.day, prev.day + 1)
         self.assertEqual(23, prev.hour)
         self.assertEqual(59, prev.minute)
 
     def testPrevDayOfMonthWithCrossing(self):
-        """Test getting previous occurrence that crosses into previous month."""
+        """
+        Test getting previous occurrence that crosses into previous month.
+        """
         base = datetime(2012, 3, 15, 0, 0)
         itr = croniter('0 0 22 * *', base)
         prev = itr.get_prev(datetime)
@@ -380,7 +383,6 @@ class CroniterTest(base.TestCase):
         itr2 = croniter('* * * * *', tokyo.localize(base))
         n2 = itr2.get_next(datetime)
         self.assertEqual(n2.tzinfo.zone, 'Asia/Tokyo')
-
 
 
 if __name__ == '__main__':
