@@ -15,7 +15,12 @@ croniter provides iteration for datetime object with cron like format.
      \___|_|  \___/|_| |_|_|\__\___|_|
 
 
-Website: https://github.com/taichino/croniter
+Website: https://github.com/kiorky/croniter
+
+Travis badge
+=============
+.. image:: https://travis-ci.org/kiorky/croniter.png
+    :target: http://travis-ci.org/kiorky/croniter
 
 Usage
 ============
