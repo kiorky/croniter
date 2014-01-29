@@ -3,6 +3,7 @@ try:
 except ImportError:
     import unittest
 
+
 class TestCase(unittest.TestCase):
     '''
     We use this base class for all the tests in this package.
