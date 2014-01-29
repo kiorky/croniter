@@ -93,4 +93,6 @@ If you contributed and not listed below please let me know.
     - djmitche
     - GreatCombinator
     - chris-baynes
+    - ipartola
+    - yuzawa-san
 

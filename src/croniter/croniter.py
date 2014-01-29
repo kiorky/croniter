@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, print_function
 import re
 from time import time, mktime
 import datetime
@@ -51,7 +52,9 @@ class croniter(object):
                  'expression.'
     
     def __init__(self, expr_format, start_time=time()):
+        self.tzinfo = None
         if isinstance(start_time, datetime.datetime):
+            self.tzinfo = start_time.tzinfo
             start_time = mktime(start_time.timetuple())
 
         self.cur = start_time
@@ -86,9 +89,8 @@ class croniter(object):
                         or not only_int_re.search(str(step))):
                         raise ValueError("[%s] is not acceptable" %expr_format)
 
-                    for j in xrange(int(low), int(high)+1):
-                        if j % int(step) == 0:
-                            e_list.append(j)
+                    low, high, step = map(int, [low, high, step])
+                    e_list += range(low, high+1, step)
                 else:
                     if not star_or_int_re.search(t):
                         t = self.ALPHACONV[i][t.lower()]
@@ -147,6 +149,8 @@ class croniter(object):
 
         if ret_type == datetime.datetime:
             result = datetime.datetime.fromtimestamp(result)
+            if self.tzinfo:
+                result = self.tzinfo.localize(result)
         return result
     
     def _calc(self, now, expanded, is_prev):
@@ -242,26 +246,18 @@ class croniter(object):
                 if expanded[5][0] != '*':
                     diff_sec = nearest_diff_method(d.second, expanded[5], 60)
                     if diff_sec != None and diff_sec != 0:
-                        dst += relativedelta(seconds = diff_sec)
+                        d += relativedelta(seconds = diff_sec)
                         return True, d
             else:
                 d += relativedelta(second = 0)
             return False, d
 
-        if is_prev:
-            procs = [proc_second,
-                     proc_minute,
-                     proc_hour,
-                     proc_day_of_week,
-                     proc_day_of_month,
-                     proc_month]
-        else:
-            procs = [proc_month,
-                     proc_day_of_month,
-                     proc_day_of_week,
-                     proc_hour,
-                     proc_minute,
-                     proc_second]
+        procs = [proc_month,
+                 proc_day_of_month,
+                 proc_day_of_week,
+                 proc_hour,
+                 proc_minute,
+                 proc_second]
 
         while abs(year - current_year) <= 1:
             next = False
@@ -302,7 +298,13 @@ class croniter(object):
         for d in candidates:
             if d <= x:
                 return d - x
-        return (candidates[0]) - x - range_val
+        candidate = candidates[0]
+        for c in candidates:
+            if c < range_val:
+                candidate = c
+                break
+                
+        return (candidate - x - range_val)
 
     def is_leap(self, year):
         if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):
@@ -315,4 +317,4 @@ if __name__ == '__main__':
     base = datetime.datetime(2010, 1, 25)
     itr = croniter('0 0 1 * *', base)
     n1 = itr.get_next(datetime.datetime)
-    print n1
+    print(n1)

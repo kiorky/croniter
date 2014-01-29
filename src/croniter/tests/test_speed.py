@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, print_function
 import unittest
 import time
 from datetime import datetime, date
@@ -218,4 +219,4 @@ class TestCase(base.TestCase):
 if __name__ == '__main__':
     from timeit import Timer
     t = Timer('c=CroniterTest();c.run()', 'from __main__ import CroniterTest')
-    print t.timeit(200)
+    print(t.timeit(200))
