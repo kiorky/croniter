@@ -32,7 +32,7 @@ class croniter(object):
     ALPHACONV = (
         {},
         {},
-        {},
+        {"l":"l"},
         {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
          'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},
         {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},
@@ -116,7 +116,7 @@ class croniter(object):
                     if t in self.LOWMAP[i]:
                         t = self.LOWMAP[i][t]
 
-                    if t != '*' and (int(t) < self.RANGES[i][0] or
+                    if t not in  ["*","l"] and (int(t) < self.RANGES[i][0] or
                                      int(t) > self.RANGES[i][1]):
                         raise ValueError(
                             "[{0}] is not acceptable, out of range".format(
@@ -338,6 +338,9 @@ class croniter(object):
 
     def _get_next_nearest_diff(self, x, to_check, range_val):
         for i, d in enumerate(to_check):
+            if d == "l":
+                #if 'l' then it is the last day of month => its value of range_val 
+                d = range_val
             if d >= x:
                 return d - x
         return to_check[0] - x + range_val
