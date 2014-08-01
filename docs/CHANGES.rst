@@ -4,7 +4,7 @@ Changelog
 0.3.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- support for 'l' (last day of month)
 
 
 0.3.4 (2014-01-30)
