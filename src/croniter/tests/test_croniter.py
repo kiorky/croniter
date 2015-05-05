@@ -171,6 +171,17 @@ class CroniterTest(base.TestCase):
         self.assertRaises(ValueError, croniter, '* * 5-1 * *')
         self.assertRaises(KeyError, croniter, '* * * janu-jun *')
 
+    def testSundayToThursdayWithAlphaConversion(self):
+        base = datetime(2010, 8, 25, 15, 56) #wednesday
+        itr = croniter("30 22 * * sun-thu", base)
+        next = itr.get_next(datetime)
+
+        self.assertEqual(base.year, next.year)
+        self.assertEqual(base.month, next.month)
+        self.assertEqual(base.day, next.day)
+        self.assertEqual(22, next.hour)
+        self.assertEqual(30, next.minute)
+
     def testPrevMinute(self):
         base = datetime(2010, 8, 25, 15, 56)
         itr = croniter('*/1 * * * *', base)
