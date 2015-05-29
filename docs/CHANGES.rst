@@ -4,7 +4,10 @@ Changelog
 0.3.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix default behavior when no start_time given
+  Default value for `start_time` parameter is calculated at module init time rather than call time.
+- Fix timezone support and stop depending on the system time zone
+
 
 
 0.3.5 (2014-08-01)
