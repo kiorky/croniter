@@ -120,8 +120,11 @@ class croniter(object):
                     if t in self.LOWMAP[i]:
                         t = self.LOWMAP[i][t]
 
-                    if t not in ["*", "l"] and (int(t) < self.RANGES[i][0] or
-                                     int(t) > self.RANGES[i][1]):
+                    if (
+                        t not in ["*", "l"]
+                        and (int(t) < self.RANGES[i][0] or
+                             int(t) > self.RANGES[i][1])
+                    ):
                         raise ValueError(
                             "[{0}] is not acceptable, out of range".format(
                                 expr_format))
