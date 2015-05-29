@@ -3,6 +3,7 @@
 
 import unittest
 from datetime import datetime
+from time import sleep
 import pytz
 from croniter import croniter
 
@@ -391,6 +392,12 @@ class CroniterTest(base.TestCase):
         itr2 = croniter('* * * * *', tokyo.localize(base))
         n2 = itr2.get_next(datetime)
         self.assertEqual(n2.tzinfo.zone, 'Asia/Tokyo')
+
+    def testInitNoStartTime(self):
+        itr = croniter('* * * * *')
+        sleep(.01)
+        itr2 = croniter('* * * * *')
+        self.assertGreater(itr2.cur, itr.cur)
 
     def assertScheduleTimezone(self, callback, expected_schedule):
         for expected_date, expected_offset in expected_schedule:

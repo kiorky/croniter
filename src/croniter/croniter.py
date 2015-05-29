@@ -52,7 +52,10 @@ class croniter(object):
     bad_length = 'Exactly 5 or 6 columns has to be specified for iterator' \
                  'expression.'
 
-    def __init__(self, expr_format, start_time=time()):
+    def __init__(self, expr_format, start_time=None):
+        if start_time is None:
+            start_time = time()
+
         self.tzinfo = None
         if isinstance(start_time, datetime.datetime):
             self.tzinfo = start_time.tzinfo
