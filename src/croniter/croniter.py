@@ -3,9 +3,10 @@
 
 from __future__ import absolute_import, print_function
 import re
-from time import time, mktime
+from time import time
 import datetime
 from dateutil.relativedelta import relativedelta
+from dateutil.tz import tzutc
 
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 only_int_re = re.compile(r'^\d+$')
@@ -55,7 +56,7 @@ class croniter(object):
         self.tzinfo = None
         if isinstance(start_time, datetime.datetime):
             self.tzinfo = start_time.tzinfo
-            start_time = mktime(start_time.timetuple())
+            start_time = self._datetime_to_timestamp(start_time)
 
         self.cur = start_time
         self.exprs = expr_format.split()
@@ -138,8 +139,27 @@ class croniter(object):
 
     def get_current(self, ret_type=float):
         if ret_type == datetime.datetime:
-            return datetime.datetime.fromtimestamp(self.cur)
+            return self._timestamp_to_datetime(self.cur)
         return self.cur
+
+    def _datetime_to_timestamp(self, d):
+        """
+        Converts a `datetime` object `d` into a UNIX timestamp.
+        """
+        if d.tzinfo is not None:
+            d = d.replace(tzinfo=None) - d.utcoffset()
+
+        return (d - datetime.datetime(1970, 1, 1)).total_seconds()
+
+    def _timestamp_to_datetime(self, timestamp):
+        """
+        Converts a UNIX timestamp `timestamp` into a `datetime` object.
+        """
+        result = datetime.datetime.utcfromtimestamp(timestamp)
+        if self.tzinfo:
+            result = result.replace(tzinfo=tzutc()).astimezone(self.tzinfo)
+
+        return result
 
     # iterator protocol, to enable direct use of croniter
     # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
@@ -188,9 +208,8 @@ class croniter(object):
         self.cur = result
 
         if ret_type == datetime.datetime:
-            result = datetime.datetime.fromtimestamp(result)
-            if self.tzinfo:
-                result = self.tzinfo.localize(result)
+            result = self._timestamp_to_datetime(result)
+
         return result
 
     def _calc(self, now, expanded, is_prev):
@@ -202,7 +221,7 @@ class croniter(object):
             sign = 1
 
         offset = len(expanded) == 6 and 1 or 60
-        dst = now = datetime.datetime.fromtimestamp(now + sign * offset)
+        dst = now = self._timestamp_to_datetime(now + sign * offset)
 
         day, month, year = dst.day, dst.month, dst.year
         current_year = now.year
@@ -318,7 +337,7 @@ class croniter(object):
                     break
             if next:
                 continue
-            return mktime(dst.timetuple())
+            return self._datetime_to_timestamp(dst)
 
         raise Exception("failed to find prev date")
 
