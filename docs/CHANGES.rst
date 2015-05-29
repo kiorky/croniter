@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.6 (unreleased)
+0.3.6 (2015-05-29)
 ------------------
 
 - Fix default behavior when no start_time given
