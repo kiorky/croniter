@@ -85,10 +85,10 @@ class croniter(object):
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
 
                     if not any_int_re.search(low):
-                        low = self.ALPHACONV[i][low.lower()]
+                        low = "{0}".format(self.ALPHACONV[i][low.lower()])
 
                     if not any_int_re.search(high):
-                        high = self.ALPHACONV[i][high.lower()]
+                        high = "{0}".format(self.ALPHACONV[i][high.lower()])
 
                     if (
                         not low or not high or int(low) > int(high)
