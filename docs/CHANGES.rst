@@ -4,8 +4,8 @@ Changelog
 0.3.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- converting sun in range sun-thu transforms to int 0 which is
+  recognized as empty string; the solution was to convert sun to string "0"
 
 0.3.6 (2015-05-29)
 ------------------
