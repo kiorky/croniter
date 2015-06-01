@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.7 (unreleased)
+0.3.7 (2015-06-01)
 ------------------
 
 - converting sun in range sun-thu transforms to int 0 which is
