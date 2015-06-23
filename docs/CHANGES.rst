@@ -1,6 +1,12 @@
 Changelog
 ==============
 
+0.3.9 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 0.3.8 (2015-06-23)
 ------------------
 - Truncate microseconds by setting to 0
