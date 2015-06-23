@@ -343,7 +343,7 @@ class croniter(object):
                     break
             if next:
                 continue
-            return self._datetime_to_timestamp(dst)
+            return self._datetime_to_timestamp(dst.replace(microsecond=0))
 
         raise Exception("failed to find prev date")
 
