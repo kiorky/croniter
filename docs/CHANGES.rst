@@ -3,8 +3,8 @@ Changelog
 
 0.3.8 (unreleased)
 ------------------
-
-- Nothing changed yet.
+- Truncate microseconds by setting to 0
+  [Corey Wright <corey.wright@rackspace.com>]
 
 
 0.3.7 (2015-06-01)
