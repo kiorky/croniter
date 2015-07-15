@@ -414,7 +414,7 @@ class CroniterTest(base.TestCase):
         for expected_date, expected_offset in expected_schedule:
             d = callback()
             self.assertEqual(expected_date, d.replace(tzinfo=None))
-            self.assertEqual(expected_offset, d.utcoffset().total_seconds())
+            self.assertEqual(expected_offset, croniter._timedelta_to_seconds(d.utcoffset()))
 
     def testTimezoneWinterTime(self):
         tz = pytz.timezone('Europe/Athens')
