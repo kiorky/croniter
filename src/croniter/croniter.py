@@ -167,7 +167,8 @@ class croniter(object):
 
         return result
 
-    def _timedelta_to_seconds(self, td):
+    @classmethod
+    def _timedelta_to_seconds(cls, td):
         """
         Converts a 'datetime.timedelta' object `td` into seconds contained in
         the duration
