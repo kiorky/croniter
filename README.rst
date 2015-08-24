@@ -67,7 +67,7 @@ Develop this package
 
 ::
 
-    git clone https://github.com/kiorky.git
+    git clone https://github.com/kiorky/croniter.git
     cd croniter
     python bootstrap.py -d
     bin/buildout -vvvvvvN
