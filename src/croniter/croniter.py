@@ -171,11 +171,12 @@ class croniter(object):
     def _timedelta_to_seconds(cls, td):
         """
         Converts a 'datetime.timedelta' object `td` into seconds contained in
-        the duration
+        the duration.
+        Note: We cannot use `timedelta.total_seconds()` because this is not
+        supported by Python 2.6.
         """
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
             / 10**6
-
 
     # iterator protocol, to enable direct use of croniter
     # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
