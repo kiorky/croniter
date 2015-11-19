@@ -4,8 +4,8 @@ Changelog
 0.3.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Don't use datetime functions python 2.6 doesn't support
+  [petervtzand]
 
 0.3.8 (2015-06-23)
 ------------------
