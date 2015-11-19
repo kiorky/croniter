@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.9 (unreleased)
+0.3.9 (2015-11-19)
 ------------------
 
 - Don't use datetime functions python 2.6 doesn't support
