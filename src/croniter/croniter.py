@@ -155,7 +155,7 @@ class croniter(object):
         if d.tzinfo is not None:
             d = d.replace(tzinfo=None) - d.utcoffset()
 
-        return (d - datetime.datetime(1970, 1, 1)).total_seconds()
+        return self._timedelta_to_seconds(d - datetime.datetime(1970, 1, 1))
 
     def _timestamp_to_datetime(self, timestamp):
         """
@@ -166,6 +166,17 @@ class croniter(object):
             result = result.replace(tzinfo=tzutc()).astimezone(self.tzinfo)
 
         return result
+
+    @classmethod
+    def _timedelta_to_seconds(cls, td):
+        """
+        Converts a 'datetime.timedelta' object `td` into seconds contained in
+        the duration.
+        Note: We cannot use `timedelta.total_seconds()` because this is not
+        supported by Python 2.6.
+        """
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
+            / 10**6
 
     # iterator protocol, to enable direct use of croniter
     # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
