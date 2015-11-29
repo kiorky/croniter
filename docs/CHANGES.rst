@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.10 (unreleased)
+0.3.10 (2015-11-29)
 -------------------
 
 - The fuctionality of 'l' as day of month was brokne, since the month variable
