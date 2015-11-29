@@ -4,8 +4,9 @@ Changelog
 0.3.10 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- The fuctionality of 'l' as day of month was brokne, since the month variable
+  was not properly updated
+  [Iddo Aviram <iddo.aviram@similarweb.com>]
 
 0.3.9 (2015-11-19)
 ------------------
