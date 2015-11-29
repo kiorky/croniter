@@ -164,6 +164,22 @@ class CroniterTest(base.TestCase):
         self.assertEqual(n4.month, 1)
         self.assertEqual(n4.year, 2011)
 
+    def testLastDayOfMonth(self):
+        base = datetime(2015, 9, 4)
+        itr = croniter('0 0 l * *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.month, 9)
+        self.assertEqual(n1.day, 30)
+        n2 = itr.get_next(datetime)
+        self.assertEqual(n2.month, 10)
+        self.assertEqual(n2.day, 31)
+        n3 = itr.get_next(datetime)
+        self.assertEqual(n3.month, 11)
+        self.assertEqual(n3.day, 30)
+        n4 = itr.get_next(datetime)
+        self.assertEqual(n4.month, 12)
+        self.assertEqual(n4.day, 31)
+
     def testError(self):
         itr = croniter('* * * * *')
         self.assertRaises(TypeError, itr.get_next, str)

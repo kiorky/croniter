@@ -350,6 +350,7 @@ class croniter(object):
             for proc in procs:
                 (changed, dst) = proc(dst)
                 if changed:
+                    day, month, year = dst.day, dst.month, dst.year
                     next = True
                     break
             if next:
