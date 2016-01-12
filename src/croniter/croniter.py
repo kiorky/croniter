@@ -271,6 +271,8 @@ class croniter(object):
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
+                if 'l' in expanded[2] and days==d.day:
+                    return False, d
 
                 if is_prev:
                     days_in_prev_month = DAYS[
@@ -387,8 +389,10 @@ class croniter(object):
         candidates = to_check[:]
         candidates.reverse()
         for d in candidates:
-            if d <= x:
+            if d != 'l' and d <= x:
                 return d - x
+        if 'l' in candidates:
+            return -x
         candidate = candidates[0]
         for c in candidates:
             if c < range_val:
