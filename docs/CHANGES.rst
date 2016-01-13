@@ -4,13 +4,15 @@ Changelog
 0.3.11 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Bug fix: The get_prev API crashed when last day of month token was used. Some
+  essential logic was missing.
+  [Iddo Aviram <iddo.aviram@similarweb.com>]
 
 
 0.3.10 (2015-11-29)
 -------------------
 
-- The fuctionality of 'l' as day of month was brokne, since the month variable
+- The fuctionality of 'l' as day of month was broken, since the month variable
   was not properly updated
   [Iddo Aviram <iddo.aviram@similarweb.com>]
 
