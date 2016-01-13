@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.11 (unreleased)
+0.3.11 (2016-01-13)
 -------------------
 
 - Bug fix: The get_prev API crashed when last day of month token was used. Some
