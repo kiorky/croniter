@@ -1,11 +1,15 @@
 Changelog
 ==============
 
-0.3.12 (unreleased)
+0.3.13 (unreleased)
 -------------------
 
 - Nothing changed yet.
 
+
+0.3.12 (2016-03-10)
+-------------------
+- support setting ret_type in __init__ [Brent Tubbs <brent.tubbs@gmail.com>]
 
 0.3.11 (2016-01-13)
 -------------------
