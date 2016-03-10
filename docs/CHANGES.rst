@@ -3,9 +3,7 @@ Changelog
 
 0.3.12 (unreleased)
 -------------------
-
-- Nothing changed yet.
-
+- support setting ret_type in __init__ [Brent Tubbs <brent.tubbs@gmail.com>]
 
 0.3.11 (2016-01-13)
 -------------------
