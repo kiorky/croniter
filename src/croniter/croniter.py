@@ -110,6 +110,10 @@ class croniter(object):
                     #        if j % int(step) == 0:
                     #            e_list.append(j)
                 else:
+                    if t.startswith('-'):
+                        raise ValueError(
+                            "[{0}] is not acceptable, out of range".format(
+                                expr_format))
                     if not star_or_int_re.search(t):
                         t = self._alphaconv(i, t)
 
