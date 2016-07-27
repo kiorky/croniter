@@ -233,7 +233,7 @@ class CroniterTest(base.TestCase):
         self.assertRaises(ValueError, croniter, '* * * janu-jun *')
 
     def testSundayToThursdayWithAlphaConversion(self):
-        base = datetime(2010, 8, 25, 15, 56) #wednesday
+        base = datetime(2010, 8, 25, 15, 56)  # wednesday
         itr = croniter("30 22 * * sun-thu", base)
         next = itr.get_next(datetime)
 
@@ -394,6 +394,34 @@ class CroniterTest(base.TestCase):
         base = datetime(2012, 2, 24, 0, 0, 0)
         itr = croniter('* * 31 2 *', base)
         n1 = itr.get_next(datetime)
+
+    def testBug57(self):
+        base = datetime(2012, 2, 24, 0, 0, 0)
+        itr = croniter('0 4/6 * * *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.hour, 4)
+        self.assertEqual(n1.minute, 0)
+        self.assertEqual(n1.month, 2)
+        self.assertEqual(n1.day, 24)
+
+        n1 = itr.get_prev(datetime)
+        self.assertEqual(n1.hour, 22)
+        self.assertEqual(n1.minute, 0)
+        self.assertEqual(n1.month, 2)
+        self.assertEqual(n1.day, 23)
+
+        itr = croniter('0 0/6 * * *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.hour, 6)
+        self.assertEqual(n1.minute, 0)
+        self.assertEqual(n1.month, 2)
+        self.assertEqual(n1.day, 24)
+
+        n1 = itr.get_prev(datetime)
+        self.assertEqual(n1.hour, 0)
+        self.assertEqual(n1.minute, 0)
+        self.assertEqual(n1.month, 2)
+        self.assertEqual(n1.day, 24)
 
     def test_rangeGenerator(self):
         base = datetime(2013, 3, 4, 0, 0)
