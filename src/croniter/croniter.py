@@ -8,6 +8,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 
+step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 only_int_re = re.compile(r'^\d+$')
 any_int_re = re.compile(r'^\d+')
@@ -76,11 +77,17 @@ class croniter(object):
 
             while len(e_list) > 0:
                 e = e_list.pop()
-                t = re.sub(r'^\*(/.+)$', r'%d-%d\1' % (
+                t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
                     self.RANGES[i][0],
                     self.RANGES[i][1]),
                     str(e))
                 m = search_re.search(t)
+
+                if not m:
+                    t = re.sub(r'^(.+)\/(.+)$', r'\1-%d/\2' % (
+                        self.RANGES[i][1]),
+                        str(e))
+                    m = step_search_re.search(t)
 
                 if m:
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
