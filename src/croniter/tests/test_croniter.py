@@ -388,6 +388,11 @@ class CroniterTest(base.TestCase):
         self.assertEqual(n6.month, 2)
         self.assertEqual(n6.day, 16)
 
+    def test_bug34(self):
+        base = datetime(2012, 2, 24, 0, 0, 0)
+        itr = croniter('* * 31 2 *', base)
+        n1 = itr.get_next(datetime)
+
     def test_rangeGenerator(self):
         base = datetime(2013, 3, 4, 0, 0)
         itr = croniter('1-9/2 0 1 * *', base)
