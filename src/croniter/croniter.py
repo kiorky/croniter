@@ -363,7 +363,9 @@ class croniter(object):
                 continue
             return self._datetime_to_timestamp(dst.replace(microsecond=0))
 
-        raise Exception("failed to find prev date")
+        if is_prev:
+            raise Exception("failed to find prev date")
+        raise Exception("failed to find next date")
 
     def _get_next_nearest(self, x, to_check):
         small = [item for item in to_check if item < x]
