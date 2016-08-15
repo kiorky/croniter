@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import unittest
@@ -228,9 +228,7 @@ class CroniterTest(base.TestCase):
         self.assertRaises(TypeError, itr.get_next, str)
         self.assertRaises(ValueError, croniter, '* * * *')
         self.assertRaises(ValueError, croniter, '* * 5-1 * *')
-        self.assertRaises(ValueError, croniter, '-90 * * * *')
-        self.assertRaises(ValueError, croniter, 'a * * * *')
-        self.assertRaises(ValueError, croniter, '* * * janu-jun *')
+        self.assertRaises(KeyError, croniter, '* * * janu-jun *')
 
     def testSundayToThursdayWithAlphaConversion(self):
         base = datetime(2010, 8, 25, 15, 56) #wednesday
