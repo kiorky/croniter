@@ -86,10 +86,10 @@ class croniter(object):
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
 
                     if not any_int_re.search(low):
-                        low = "{0}".format(self.ALPHACONV[i][low.lower()])
+                        low = "{0}".format(self._alphaconv(i, low))
 
                     if not any_int_re.search(high):
-                        high = "{0}".format(self.ALPHACONV[i][high.lower()])
+                        high = "{0}".format(self._alphaconv(i, high))
 
                     if (
                         not low or not high or int(low) > int(high)
@@ -111,7 +111,7 @@ class croniter(object):
                     #            e_list.append(j)
                 else:
                     if not star_or_int_re.search(t):
-                        t = self.ALPHACONV[i][t.lower()]
+                        t = self._alphaconv(i, t)
 
                     try:
                         t = int(t)
@@ -137,6 +137,13 @@ class croniter(object):
                                       and res[0] == '*')
                             else res)
         self.expanded = expanded
+
+    def _alphaconv(self, index, key):
+        try:
+            return self.ALPHACONV[index][key.lower()]
+        except KeyError:
+            raise ValueError(
+                "[{0}] is not acceptable".format(" ".join(self.exprs)))
 
     def get_next(self, ret_type=None):
         return self._get_next(ret_type or self._ret_type, is_prev=False)
