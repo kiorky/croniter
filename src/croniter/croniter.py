@@ -126,7 +126,7 @@ UNIX_CRON_LEN = len(UNIX_FIELDS)
 SECOND_CRON_LEN = len(SECOND_FIELDS)
 YEAR_CRON_LEN = len(YEAR_FIELDS)
 # retrocompat
-VALID_LEN_EXPRESSION = set([a for a in CRON_FIELDS if isinstance(a, int)])
+VALID_LEN_EXPRESSION = set(a for a in CRON_FIELDS if isinstance(a, int))
 EXPRESSIONS = {}
 try:
     # py3 recent
@@ -481,7 +481,7 @@ class croniter(object):
             raise
 
     def iter(self, *args, **kwargs):
-        return self._is_prev and self.all_prev or self.all_next
+        return self.all_prev if self._is_prev else self.all_next
 
     def __iter__(self):
         return self
@@ -493,12 +493,12 @@ class croniter(object):
             now = math.ceil(now)
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
-            offset = (len(expanded) > UNIX_CRON_LEN or now % 60 > 0) and 1 or 60
+            offset = 1 if (len(expanded) > UNIX_CRON_LEN or now % 60 > 0) else 60
         else:
             now = math.floor(now)
             nearest_diff_method = self._get_next_nearest_diff
             sign = 1
-            offset = (len(expanded) > UNIX_CRON_LEN) and 1 or 60
+            offset = 1 if (len(expanded) > UNIX_CRON_LEN) else 60
 
         dst = now = self._timestamp_to_datetime(now + sign * offset)
 
@@ -893,7 +893,7 @@ class croniter(object):
                             e = he
                             try:
                                 nth = int(last)
-                                assert nth >= 1 and nth <= 5
+                                assert 5 >= nth >= 1
                             except (KeyError, ValueError, AssertionError):
                                 raise CroniterBadCronError(
                                     "[{0}] is not acceptable. Invalid day_of_week value: '{1}'".format(
