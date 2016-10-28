@@ -112,7 +112,7 @@ class croniter(object):
                 else:
                     if t.startswith('-'):
                         raise ValueError(
-                            "[{0}] is not acceptable, out of range".format(
+                            "[{0}] is not acceptable, negative numbers not allowed".format(
                                 expr_format))
                     if not star_or_int_re.search(t):
                         t = self._alphaconv(i, t)
