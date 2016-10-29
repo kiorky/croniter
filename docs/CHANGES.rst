@@ -4,8 +4,18 @@ Changelog
 0.3.13 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- `Real fix for #34 <https://github.com/taichino/croniter/pull/73>`_
+  [kiorky@github]
+- `Modernize test infra <https://github.com/taichino/croniter/pull/72>`_
+  [kiorky@github]
+- `Release as a universal wheel <https://github.com/kiorky/croniter/pull/16>`_
+  [adamchainz@github]
+- `Raise ValueError on negative numbers <https://github.com/taichino/croniter/pull/63>`_
+  [josegonzalez@github]
+- `Compare types using "issubclass" instead of exact match <https://github.com/taichino/croniter/pull/70>`_
+  [darkk@github]
+- `Implement step cron with a variable base <https://github.com/taichino/croniter/pull/60>`_
+  [josegonzalez@github]
 
 0.3.12 (2016-03-10)
 -------------------
