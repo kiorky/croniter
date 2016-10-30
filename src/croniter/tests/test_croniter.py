@@ -5,8 +5,7 @@ import unittest
 from datetime import datetime
 from time import sleep
 import pytz
-from croniter import croniter
-
+from croniter import croniter, CroniterBadDateError
 from croniter.tests import base
 
 
@@ -393,7 +392,11 @@ class CroniterTest(base.TestCase):
     def test_bug34(self):
         base = datetime(2012, 2, 24, 0, 0, 0)
         itr = croniter('* * 31 2 *', base)
-        n1 = itr.get_next(datetime)
+        try:
+            itr.get_next(datetime)
+        except CroniterBadDateError, ex:
+            self.assertEqual(ex.message,
+                             'failed to find next date')
 
     def testBug57(self):
         base = datetime(2012, 2, 24, 0, 0, 0)
