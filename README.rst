@@ -4,7 +4,7 @@ Introduction
 .. contents::
 
 
-croniter provides iteration for datetime object with cron like format.
+croniter provides iteration for the datetime object with a cron like format.
 
 ::
 
@@ -25,7 +25,7 @@ Travis badge
 Usage
 ============
 
-Simple example of usage is followings::
+A simple example::
 
     >>> from croniter import croniter
     >>> from datetime import datetime
@@ -40,20 +40,22 @@ Simple example of usage is followings::
     >>> print iter.get_next(datetime)   # 2010-01-30 04:02:00
     >>> print iter.get_next(datetime)   # 2010-02-02 04:02:00
 
-All you need to know is constructor and get_next, these signature are following::
+All you need to know is how to use the constructor and the get_next 
+method, the signature of these methods are listed below::
 
     >>> def __init__(self, cron_format, start_time=time.time())
 
-croniter iterate along with 'cron_format' from 'start_time'.
-cron_format is 'min hour day month day_of_week', and please refer to
-http://en.wikipedia.org/wiki/Cron for details.::
+croniter iterates along with 'cron_format' from 'start_time'.
+cron_format is 'min hour day month day_of_week', you can refer to
+http://en.wikipedia.org/wiki/Cron for more details.::
 
     >>> def get_next(self, ret_type=float)
 
-get_next return next time in iteration with 'ret_type'.
-And ret_type accept only 'float' or 'datetime'.
+get_next calculates the next value according to the cron expression and
+returns an object of type 'ret_type'. ret_type should be a 'float' or a 
+'datetime' object.
 
-Now, supported get_prev method. (>= 0.2.0)::
+Supported added for get_prev method. (>= 0.2.0)::
 
     >>> base = datetime(2010, 8, 25)
     >>> itr = croniter('0 0 1 * *', base)
@@ -76,9 +78,9 @@ Develop this package
 
 Make a new release
 ====================
-We use zest.fullreleaser, a great releaser infrastructure.
+We use zest.fullreleaser, a great release infrastructure.
 
-Do and follow the instructions
+Do and follow these instructions
 ::
 
     bin/fullrelease
@@ -86,8 +88,8 @@ Do and follow the instructions
 
 Contributors
 ===============
-Thank you to all who have contributed to this project!
-If you contributed and not listed below please let me know.
+Thanks to all who have contributed to this project!
+If you have contributed and your name is not listed below please let me know.
 
     - mrmachine
     - Hinnack
