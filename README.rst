@@ -40,7 +40,7 @@ A simple example::
     >>> print iter.get_next(datetime)   # 2010-01-30 04:02:00
     >>> print iter.get_next(datetime)   # 2010-02-02 04:02:00
 
-All you need to know is how to use the constructor and the get_next 
+All you need to know is how to use the constructor and the get_next
 method, the signature of these methods are listed below::
 
     >>> def __init__(self, cron_format, start_time=time.time())
@@ -52,7 +52,7 @@ http://en.wikipedia.org/wiki/Cron for more details.::
     >>> def get_next(self, ret_type=float)
 
 get_next calculates the next value according to the cron expression and
-returns an object of type 'ret_type'. ret_type should be a 'float' or a 
+returns an object of type 'ret_type'. ret_type should be a 'float' or a
 'datetime' object.
 
 Supported added for get_prev method. (>= 0.2.0)::
@@ -71,9 +71,10 @@ Develop this package
 
     git clone https://github.com/kiorky/croniter.git
     cd croniter
-    python bootstrap.py -d
-    bin/buildout -vvvvvvN
-    bin/test
+    virtualenv --no-site-packages venv
+    . venv/bin/activate
+    pip install --upgrade -r requirements/test.txt
+    py.test src
 
 
 Make a new release
@@ -83,7 +84,9 @@ We use zest.fullreleaser, a great release infrastructure.
 Do and follow these instructions
 ::
 
-    bin/fullrelease
+    . venv/bin/activate
+    pip install --upgrade -r requirements/release.txt
+    fullrelease
 
 
 Contributors
