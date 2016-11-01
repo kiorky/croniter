@@ -14,7 +14,17 @@ only_int_re = re.compile(r'^\d+$')
 any_int_re = re.compile(r'^\d+')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 
-__all__ = ('croniter',)
+
+class CroniterBadCronError(ValueError):
+    '''.'''
+
+
+class CroniterBadDateError(ValueError):
+    '''.'''
+
+
+class CroniterNotAlphaError(ValueError):
+    '''.'''
 
 
 class croniter(object):
@@ -67,7 +77,7 @@ class croniter(object):
         self.exprs = expr_format.split()
 
         if len(self.exprs) != 5 and len(self.exprs) != 6:
-            raise ValueError(self.bad_length)
+            raise CroniterBadCronError(self.bad_length)
 
         expanded = []
 
@@ -102,7 +112,7 @@ class croniter(object):
                         not low or not high or int(low) > int(high)
                         or not only_int_re.search(str(step))
                     ):
-                        raise ValueError(
+                        raise CroniterBadDateError(
                             "[{0}] is not acceptable".format(expr_format))
 
                     low, high, step = map(int, [low, high, step])
@@ -118,7 +128,7 @@ class croniter(object):
                     #            e_list.append(j)
                 else:
                     if t.startswith('-'):
-                        raise ValueError(
+                        raise CroniterBadCronError(
                             "[{0}] is not acceptable, negative numbers not allowed".format(
                                 expr_format))
                     if not star_or_int_re.search(t):
@@ -137,7 +147,7 @@ class croniter(object):
                         and (int(t) < self.RANGES[i][0] or
                              int(t) > self.RANGES[i][1])
                     ):
-                        raise ValueError(
+                        raise CroniterBadCronError(
                             "[{0}] is not acceptable, out of range".format(
                                 expr_format))
 
@@ -153,7 +163,7 @@ class croniter(object):
         try:
             return self.ALPHACONV[index][key.lower()]
         except KeyError:
-            raise ValueError(
+            raise CroniterNotAlphaError(
                 "[{0}] is not acceptable".format(" ".join(self.exprs)))
 
     def get_next(self, ret_type=None):
@@ -382,8 +392,8 @@ class croniter(object):
             return self._datetime_to_timestamp(dst.replace(microsecond=0))
 
         if is_prev:
-            raise Exception("failed to find prev date")
-        raise Exception("failed to find next date")
+            raise CroniterBadDateError("failed to find prev date")
+        raise CroniterBadDateError("failed to find next date")
 
     def _get_next_nearest(self, x, to_check):
         small = [item for item in to_check if item < x]
@@ -430,10 +440,3 @@ class croniter(object):
             return True
         else:
             return False
-
-if __name__ == '__main__':
-
-    base = datetime.datetime(2010, 1, 25)
-    itr = croniter('0 0 1 * *', base)
-    n1 = itr.get_next(datetime.datetime)
-    print(n1)
