@@ -149,8 +149,6 @@ def datetime_to_timestamp(d):
 class CroniterError(ValueError):
     """General top-level Croniter base exception"""
 
-    pass
-
 
 class CroniterBadTypeRangeError(TypeError):
     """."""
@@ -159,8 +157,6 @@ class CroniterBadTypeRangeError(TypeError):
 class CroniterBadCronError(CroniterError):
     """Syntax, unknown value, or range error within a cron expression"""
 
-    pass
-
 
 class CroniterUnsupportedSyntaxError(CroniterBadCronError):
     """Valid cron syntax, but likely to produce inaccurate results"""
@@ -168,19 +164,14 @@ class CroniterUnsupportedSyntaxError(CroniterBadCronError):
     # Extending CroniterBadCronError, which may be contridatory, but this allows
     # catching both errors with a single exception.  From a user perspective
     # these will likely be handled the same way.
-    pass
 
 
 class CroniterBadDateError(CroniterError):
     """Unable to find next/prev timestamp match"""
 
-    pass
-
 
 class CroniterNotAlphaError(CroniterBadCronError):
     """Cron syntax contains an invalid day or month abbreviation"""
-
-    pass
 
 
 class croniter(object):
