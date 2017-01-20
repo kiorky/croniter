@@ -1,27 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function, division
+from __future__ import absolute_import, division, print_function
 
-import traceback as _traceback
+import binascii
+import calendar
 import copy
+import datetime
 import math
 import platform
-import re
-import sys
-import struct
-
-from time import time
-import datetime
-from dateutil.relativedelta import relativedelta
-from dateutil.tz import tzutc
-import calendar
-import binascii
 import random
+import re
+import struct
+import sys
+import traceback as _traceback
+from time import time
 
 # as pytz is optional in thirdparty libs but we need it for good support under
 # python2, just test that it's well installed
 import pytz  # noqa
+from dateutil.relativedelta import relativedelta
+from dateutil.tz import tzutc
 
 
 def is_32bit():
