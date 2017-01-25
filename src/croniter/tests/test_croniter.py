@@ -145,6 +145,22 @@ class CroniterTest(base.TestCase):
         self.assertEqual(n3.day, 3)
         self.assertEqual(n3.year, 2010)
 
+    def testWeekDayDayAnd(self):
+        base = datetime(2010, 1, 25)
+        itr = croniter('0 0 1 * mon', base, day_or=False)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.month, 2)
+        self.assertEqual(n1.day, 1)
+        self.assertEqual(n1.year, 2010)
+        n2 = itr.get_next(datetime)
+        self.assertEqual(n2.month, 3)
+        self.assertEqual(n2.day, 1)
+        self.assertEqual(n2.year, 2010)
+        n3 = itr.get_next(datetime)
+        self.assertEqual(n3.month, 11)
+        self.assertEqual(n3.day, 1)
+        self.assertEqual(n3.year, 2010)
+
     def testMonth(self):
         base = datetime(2010, 1, 25)
         itr = croniter('0 0 1 * *', base)
