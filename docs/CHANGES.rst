@@ -4,7 +4,10 @@ Changelog
 0.3.14 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- issue #69: added day_or option to change behavior when day-of-month and
+  day-of-week is given
+  [Andreas Vogl <a.vogl@hackner-security.com>]
+
 
 
 0.3.13 (2016-11-01)
