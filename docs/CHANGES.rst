@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.14 (unreleased)
+0.3.14 (2017-01-25)
 -------------------
 
 - issue #69: added day_or option to change behavior when day-of-month and
