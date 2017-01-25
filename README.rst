@@ -39,23 +39,40 @@ A simple example::
     >>> print iter.get_next(datetime)   # 2010-01-26 04:02:00
     >>> print iter.get_next(datetime)   # 2010-01-30 04:02:00
     >>> print iter.get_next(datetime)   # 2010-02-02 04:02:00
+    >>>
+    >>> iter = croniter('2 4 1 * wed', base)  # 04:02 on every Wednesday OR on 1st day of month
+    >>> print iter.get_next(datetime)   # 2010-01-27 04:02:00
+    >>> print iter.get_next(datetime)   # 2010-02-01 04:02:00
+    >>> print iter.get_next(datetime)   # 2010-02-03 04:02:00
+    >>>
+    >>> iter = croniter('2 4 1 * wed', base, day_or=False)  # 04:02 on every 1st day of the month if it is a Wednesday
+    >>> print iter.get_next(datetime)   # 2010-09-01 04:02:00
+    >>> print iter.get_next(datetime)   # 2010-12-01 04:02:00
+    >>> print iter.get_next(datetime)   # 2011-06-01 04:02:00
 
-All you need to know is how to use the constructor and the get_next
+All you need to know is how to use the constructor and the ``get_next``
 method, the signature of these methods are listed below::
 
-    >>> def __init__(self, cron_format, start_time=time.time())
+    >>> def __init__(self, cron_format, start_time=time.time(), day_or=True)
 
-croniter iterates along with 'cron_format' from 'start_time'.
-cron_format is 'min hour day month day_of_week', you can refer to
-http://en.wikipedia.org/wiki/Cron for more details.::
+croniter iterates along with ``cron_format`` from ``start_time``.
+``cron_format`` is **min hour day month day_of_week**, you can refer to
+http://en.wikipedia.org/wiki/Cron for more details. The ``day_or``
+switch is used to control how croniter handles **day** and **day_of_week**
+entries. Default option is the cron behaviour, which connects those
+values using **OR**. If the switch is set to False, the values are connected
+using **AND**. This behaves like fcron and enables you to e.g. define a job that
+executes each 2nd friday of a month by setting the days of month and the
+weekday.
+::
 
     >>> def get_next(self, ret_type=float)
 
 get_next calculates the next value according to the cron expression and
-returns an object of type 'ret_type'. ret_type should be a 'float' or a
-'datetime' object.
+returns an object of type ``ret_type``. ``ret_type`` should be a ``float`` or a
+``datetime`` object.
 
-Supported added for get_prev method. (>= 0.2.0)::
+Supported added for ``get_prev`` method. (>= 0.2.0)::
 
     >>> base = datetime(2010, 8, 25)
     >>> itr = croniter('0 0 1 * *', base)
