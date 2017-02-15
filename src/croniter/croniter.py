@@ -432,7 +432,11 @@ class croniter(object):
             return -x
         candidate = candidates[0]
         for c in candidates:
-            if c < range_val:
+            # fixed: c < range_val
+            # this code will reject all 31 day of month, 12 month, 59 second, 23 hour and so on.
+            # if candidates has just a element, this will not harmful.
+            # but candidates have multiple elements, then values equal to range_val will rejected.
+            if c <= range_val:
                 candidate = c
                 break
 
