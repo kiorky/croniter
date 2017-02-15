@@ -442,6 +442,75 @@ class CroniterTest(base.TestCase):
         self.assertEqual(n1.month, 2)
         self.assertEqual(n1.day, 24)
 
+    def test_multiple_months(self):
+        base = datetime(2016, 3, 1, 0, 0, 0)
+        itr = croniter('0 0 1 3,6,9,12 *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.hour, 0)
+        self.assertEqual(n1.month, 6)
+        self.assertEqual(n1.day, 1)
+        self.assertEqual(n1.year, 2016)
+
+        base = datetime(2016, 2, 15, 0, 0, 0)
+        itr = croniter('0 0 1 3,6,9,12 *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.hour, 0)
+        self.assertEqual(n1.month, 3)
+        self.assertEqual(n1.day, 1)
+        self.assertEqual(n1.year, 2016)
+
+        base = datetime(2016, 12, 3, 10, 0, 0)
+        itr = croniter('0 0 1 3,6,9,12 *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.hour, 0)
+        self.assertEqual(n1.month, 3)
+        self.assertEqual(n1.day, 1)
+        self.assertEqual(n1.year, 2017)
+
+        # The result with this parameters was incorrect.
+        # self.assertEqual(p1.month, 12
+        # AssertionError: 9 != 12
+        base = datetime(2016, 3, 1, 0, 0, 0)
+        itr = croniter('0 0 1 3,6,9,12 *', base)
+        p1 = itr.get_prev(datetime)
+        self.assertEqual(p1.hour, 0)
+        self.assertEqual(p1.month, 12)
+        self.assertEqual(p1.day, 1)
+        self.assertEqual(p1.year, 2015)
+
+        # check my change resolves another hidden bug.
+        base = datetime(2016, 2, 1, 0, 0, 0)
+        itr = croniter('0 0 1,15,31 * *', base)
+        p1 = itr.get_prev(datetime)
+        self.assertEqual(p1.hour, 0)
+        self.assertEqual(p1.month, 1)
+        self.assertEqual(p1.day, 31)
+        self.assertEqual(p1.year, 2016)
+
+        base = datetime(2016, 6, 1, 0, 0, 0)
+        itr = croniter('0 0 1 3,6,9,12 *', base)
+        p1 = itr.get_prev(datetime)
+        self.assertEqual(p1.hour, 0)
+        self.assertEqual(p1.month, 3)
+        self.assertEqual(p1.day, 1)
+        self.assertEqual(p1.year, 2016)
+
+        base = datetime(2016, 3, 1, 0, 0, 0)
+        itr = croniter('0 0 1 1,3,6,9,12 *', base)
+        p1 = itr.get_prev(datetime)
+        self.assertEqual(p1.hour, 0)
+        self.assertEqual(p1.month, 1)
+        self.assertEqual(p1.day, 1)
+        self.assertEqual(p1.year, 2016)
+
+        base = datetime(2016, 3, 1, 0, 0, 0)
+        itr = croniter('0 0 1 1,3,6,9,12 *', base)
+        p1 = itr.get_prev(datetime)
+        self.assertEqual(p1.hour, 0)
+        self.assertEqual(p1.month, 1)
+        self.assertEqual(p1.day, 1)
+        self.assertEqual(p1.year, 2016)
+
     def test_rangeGenerator(self):
         base = datetime(2013, 3, 4, 0, 0)
         itr = croniter('1-9/2 0 1 * *', base)
