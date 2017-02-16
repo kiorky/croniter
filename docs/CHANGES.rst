@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.15 (unreleased)
+0.3.15 (2017-02-16)
 -------------------
 
 - fix bug around multiple conditions and range_val in
