@@ -4,8 +4,9 @@ Changelog
 0.3.15 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- fix bug around multiple conditions and range_val in
+  _get_prev_nearest_diff.
+  [abeja-yuki@github]
 
 0.3.14 (2017-01-25)
 -------------------
