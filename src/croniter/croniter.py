@@ -63,7 +63,8 @@ class croniter(object):
     bad_length = 'Exactly 5 or 6 columns has to be specified for iterator' \
                  'expression.'
 
-    def __init__(self, expr_format, start_time=None, ret_type=float, day_or=True):
+    def __init__(self, expr_format, start_time=None, ret_type=float,
+                 day_or=True):
         self._ret_type = ret_type
         self._day_or = day_or
 
@@ -120,19 +121,20 @@ class croniter(object):
                     low, high, step = map(int, [low, high, step])
                     e_list += range(low, high + 1, step)
                     # other solution
-                    #try:
+                    # try:
                     #    for j in xrange(int(low), int(high) + 1):
                     #        if j % int(step) == 0:
                     #            e_list.append(j)
-                    #except NameError:
+                    # except NameError:
                     #    for j in range(int(low), int(high) + 1):
                     #        if j % int(step) == 0:
                     #            e_list.append(j)
                 else:
                     if t.startswith('-'):
                         raise CroniterBadCronError(
-                            "[{0}] is not acceptable, negative numbers not allowed".format(
-                                expr_format))
+                            "[{0}] is not acceptable,\
+                            negative numbers not allowed".format(
+                                        expr_format))
                     if not star_or_int_re.search(t):
                         t = self._alphaconv(i, t)
 
@@ -275,7 +277,7 @@ class croniter(object):
         offset = len(expanded) == 6 and 1 or 60
         dst = now = self._timestamp_to_datetime(now + sign * offset)
 
-        day, month, year = dst.day, dst.month, dst.year
+        month, year = dst.month, dst.year
         current_year = now.year
         DAYS = self.DAYS
 
@@ -306,7 +308,7 @@ class croniter(object):
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
-                if 'l' in expanded[2] and days==d.day:
+                if 'l' in expanded[2] and days == d.day:
                     return False, d
 
                 if is_prev:
@@ -387,7 +389,7 @@ class croniter(object):
             for proc in procs:
                 (changed, dst) = proc(dst)
                 if changed:
-                    day, month, year = dst.day, dst.month, dst.year
+                    month, year = dst.month, dst.year
                     next = True
                     break
             if next:
@@ -433,9 +435,11 @@ class croniter(object):
         candidate = candidates[0]
         for c in candidates:
             # fixed: c < range_val
-            # this code will reject all 31 day of month, 12 month, 59 second, 23 hour and so on.
+            # this code will reject all 31 day of month, 12 month, 59 second,
+            # 23 hour and so on.
             # if candidates has just a element, this will not harmful.
-            # but candidates have multiple elements, then values equal to range_val will rejected.
+            # but candidates have multiple elements, then values equal to
+            # range_val will rejected.
             if c <= range_val:
                 candidate = c
                 break
