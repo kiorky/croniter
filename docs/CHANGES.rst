@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.16 (unreleased)
+0.3.16 (2017-03-15)
 -------------------
 
 - Better test suite [mrcrilly@github]
