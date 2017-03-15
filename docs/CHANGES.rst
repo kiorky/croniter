@@ -4,8 +4,8 @@ Changelog
 0.3.16 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Better test suite [mrcrilly@github]
+- DST support [kiorky]
 
 0.3.15 (2017-02-16)
 -------------------
