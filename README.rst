@@ -80,6 +80,12 @@ Supported added for ``get_prev`` method. (>= 0.2.0)::
     >>> print itr.get_prev(datetime)  # 2010-07-01 00:00:00
     >>> print itr.get_prev(datetime)  # 2010-06-01 00:00:00
 
+About DST
+=========
+Be sure to init your croniter instance with a TZ aware datetime for this to work !::
+
+    >>> local_date = tz.localize(datetime(2017, 3, 26))
+    >>> val = croniter('0 0 * * *', local_date).get_next(datetime)
 
 Develop this package
 ====================
