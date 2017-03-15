@@ -63,7 +63,8 @@ class croniter(object):
     bad_length = 'Exactly 5 or 6 columns has to be specified for iterator' \
                  'expression.'
 
-    def __init__(self, expr_format, start_time=None, ret_type=float, day_or=True):
+    def __init__(self, expr_format, start_time=None, ret_type=float,
+                 day_or=True):
         self._ret_type = ret_type
         self._day_or = day_or
 
@@ -75,6 +76,7 @@ class croniter(object):
             self.tzinfo = start_time.tzinfo
             start_time = self._datetime_to_timestamp(start_time)
 
+        self.start_time = start_time
         self.cur = start_time
         self.exprs = expr_format.split()
 
@@ -120,19 +122,20 @@ class croniter(object):
                     low, high, step = map(int, [low, high, step])
                     e_list += range(low, high + 1, step)
                     # other solution
-                    #try:
+                    # try:
                     #    for j in xrange(int(low), int(high) + 1):
                     #        if j % int(step) == 0:
                     #            e_list.append(j)
-                    #except NameError:
+                    # except NameError:
                     #    for j in range(int(low), int(high) + 1):
                     #        if j % int(step) == 0:
                     #            e_list.append(j)
                 else:
                     if t.startswith('-'):
                         raise CroniterBadCronError(
-                            "[{0}] is not acceptable, negative numbers not allowed".format(
-                                expr_format))
+                            "[{0}] is not acceptable,\
+                            negative numbers not allowed".format(
+                                        expr_format))
                     if not star_or_int_re.search(t):
                         t = self._alphaconv(i, t)
 
@@ -257,11 +260,31 @@ class croniter(object):
                 result = t1 if t1 > t2 else t2
         else:
             result = self._calc(self.cur, expanded, is_prev)
+
+        # DST Handling for cron job spanning accross days
+        dtstarttime = self._timestamp_to_datetime(self.start_time)
+        dtresult = self._timestamp_to_datetime(result)
+        dtresult_utcoffset = dtresult.utcoffset() or datetime.timedelta(0)
+        dtstarttime_utcoffset = (
+            dtstarttime.utcoffset() or datetime.timedelta(0))
+        hours_before_midnight = 24 - dtstarttime.hour
+        lag_hours = (
+            self._timedelta_to_seconds(dtresult - dtstarttime) / (60*60)
+        )
+        if (
+            lag_hours >= hours_before_midnight and
+            (dtresult_utcoffset or dtstarttime_utcoffset) and
+            (dtresult_utcoffset != dtstarttime_utcoffset)
+        ):
+            lag = self._timedelta_to_seconds(
+                dtresult_utcoffset - dtstarttime_utcoffset
+            )
+            dtresult = dtresult - datetime.timedelta(seconds=lag)
+            result = self._datetime_to_timestamp(dtresult)
+
         self.cur = result
-
         if issubclass(ret_type, datetime.datetime):
-            result = self._timestamp_to_datetime(result)
-
+            result = dtresult
         return result
 
     def _calc(self, now, expanded, is_prev):
@@ -275,7 +298,7 @@ class croniter(object):
         offset = len(expanded) == 6 and 1 or 60
         dst = now = self._timestamp_to_datetime(now + sign * offset)
 
-        day, month, year = dst.day, dst.month, dst.year
+        month, year = dst.month, dst.year
         current_year = now.year
         DAYS = self.DAYS
 
@@ -306,7 +329,7 @@ class croniter(object):
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
-                if 'l' in expanded[2] and days==d.day:
+                if 'l' in expanded[2] and days == d.day:
                     return False, d
 
                 if is_prev:
@@ -387,7 +410,7 @@ class croniter(object):
             for proc in procs:
                 (changed, dst) = proc(dst)
                 if changed:
-                    day, month, year = dst.day, dst.month, dst.year
+                    month, year = dst.month, dst.year
                     next = True
                     break
             if next:
@@ -433,9 +456,11 @@ class croniter(object):
         candidate = candidates[0]
         for c in candidates:
             # fixed: c < range_val
-            # this code will reject all 31 day of month, 12 month, 59 second, 23 hour and so on.
+            # this code will reject all 31 day of month, 12 month, 59 second,
+            # 23 hour and so on.
             # if candidates has just a element, this will not harmful.
-            # but candidates have multiple elements, then values equal to range_val will rejected.
+            # but candidates have multiple elements, then values equal to
+            # range_val will rejected.
             if c <= range_val:
                 candidate = c
                 break
