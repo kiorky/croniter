@@ -75,6 +75,7 @@ class croniter(object):
             self.tzinfo = start_time.tzinfo
             start_time = self._datetime_to_timestamp(start_time)
 
+        self.start_time = start_time
         self.cur = start_time
         self.exprs = expr_format.split()
 
@@ -257,11 +258,31 @@ class croniter(object):
                 result = t1 if t1 > t2 else t2
         else:
             result = self._calc(self.cur, expanded, is_prev)
+
+        # DST Handling for cron job spanning accross days
+        dtstarttime = self._timestamp_to_datetime(self.start_time)
+        dtresult = self._timestamp_to_datetime(result)
+        dtresult_utcoffset = dtresult.utcoffset() or datetime.timedelta(0)
+        dtstarttime_utcoffset = (
+            dtstarttime.utcoffset() or datetime.timedelta(0))
+        hours_before_midnight = 24 - dtstarttime.hour
+        lag_hours = (
+            self._timedelta_to_seconds(dtresult - dtstarttime) / (60*60)
+        )
+        if (
+            lag_hours >= hours_before_midnight and
+            (dtresult_utcoffset or dtstarttime_utcoffset) and
+            (dtresult_utcoffset != dtstarttime_utcoffset)
+        ):
+            lag = self._timedelta_to_seconds(
+                dtresult_utcoffset - dtstarttime_utcoffset
+            )
+            dtresult = dtresult - datetime.timedelta(seconds=lag)
+            result = self._datetime_to_timestamp(dtresult)
+
         self.cur = result
-
         if issubclass(ret_type, datetime.datetime):
-            result = self._timestamp_to_datetime(result)
-
+            result = dtresult
         return result
 
     def _calc(self, now, expanded, is_prev):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 import pytz
 from croniter import croniter, CroniterBadDateError
@@ -640,6 +640,47 @@ class CroniterTest(base.TestCase):
         ct = croniter('*/30 * * * *', tz.localize(start))
         self.assertScheduleTimezone(lambda: ct.get_prev(datetime), reversed(expected_schedule))
 
+    def test_std_dst(self):
+        """
+        DST tests
+
+        This fixes https://github.com/taichino/croniter/issues/82
+
+        """
+        tz = pytz.timezone('Europe/Warsaw')
+        # -> 2017-03-26 01:59+1:00 -> 03:00+2:00
+        local_date = tz.localize(datetime(2017, 3, 26))
+        val = croniter('0 0 * * *', local_date).get_next(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 3, 27)))
+        #
+        local_date = tz.localize(datetime(2017, 3, 26, 1))
+        cr = croniter('0 * * * *', local_date)
+        val = cr.get_next(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 3, 26, 3)))
+        val = cr.get_current(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 3, 26, 3)))
+
+        # -> 2017-10-29 02:59+2:00 -> 02:00+1:00
+        local_date = tz.localize(datetime(2017, 10, 29))
+        val = croniter('0 0 * * *', local_date).get_next(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 10, 30)))
+        local_date = tz.localize(datetime(2017, 10, 29, 1, 59))
+        val = croniter('0 * * * *', local_date).get_next(datetime)
+        self.assertEqual(
+            val.replace(tzinfo=None),
+            tz.localize(datetime(2017, 10, 29, 2)).replace(tzinfo=None))
+        local_date = tz.localize(datetime(2017, 10, 29, 2))
+        val = croniter('0 * * * *', local_date).get_next(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 3)))
+        local_date = tz.localize(datetime(2017, 10, 29, 3))
+        val = croniter('0 * * * *', local_date).get_next(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 4)))
+        local_date = tz.localize(datetime(2017, 10, 29, 4))
+        val = croniter('0 * * * *', local_date).get_next(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 5)))
+        local_date = tz.localize(datetime(2017, 10, 29, 5))
+        val = croniter('0 * * * *', local_date).get_next(datetime)
+        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 6)))
 
 if __name__ == '__main__':
     unittest.main()
