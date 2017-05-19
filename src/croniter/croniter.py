@@ -7,6 +7,7 @@ from time import time
 import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
+import calendar
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
@@ -84,6 +85,7 @@ class croniter(object):
             raise CroniterBadCronError(self.bad_length)
 
         expanded = []
+        nth_weekday_of_month = {}
 
         for i, expr in enumerate(self.exprs):
             e_list = expr.split(',')
@@ -91,6 +93,13 @@ class croniter(object):
 
             while len(e_list) > 0:
                 e = e_list.pop()
+
+                if i == 4:
+                    e, sep, nth = str(e).partition('#')
+                    if nth and not re.match(r'[1-5]', nth):
+                        raise CroniterBadDateError(
+                            "[{0}] is not acceptable".format(expr_format))
+
                 t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
                     self.RANGES[i][0],
                     self.RANGES[i][1]),
@@ -120,16 +129,9 @@ class croniter(object):
                             "[{0}] is not acceptable".format(expr_format))
 
                     low, high, step = map(int, [low, high, step])
-                    e_list += range(low, high + 1, step)
-                    # other solution
-                    # try:
-                    #    for j in xrange(int(low), int(high) + 1):
-                    #        if j % int(step) == 0:
-                    #            e_list.append(j)
-                    # except NameError:
-                    #    for j in range(int(low), int(high) + 1):
-                    #        if j % int(step) == 0:
-                    #            e_list.append(j)
+                    rng = range(low, high + 1, step)
+                    e_list += (["{0}#{1}".format(item, nth) for item in rng]
+                        if i == 4 and nth else rng)
                 else:
                     if t.startswith('-'):
                         raise CroniterBadCronError(
@@ -158,11 +160,18 @@ class croniter(object):
 
                     res.append(t)
 
+                    if i == 4 and nth:
+                        if t not in nth_weekday_of_month:
+                            nth_weekday_of_month[t] = set()
+                        nth_weekday_of_month[t].add(int(nth))
+
             res.sort()
             expanded.append(['*'] if (len(res) == 1
                                       and res[0] == '*')
                             else res)
+
         self.expanded = expanded
+        self.nth_weekday_of_month = nth_weekday_of_month
 
     def _alphaconv(self, index, key):
         try:
@@ -238,6 +247,7 @@ class croniter(object):
 
     def _get_next(self, ret_type=None, is_prev=False):
         expanded = self.expanded[:]
+        nth_weekday_of_month = self.nth_weekday_of_month.copy()
 
         ret_type = ret_type or self._ret_type
 
@@ -249,17 +259,17 @@ class croniter(object):
         if (expanded[2][0] != '*' and expanded[4][0] != '*') and self._day_or:
             bak = expanded[4]
             expanded[4] = ['*']
-            t1 = self._calc(self.cur, expanded, is_prev)
+            t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
             expanded[4] = bak
             expanded[2] = ['*']
 
-            t2 = self._calc(self.cur, expanded, is_prev)
+            t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
             if not is_prev:
                 result = t1 if t1 < t2 else t2
             else:
                 result = t1 if t1 > t2 else t2
         else:
-            result = self._calc(self.cur, expanded, is_prev)
+            result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning accross days
         dtstarttime = self._timestamp_to_datetime(self.start_time)
@@ -287,7 +297,7 @@ class croniter(object):
             result = dtresult
         return result
 
-    def _calc(self, now, expanded, is_prev):
+    def _calc(self, now, expanded, nth_weekday_of_month, is_prev):
         if is_prev:
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
@@ -364,6 +374,55 @@ class croniter(object):
                     return True, d
             return False, d
 
+        def proc_day_of_week_nth(d):
+            if '*' in nth_weekday_of_month:
+                s = nth_weekday_of_month['*']
+                for i in range(0, 7):
+                    if i in nth_weekday_of_month:
+                        nth_weekday_of_month[i].update(s)
+                    else:
+                        nth_weekday_of_month[i] = s
+                del nth_weekday_of_month['*']
+
+            candidates = []
+            for wday, nth in nth_weekday_of_month.items():
+                w = (wday + 6) % 7
+                c = calendar.Calendar(w).monthdayscalendar(d.year, d.month)
+                if c[0][0] == 0: c.pop(0)
+                for n in nth:
+                    if len(c) < n:
+                        continue
+                    candidate = c[n - 1][0]
+                    if (
+                        (is_prev and candidate <= d.day) or
+                        (not is_prev and d.day <= candidate)
+                    ):
+                        candidates.append(candidate)
+
+            if not candidates:
+                if is_prev:
+                    d += relativedelta(days=-d.day,
+                                       hour=23, minute=59, second=59)
+                else:
+                    days = DAYS[month - 1]
+                    if month == 2 and self.is_leap(year) is True:
+                        days += 1
+                    d += relativedelta(days=(days - d.day + 1),
+                                       hour=0, minute=0, second=0)
+                return True, d
+
+            candidates.sort()
+            diff_day = (candidates[-1] if is_prev else candidates[0]) - d.day
+            if diff_day != 0:
+                if is_prev:
+                    d += relativedelta(days=diff_day,
+                                       hour=23, minute=59, second=59)
+                else:
+                    d += relativedelta(days=diff_day,
+                                       hour=0, minute=0, second=0)
+                return True, d
+            return False, d
+
         def proc_hour(d):
             if expanded[1][0] != '*':
                 diff_hour = nearest_diff_method(d.hour, expanded[1], 24)
@@ -400,7 +459,8 @@ class croniter(object):
 
         procs = [proc_month,
                  proc_day_of_month,
-                 proc_day_of_week,
+                 (proc_day_of_week_nth if nth_weekday_of_month
+                     else proc_day_of_week),
                  proc_hour,
                  proc_minute,
                  proc_second]
