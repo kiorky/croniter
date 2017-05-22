@@ -3,8 +3,8 @@ Changelog
 
 0.3.17 (unreleased)
 -------------------
-
-- Nothing changed yet.
+- DOW occurence sharp style support.
+  [kiorky, Kengo Seki <sekikn@apache.org>]
 
 
 0.3.16 (2017-03-15)
