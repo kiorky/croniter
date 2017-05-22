@@ -49,6 +49,8 @@ A simple example::
     >>> print iter.get_next(datetime)   # 2010-09-01 04:02:00
     >>> print iter.get_next(datetime)   # 2010-12-01 04:02:00
     >>> print iter.get_next(datetime)   # 2011-06-01 04:02:00
+    >>> iter = croniter('0 0 * * sat#1,sun#2', base)
+    >>> print iter.get_next(datetime)   # datetime.datetime(2010, 2, 6, 0, 0)
 
 All you need to know is how to use the constructor and the ``get_next``
 method, the signature of these methods are listed below::
