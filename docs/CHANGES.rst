@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.17 (unreleased)
+0.3.17 (2017-05-22)
 -------------------
 - DOW occurence sharp style support.
   [kiorky, Kengo Seki <sekikn@apache.org>]
