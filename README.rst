@@ -342,6 +342,7 @@ Develop this package
     virtualenv --no-site-packages venv3
     venv3/bin/pip install --upgrade -r requirements/test.txt -r requirements/lint.txt -r requirements/format.txt -r requirements/tox.txt
     venv3/bin/black src/
+    venv3/bin/isort src/
     venv3/bin/tox --current-env -e fmt,lint,test
 
 
