@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime
 from time import sleep
 import pytz
-from croniter import croniter, CroniterBadDateError
+from croniter import croniter, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
 from croniter.tests import base
 
 
@@ -732,6 +732,18 @@ class CroniterTest(base.TestCase):
         local_date = tz.localize(datetime(2017, 10, 29, 5))
         val = croniter('0 * * * *', local_date).get_next(datetime)
         self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 6)))
+
+    def test_error_alpha_cron(self):
+        self.assertRaises(CroniterNotAlphaError, croniter.expand, '* * * janu-jun *')
+
+    def test_error_bad_cron(self):
+        self.assertRaises(CroniterBadCronError, croniter.expand, '* * * *')
+        self.assertRaises(CroniterBadCronError, croniter.expand, '* * * * * * *')
+
+    def test_is_valid(self):
+        self.assertTrue(croniter.is_valid('0 * * * *'))
+        self.assertFalse(croniter.is_valid('0 * *'))
+        self.assertFalse(croniter.is_valid('* * * janu-jun *'))
 
 if __name__ == '__main__':
     unittest.main()
