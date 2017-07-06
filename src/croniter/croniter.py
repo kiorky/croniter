@@ -16,16 +16,20 @@ any_int_re = re.compile(r'^\d+')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 
 
-class CroniterBadCronError(ValueError):
-    '''.'''
+class CroniterError(ValueError):
+    pass
 
 
-class CroniterBadDateError(ValueError):
-    '''.'''
+class CroniterBadCronError(CroniterError):
+    pass
 
 
-class CroniterNotAlphaError(ValueError):
-    '''.'''
+class CroniterBadDateError(CroniterError):
+    pass
+
+
+class CroniterNotAlphaError(CroniterError):
+    pass
 
 
 class croniter(object):
