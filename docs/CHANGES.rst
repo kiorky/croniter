@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.19 (unreleased)
+0.3.19 (2017-08-31)
 -------------------
 
 - fix #87: backward dst changes
