@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.18 (unreleased)
+0.3.18 (2017-08-31)
 -------------------
 
 - Add is valid method, refactor errors
