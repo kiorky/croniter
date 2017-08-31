@@ -4,7 +4,8 @@ Changelog
 0.3.18 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add is valid method, refactor errors
+  [otherpirate, Mauro Murari <mauro_murari@hotmail.com>]
 
 
 0.3.17 (2017-05-22)
