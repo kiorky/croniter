@@ -4,7 +4,8 @@ Changelog
 0.3.19 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- fix #87: backward dst changes
+  [kiorky]
 
 
 0.3.18 (2017-08-31)
