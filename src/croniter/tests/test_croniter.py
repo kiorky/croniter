@@ -734,11 +734,14 @@ class CroniterTest(base.TestCase):
         self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 6)))
 
     def test_error_alpha_cron(self):
-        self.assertRaises(CroniterNotAlphaError, croniter.expand, '* * * janu-jun *')
+        self.assertRaises(CroniterNotAlphaError, croniter.expand,
+                          '* * * janu-jun *')
 
     def test_error_bad_cron(self):
-        self.assertRaises(CroniterBadCronError, croniter.expand, '* * * *')
-        self.assertRaises(CroniterBadCronError, croniter.expand, '* * * * * * *')
+        self.assertRaises(CroniterBadCronError, croniter.expand,
+                          '* * * *')
+        self.assertRaises(CroniterBadCronError, croniter.expand,
+                          '* * * * * * *')
 
     def test_is_valid(self):
         self.assertTrue(croniter.is_valid('0 * * * *'))
