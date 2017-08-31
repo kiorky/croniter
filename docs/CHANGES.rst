@@ -1,10 +1,17 @@
 Changelog
 ==============
 
-0.3.19 (unreleased)
+0.3.20 (unreleased)
 -------------------
 
 - Nothing changed yet.
+
+
+0.3.19 (2017-08-31)
+-------------------
+
+- fix #87: backward dst changes
+  [kiorky]
 
 
 0.3.18 (2017-08-31)
