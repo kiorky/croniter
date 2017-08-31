@@ -1,10 +1,17 @@
 Changelog
 ==============
 
-0.3.18 (unreleased)
+0.3.19 (unreleased)
 -------------------
 
 - Nothing changed yet.
+
+
+0.3.18 (2017-08-31)
+-------------------
+
+- Add is valid method, refactor errors
+  [otherpirate, Mauro Murari <mauro_murari@hotmail.com>]
 
 
 0.3.17 (2017-05-22)
