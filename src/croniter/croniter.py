@@ -14,18 +14,23 @@ search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 only_int_re = re.compile(r'^\d+$')
 any_int_re = re.compile(r'^\d+')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
+VALID_LEN_EXPRESSION = [5, 6]
 
 
-class CroniterBadCronError(ValueError):
-    '''.'''
+class CroniterError(ValueError):
+    pass
 
 
-class CroniterBadDateError(ValueError):
-    '''.'''
+class CroniterBadCronError(CroniterError):
+    pass
 
 
-class CroniterNotAlphaError(ValueError):
-    '''.'''
+class CroniterBadDateError(CroniterError):
+    pass
+
+
+class CroniterNotAlphaError(CroniterError):
+    pass
 
 
 class croniter(object):
@@ -79,106 +84,16 @@ class croniter(object):
 
         self.start_time = start_time
         self.cur = start_time
-        self.exprs = expr_format.split()
 
-        if len(self.exprs) != 5 and len(self.exprs) != 6:
-            raise CroniterBadCronError(self.bad_length)
+        self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
 
-        expanded = []
-        nth_weekday_of_month = {}
-
-        for i, expr in enumerate(self.exprs):
-            e_list = expr.split(',')
-            res = []
-
-            while len(e_list) > 0:
-                e = e_list.pop()
-
-                if i == 4:
-                    e, sep, nth = str(e).partition('#')
-                    if nth and not re.match(r'[1-5]', nth):
-                        raise CroniterBadDateError(
-                            "[{0}] is not acceptable".format(expr_format))
-
-                t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
-                    self.RANGES[i][0],
-                    self.RANGES[i][1]),
-                    str(e))
-                m = search_re.search(t)
-
-                if not m:
-                    t = re.sub(r'^(.+)\/(.+)$', r'\1-%d/\2' % (
-                        self.RANGES[i][1]),
-                        str(e))
-                    m = step_search_re.search(t)
-
-                if m:
-                    (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
-
-                    if not any_int_re.search(low):
-                        low = "{0}".format(self._alphaconv(i, low))
-
-                    if not any_int_re.search(high):
-                        high = "{0}".format(self._alphaconv(i, high))
-
-                    if (
-                        not low or not high or int(low) > int(high)
-                        or not only_int_re.search(str(step))
-                    ):
-                        raise CroniterBadDateError(
-                            "[{0}] is not acceptable".format(expr_format))
-
-                    low, high, step = map(int, [low, high, step])
-                    rng = range(low, high + 1, step)
-                    e_list += (["{0}#{1}".format(item, nth) for item in rng]
-                        if i == 4 and nth else rng)
-                else:
-                    if t.startswith('-'):
-                        raise CroniterBadCronError(
-                            "[{0}] is not acceptable,\
-                            negative numbers not allowed".format(
-                                        expr_format))
-                    if not star_or_int_re.search(t):
-                        t = self._alphaconv(i, t)
-
-                    try:
-                        t = int(t)
-                    except:
-                        pass
-
-                    if t in self.LOWMAP[i]:
-                        t = self.LOWMAP[i][t]
-
-                    if (
-                        t not in ["*", "l"]
-                        and (int(t) < self.RANGES[i][0] or
-                             int(t) > self.RANGES[i][1])
-                    ):
-                        raise CroniterBadCronError(
-                            "[{0}] is not acceptable, out of range".format(
-                                expr_format))
-
-                    res.append(t)
-
-                    if i == 4 and nth:
-                        if t not in nth_weekday_of_month:
-                            nth_weekday_of_month[t] = set()
-                        nth_weekday_of_month[t].add(int(nth))
-
-            res.sort()
-            expanded.append(['*'] if (len(res) == 1
-                                      and res[0] == '*')
-                            else res)
-
-        self.expanded = expanded
-        self.nth_weekday_of_month = nth_weekday_of_month
-
-    def _alphaconv(self, index, key):
+    @classmethod
+    def _alphaconv(cls, index, key, expressions):
         try:
-            return self.ALPHACONV[index][key.lower()]
+            return cls.ALPHACONV[index][key.lower()]
         except KeyError:
             raise CroniterNotAlphaError(
-                "[{0}] is not acceptable".format(" ".join(self.exprs)))
+                "[{0}] is not acceptable".format(" ".join(expressions)))
 
     def get_next(self, ret_type=None):
         return self._get_next(ret_type or self._ret_type, is_prev=False)
@@ -192,14 +107,15 @@ class croniter(object):
             return self._timestamp_to_datetime(self.cur)
         return self.cur
 
-    def _datetime_to_timestamp(self, d):
+    @classmethod
+    def _datetime_to_timestamp(cls, d):
         """
         Converts a `datetime` object `d` into a UNIX timestamp.
         """
         if d.tzinfo is not None:
             d = d.replace(tzinfo=None) - d.utcoffset()
 
-        return self._timedelta_to_seconds(d - datetime.datetime(1970, 1, 1))
+        return cls._timedelta_to_seconds(d - datetime.datetime(1970, 1, 1))
 
     def _timestamp_to_datetime(self, timestamp):
         """
@@ -532,3 +448,107 @@ class croniter(object):
             return True
         else:
             return False
+
+    @classmethod
+    def expand(cls, expr_format):
+        expressions = expr_format.split()
+
+        if len(expressions) not in VALID_LEN_EXPRESSION:
+            raise CroniterBadCronError(cls.bad_length)
+
+        expanded = []
+        nth_weekday_of_month = {}
+
+        for i, expr in enumerate(expressions):
+            e_list = expr.split(',')
+            res = []
+
+            while len(e_list) > 0:
+                e = e_list.pop()
+
+                if i == 4:
+                    e, sep, nth = str(e).partition('#')
+                    if nth and not re.match(r'[1-5]', nth):
+                        raise CroniterBadDateError(
+                            "[{0}] is not acceptable".format(expr_format))
+
+                t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
+                    cls.RANGES[i][0],
+                    cls.RANGES[i][1]),
+                    str(e))
+                m = search_re.search(t)
+
+                if not m:
+                    t = re.sub(r'^(.+)\/(.+)$', r'\1-%d/\2' % (
+                        cls.RANGES[i][1]),
+                        str(e))
+                    m = step_search_re.search(t)
+
+                if m:
+                    (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
+
+                    if not any_int_re.search(low):
+                        low = "{0}".format(cls._alphaconv(i, low, expressions))
+
+                    if not any_int_re.search(high):
+                        high = "{0}".format(cls._alphaconv(i, high, expressions))
+
+                    if (
+                        not low or not high or int(low) > int(high)
+                        or not only_int_re.search(str(step))
+                    ):
+                        raise CroniterBadDateError(
+                            "[{0}] is not acceptable".format(expr_format))
+
+                    low, high, step = map(int, [low, high, step])
+                    rng = range(low, high + 1, step)
+                    e_list += (["{0}#{1}".format(item, nth) for item in rng]
+                        if i == 4 and nth else rng)
+                else:
+                    if t.startswith('-'):
+                        raise CroniterBadCronError(
+                            "[{0}] is not acceptable,\
+                            negative numbers not allowed".format(
+                                        expr_format))
+                    if not star_or_int_re.search(t):
+                        t = cls._alphaconv(i, t, expressions)
+
+                    try:
+                        t = int(t)
+                    except:
+                        pass
+
+                    if t in cls.LOWMAP[i]:
+                        t = cls.LOWMAP[i][t]
+
+                    if (
+                        t not in ["*", "l"]
+                        and (int(t) < cls.RANGES[i][0] or
+                             int(t) > cls.RANGES[i][1])
+                    ):
+                        raise CroniterBadCronError(
+                            "[{0}] is not acceptable, out of range".format(
+                                expr_format))
+
+                    res.append(t)
+
+                    if i == 4 and nth:
+                        if t not in nth_weekday_of_month:
+                            nth_weekday_of_month[t] = set()
+                        nth_weekday_of_month[t].add(int(nth))
+
+            res.sort()
+            expanded.append(['*'] if (len(res) == 1
+                                      and res[0] == '*')
+                            else res)
+
+        return expanded, nth_weekday_of_month
+
+    @classmethod
+    def is_valid(cls, expression):
+        try:
+            cls.expand(expression)
+        except CroniterError:
+            return False
+        else:
+            return True
