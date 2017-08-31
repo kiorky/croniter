@@ -733,6 +733,48 @@ class CroniterTest(base.TestCase):
         val = croniter('0 * * * *', local_date).get_next(datetime)
         self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 6)))
 
+    def test_std_dst2(self):
+        """
+        DST tests
+
+        This fixes https://github.com/taichino/croniter/issues/87
+
+        São Paulo, Brazil: 18/02/2018 00:00 -> 17/02/2018 23:00
+
+        """
+        tz = pytz.timezone("America/Sao_Paulo")
+        local_dates = [
+            # 17-22: 00 -> 18-00:00
+            (tz.localize(datetime(2018, 2, 17, 21, 0, 0)),
+             '2018-02-17 22:00:00-03:00'),
+            # 17-23: 00 -> 18-00:00
+            (tz.localize(datetime(2018, 2, 17, 22, 0, 0)),
+             '2018-02-17 22:00:00-03:00'),
+            # 17-23: 00 -> 18-00:00
+            (tz.localize(datetime(2018, 2, 17, 23, 0, 0)),
+             '2018-02-18 00:00:00-03:00'),
+            # 18-00: 00 -> 19-00:00
+            (tz.localize(datetime(2018, 2, 18, 0, 0, 0)),
+             '2018-02-19 00:00:00-03:00'),
+            # 17-22: 00 -> 18-00:00
+            (tz.localize(datetime(2018, 2, 17, 21, 5, 0)),
+             '2018-02-17 22:00:00-03:00'),
+            # 17-23: 00 -> 18-00:00
+            (tz.localize(datetime(2018, 2, 17, 22, 5, 0)),
+             '2018-02-17 22:00:00-03:00'),
+            # 17-23: 00 -> 18-00:00
+            (tz.localize(datetime(2018, 2, 17, 23, 5, 0)),
+             '2018-02-18 00:00:00-03:00'),
+            # 18-00: 00 -> 19-00:00
+            (tz.localize(datetime(2018, 2, 18, 0, 5, 0)),
+             '2018-02-19 00:00:00-03:00'),
+        ]
+        ret1 = [croniter("0 0 * * *", d[0]).get_next(datetime)
+                for d in local_dates]
+        sret1 = ['{0}'.format(d) for d in ret1]
+        lret1 = ['{0}'.format(d[1]) for d in local_dates]
+        self.assertEqual(sret1, lret1)
+
     def test_error_alpha_cron(self):
         self.assertRaises(CroniterNotAlphaError, croniter.expand,
                           '* * * janu-jun *')

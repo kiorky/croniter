@@ -185,29 +185,41 @@ class croniter(object):
             else:
                 result = t1 if t1 > t2 else t2
         else:
-            result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
+            result = self._calc(self.cur, expanded,
+                                nth_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning accross days
         dtstarttime = self._timestamp_to_datetime(self.start_time)
-        dtresult = self._timestamp_to_datetime(result)
-        dtresult_utcoffset = dtresult.utcoffset() or datetime.timedelta(0)
         dtstarttime_utcoffset = (
             dtstarttime.utcoffset() or datetime.timedelta(0))
-        hours_before_midnight = 24 - dtstarttime.hour
-        lag_hours = (
-            self._timedelta_to_seconds(dtresult - dtstarttime) / (60*60)
-        )
-        if (
-            lag_hours >= hours_before_midnight and
-            (dtresult_utcoffset or dtstarttime_utcoffset) and
-            (dtresult_utcoffset != dtstarttime_utcoffset)
-        ):
+        dtresult = self._timestamp_to_datetime(result)
+        lag = lag_hours = 0
+        # do we trigger DST on next crontab (handle backward changes)
+        dtresult_utcoffset = dtstarttime_utcoffset
+        if dtresult and self.tzinfo:
+            dtresult_utcoffset = dtresult.utcoffset()
+            lag_hours = (
+                self._timedelta_to_seconds(dtresult - dtstarttime) / (60*60)
+            )
             lag = self._timedelta_to_seconds(
                 dtresult_utcoffset - dtstarttime_utcoffset
             )
-            dtresult = dtresult - datetime.timedelta(seconds=lag)
-            result = self._datetime_to_timestamp(dtresult)
-
+        hours_before_midnight = 24 - dtstarttime.hour
+        if dtresult_utcoffset != dtstarttime_utcoffset:
+            # DST forward
+            if (
+                lag > 0 and
+                lag_hours >= hours_before_midnight
+            ):
+                dtresult = dtresult - datetime.timedelta(seconds=lag)
+                result = self._datetime_to_timestamp(dtresult)
+            # DST backward
+            elif (
+                lag < 0 and
+                ((3600*lag_hours+abs(lag)) >= hours_before_midnight*3600)
+            ):
+                dtresult = dtresult + datetime.timedelta(seconds=lag)
+                result = self._datetime_to_timestamp(dtresult)
         self.cur = result
         if issubclass(ret_type, datetime.datetime):
             result = dtresult
