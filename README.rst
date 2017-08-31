@@ -82,6 +82,11 @@ Supported added for ``get_prev`` method. (>= 0.2.0)::
     >>> print itr.get_prev(datetime)  # 2010-07-01 00:00:00
     >>> print itr.get_prev(datetime)  # 2010-06-01 00:00:00
 
+You can validate your crons using ``is_valid`` class method. (>= 0.3.18)::
+
+    >>> croniter.is_valid('0 0 1 * *')  # True
+    >>> croniter.is_valid('0 wrong_value 1 * *')  # False
+
 About DST
 =========
 Be sure to init your croniter instance with a TZ aware datetime for this to work !::
