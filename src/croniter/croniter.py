@@ -207,7 +207,6 @@ class croniter(object):
             )
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
-            # DST forward
             if ((lag > 0 and lag_hours >= hours_before_midnight)
                 or (lag < 0 and
                     ((3600*lag_hours+abs(lag)) >= hours_before_midnight*3600))
