@@ -4,7 +4,8 @@ Changelog
 0.3.20 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- More DST fixes
+  [Kevin Rose <kbrose@github>]
 
 
 0.3.19 (2017-08-31)
