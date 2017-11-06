@@ -83,6 +83,7 @@ class croniter(object):
             start_time = self._datetime_to_timestamp(start_time)
 
         self.start_time = start_time
+        self.dst_start_time = start_time
         self.cur = start_time
 
         self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
@@ -189,7 +190,7 @@ class croniter(object):
                                 nth_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning accross days
-        dtstarttime = self._timestamp_to_datetime(self.start_time)
+        dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
         dtstarttime_utcoffset = (
             dtstarttime.utcoffset() or datetime.timedelta(0))
         dtresult = self._timestamp_to_datetime(result)
@@ -207,19 +208,13 @@ class croniter(object):
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
             # DST forward
-            if (
-                lag > 0 and
-                lag_hours >= hours_before_midnight
+            if ((lag > 0 and lag_hours >= hours_before_midnight)
+                or (lag < 0 and
+                    ((3600*lag_hours+abs(lag)) >= hours_before_midnight*3600))
             ):
                 dtresult = dtresult - datetime.timedelta(seconds=lag)
                 result = self._datetime_to_timestamp(dtresult)
-            # DST backward
-            elif (
-                lag < 0 and
-                ((3600*lag_hours+abs(lag)) >= hours_before_midnight*3600)
-            ):
-                dtresult = dtresult + datetime.timedelta(seconds=lag)
-                result = self._datetime_to_timestamp(dtresult)
+                self.dst_start_time = result
         self.cur = result
         if issubclass(ret_type, datetime.datetime):
             result = dtresult
