@@ -1,10 +1,17 @@
 Changelog
 ==============
 
-0.3.20 (unreleased)
+0.3.21 (unreleased)
 -------------------
 
 - Nothing changed yet.
+
+
+0.3.20 (2017-11-06)
+-------------------
+
+- More DST fixes
+  [Kevin Rose <kbrose@github>]
 
 
 0.3.19 (2017-08-31)
