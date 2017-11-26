@@ -31,26 +31,26 @@ A simple example::
     >>> from datetime import datetime
     >>> base = datetime(2010, 1, 25, 4, 46)
     >>> iter = croniter('*/5 * * * *', base)  # every 5 minutes
-    >>> print iter.get_next(datetime)   # 2010-01-25 04:50:00
-    >>> print iter.get_next(datetime)   # 2010-01-25 04:55:00
-    >>> print iter.get_next(datetime)   # 2010-01-25 05:00:00
+    >>> print(iter.get_next(datetime))   # 2010-01-25 04:50:00
+    >>> print(iter.get_next(datetime))   # 2010-01-25 04:55:00
+    >>> print(iter.get_next(datetime))   # 2010-01-25 05:00:00
     >>>
     >>> iter = croniter('2 4 * * mon,fri', base)  # 04:02 on every Monday and Friday
-    >>> print iter.get_next(datetime)   # 2010-01-26 04:02:00
-    >>> print iter.get_next(datetime)   # 2010-01-30 04:02:00
-    >>> print iter.get_next(datetime)   # 2010-02-02 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-01-26 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-01-30 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-02-02 04:02:00
     >>>
     >>> iter = croniter('2 4 1 * wed', base)  # 04:02 on every Wednesday OR on 1st day of month
-    >>> print iter.get_next(datetime)   # 2010-01-27 04:02:00
-    >>> print iter.get_next(datetime)   # 2010-02-01 04:02:00
-    >>> print iter.get_next(datetime)   # 2010-02-03 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-01-27 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-02-01 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-02-03 04:02:00
     >>>
     >>> iter = croniter('2 4 1 * wed', base, day_or=False)  # 04:02 on every 1st day of the month if it is a Wednesday
-    >>> print iter.get_next(datetime)   # 2010-09-01 04:02:00
-    >>> print iter.get_next(datetime)   # 2010-12-01 04:02:00
-    >>> print iter.get_next(datetime)   # 2011-06-01 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-09-01 04:02:00
+    >>> print(iter.get_next(datetime))   # 2010-12-01 04:02:00
+    >>> print(iter.get_next(datetime))   # 2011-06-01 04:02:00
     >>> iter = croniter('0 0 * * sat#1,sun#2', base)
-    >>> print iter.get_next(datetime)   # datetime.datetime(2010, 2, 6, 0, 0)
+    >>> print(iter.get_next(datetime))   # datetime.datetime(2010, 2, 6, 0, 0)
 
 All you need to know is how to use the constructor and the ``get_next``
 method, the signature of these methods are listed below::
@@ -78,9 +78,9 @@ Supported added for ``get_prev`` method. (>= 0.2.0)::
 
     >>> base = datetime(2010, 8, 25)
     >>> itr = croniter('0 0 1 * *', base)
-    >>> print itr.get_prev(datetime)  # 2010-08-01 00:00:00
-    >>> print itr.get_prev(datetime)  # 2010-07-01 00:00:00
-    >>> print itr.get_prev(datetime)  # 2010-06-01 00:00:00
+    >>> print(itr.get_prev(datetime))  # 2010-08-01 00:00:00
+    >>> print(itr.get_prev(datetime))  # 2010-07-01 00:00:00
+    >>> print(itr.get_prev(datetime))  # 2010-06-01 00:00:00
 
 You can validate your crons using ``is_valid`` class method. (>= 0.3.18)::
 
@@ -135,4 +135,3 @@ If you have contributed and your name is not listed below please let me know.
     - chris-baynes
     - ipartola
     - yuzawa-san
-
