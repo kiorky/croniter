@@ -1,8 +1,8 @@
 name: docker images builder
 on:
-  push:
-  pull_request:
-  workflow_dispatch:
+  push: {branches: [master, docker]}
+#  pull_request:
+#  workflow_dispatch:
   schedule: [{cron: '1 0 * * 6'}]
 env:
   DOCKER_BUILDKIT: "1"
