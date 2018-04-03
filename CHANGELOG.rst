@@ -4,8 +4,8 @@ Changelog
 3.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Remove DayOfWeek alias 7 to DayOfWeek 0 to stick to standard cron (#90). [kiorky]
+- Fix DOW ranges calculations when lastday is a Sunday. [kiorky]
 
 3.0.4 (2024-10-25)
 ------------------
