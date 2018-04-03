@@ -191,7 +191,7 @@ class croniter(object):
         (0, 23),
         (1, 31),
         (1, 12),
-        (0, 7),
+        (0, 6),
         (0, 59),
         (1970, 2099)
     )
@@ -218,7 +218,7 @@ class croniter(object):
         {},
         {0: 1},
         {0: 1},
-        {7: 0},
+        {},
         {},
         {}
     )
@@ -861,7 +861,7 @@ class croniter(object):
                                 assert (nth >= 1 and nth <= 5)
                             except (KeyError, ValueError, AssertionError):
                                 raise CroniterBadCronError(
-                                    "[{0}] is not acceptable.  Invalid day_of_week "
+                                    "[{0}] is not acceptable. Invalid day_of_week "
                                     "value: '{1}'".format(expr_format, nth))
                         elif last:
                             e = last
@@ -886,6 +886,7 @@ class croniter(object):
 
                 if m:
                     # early abort if low/high are out of bounds
+                    add_sunday = False
 
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
                     if i == DAY_FIELD and high == 'l':
@@ -901,9 +902,10 @@ class croniter(object):
                         not low or not high or int(low) > int(high)
                         or not only_int_re.search(str(step))
                     ):
+                        # handle -Sun notation as Sunday is DOW-0
                         if i == DOW_FIELD and high == '0':
-                            # handle -Sun notation -> 7
-                            high = '7'
+                            add_sunday = True
+                            high = '6'
                         else:
                             raise CroniterBadCronError(
                                 "[{0}] is not acceptable".format(expr_format))
@@ -923,8 +925,14 @@ class croniter(object):
                     except ValueError as exc:
                         raise CroniterBadCronError(
                             'invalid range: {0}'.format(exc))
+
                     e_list += (["{0}#{1}".format(item, nth) for item in rng]
                                if i == DOW_FIELD and nth and nth != "l" else rng)
+                    # if low == high, this means all week
+                    if (i == DOW_FIELD) and low == high and not (add_sunday and low == 6):
+                        _ = [e_list.append(dow) for dow in range(7) if dow not in e_list]
+                    if (i == DOW_FIELD) and add_sunday and (0 not in e_list):
+                        e_list.insert(0, 0)
                 else:
                     if t.startswith('-'):
                         raise CroniterBadCronError((
