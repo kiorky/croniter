@@ -1,6 +1,12 @@
 Changelog
 ==============
 
+0.3.23 (unreleased)
+-------------------
+
+- Nothing changed yet.
+
+
 0.3.22 (2018-05-16)
 -------------------
 - Don't count previous minute if now is dynamic
