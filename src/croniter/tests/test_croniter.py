@@ -790,5 +790,12 @@ class CroniterTest(base.TestCase):
         self.assertFalse(croniter.is_valid('0 * *'))
         self.assertFalse(croniter.is_valid('* * * janu-jun *'))
 
+    def test_exactly_the_same_minute(self):
+        base = datetime(2018, 3, 5, 12, 30, 50)
+        itr = croniter('30 7,12,17 * * *', base)
+        n1 = itr.get_prev(datetime)
+        self.assertEqual(12, n1.hour)
+
+
 if __name__ == '__main__':
     unittest.main()

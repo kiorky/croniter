@@ -1,11 +1,19 @@
 Changelog
 ==============
 
-0.3.21 (unreleased)
+0.3.22 (unreleased)
 -------------------
 
 - Nothing changed yet.
 
+
+0.3.21 (2018-05-16)
+-------------------
+- Don't count previous minute if now is dynamic
+  If the code is triggered from 5-asterisk based cron
+  `get_prev` based on `datetime.now()` is expected to return
+  current cron iteration and not previous execution.
+  [Igor Khrol <igor.khrol@toptal.com>]
 
 0.3.20 (2017-11-06)
 -------------------
