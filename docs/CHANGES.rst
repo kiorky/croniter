@@ -1,13 +1,7 @@
 Changelog
 ==============
 
-0.3.22 (unreleased)
--------------------
-
-- Nothing changed yet.
-
-
-0.3.21 (2018-05-16)
+0.3.22 (2018-05-16)
 -------------------
 - Don't count previous minute if now is dynamic
   If the code is triggered from 5-asterisk based cron
