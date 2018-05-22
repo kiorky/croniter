@@ -796,6 +796,22 @@ class CroniterTest(base.TestCase):
         n1 = itr.get_prev(datetime)
         self.assertEqual(12, n1.hour)
 
+        n2 = itr.get_prev(datetime)
+        self.assertEqual(7, n2.hour)
+
+        n3 = itr.get_next(datetime)
+        self.assertEqual(12, n3.hour)
+
+    def test_next_when_now_satisfies_cron(self):
+        ts_a = datetime(2018, 5, 21, 0, 3, 0)
+        ts_b = datetime(2018, 5, 21, 0, 4, 20)
+        test_cron = '4 * * * *'
+
+        next_a = croniter(test_cron, start_time=ts_a).get_next()
+        next_b = croniter(test_cron, start_time=ts_b).get_next()
+
+        self.assertTrue(next_b > next_a)
+
 
 if __name__ == '__main__':
     unittest.main()

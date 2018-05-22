@@ -223,11 +223,12 @@ class croniter(object):
         if is_prev:
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
+            offset = (len(expanded) == 6 or now % 60 > 0) and 1 or 60
         else:
             nearest_diff_method = self._get_next_nearest_diff
             sign = 1
+            offset = (len(expanded) == 6) and 1 or 60
 
-        offset = (len(expanded) == 6 or now % 60 > 0) and 1 or 60
         dst = now = self._timestamp_to_datetime(now + sign * offset)
 
         month, year = dst.month, dst.year
