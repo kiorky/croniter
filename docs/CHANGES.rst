@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.23 (unreleased)
+0.3.23 (2018-05-23)
 -------------------
 
 - fix `get_next` while perserving the fix of `get_prev` in 7661c2aaa
