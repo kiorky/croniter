@@ -4,7 +4,8 @@ Changelog
 0.3.23 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- fix `get_next` while perserving the fix of `get_prev` in 7661c2aaa
+  [Avikam Agur <avikam@pagaya-inv.com>]
 
 
 0.3.22 (2018-05-16)
