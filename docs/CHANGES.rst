@@ -1,10 +1,17 @@
 Changelog
 ==============
 
-0.3.23 (unreleased)
+0.3.24 (unreleased)
 -------------------
 
 - Nothing changed yet.
+
+
+0.3.23 (2018-05-23)
+-------------------
+
+- fix `get_next` while perserving the fix of `get_prev` in 7661c2aaa
+  [Avikam Agur <avikam@pagaya-inv.com>]
 
 
 0.3.22 (2018-05-16)
