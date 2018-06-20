@@ -812,6 +812,26 @@ class CroniterTest(base.TestCase):
 
         self.assertTrue(next_b > next_a)
 
+    def test_milliseconds(self):
+        """
+        https://github.com/taichino/croniter/issues/107
+        """
+        #
+        dt = datetime(2018, 1, 2, 10, 0, 0, 500)
+        c = croniter("0 10 * * * ", start_time=dt)
+        ts = "{0}".format(datetime.utcfromtimestamp(c.get_prev()))
+        self.assertEqual(ts, '2018-01-02 10:00:00')
+        #
+        dt = datetime(2018, 1, 2, 10, 0, 1, 0)
+        c = croniter("0 10 * * * ", start_time=dt)
+        ts = "{0}".format(datetime.utcfromtimestamp(c.get_prev()))
+        self.assertEqual(ts, '2018-01-02 10:00:00')
+        #
+        dt = datetime(2018, 1, 2, 9, 59, 59, 999999)
+        c = croniter("0 10 * * * ", start_time=dt)
+        ts = "{0}".format(datetime.utcfromtimestamp(c.get_prev()))
+        self.assertEqual(ts, '2018-01-01 10:00:00')
+
 
 if __name__ == '__main__':
     unittest.main()
