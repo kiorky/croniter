@@ -3,8 +3,8 @@ Changelog
 
 0.3.24 (unreleased)
 -------------------
-
-- Nothing changed yet.
+unreleased
+- fix `#107 <https://github.com/taichino/croniter/issues/107>`_: microsecond threshold
 
 
 0.3.23 (2018-05-23)
