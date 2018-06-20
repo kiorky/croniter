@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.24 (unreleased)
+0.3.24 (2018-06-20)
 -------------------
 unreleased
 - fix `#107 <https://github.com/taichino/croniter/issues/107>`_: microsecond threshold
