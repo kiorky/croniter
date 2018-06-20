@@ -80,6 +80,9 @@ class croniter(object):
         self.tzinfo = None
         if isinstance(start_time, datetime.datetime):
             self.tzinfo = start_time.tzinfo
+            # milliseconds/microseconds rounds
+            if start_time.microsecond:
+                start_time = start_time + relativedelta(seconds=1)
             start_time = self._datetime_to_timestamp(start_time)
 
         self.start_time = start_time
