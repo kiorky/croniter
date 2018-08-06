@@ -19,8 +19,8 @@ Website: https://github.com/kiorky/croniter
 
 Travis badge
 =============
-.. image:: https://travis-ci.org/kiorky/croniter.png
-    :target: http://travis-ci.org/kiorky/croniter
+.. image:: https://travis-ci.org/kiorky/croniter.svg?branch=master
+    :target: https://travis-ci.org/kiorky/croniter
 
 Usage
 ============
