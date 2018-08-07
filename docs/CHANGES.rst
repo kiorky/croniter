@@ -1,6 +1,16 @@
 Changelog
 ==============
 
+0.3.29 (unreleased)
+-------------------
+
+- credits
+- history stripping (security)
+- Handle -Sun notation, This fixes `#119 <https://github.com/taichino/croniter/issues/119>`_.
+  [kiorky]
+- Handle invalid ranges correctly,  This fixes `#114 <https://github.com/taichino/croniter/issues/114>`_.
+  [kiorky]
+
 0.3.25 (2018-08-07)
 -------------------
 - Pypi hygiene

@@ -22,6 +22,12 @@ Travis badge
 .. image:: https://travis-ci.org/kiorky/croniter.svg?branch=master
     :target: https://travis-ci.org/kiorky/croniter
 
+
+     
+Support development
+====================
+- `paypal <https://paypal.me/kiorky>`_
+
 Usage
 ============
 
