@@ -3,7 +3,7 @@ Changelog
 
 0.3.25 (2018-08-07)
 -------------------
-- Pypî hygiene
+- Pypi hygiene
   [hugovk]
 
 
