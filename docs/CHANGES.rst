@@ -3,14 +3,14 @@ Changelog
 
 0.3.25 (unreleased)
 -------------------
-
-- Nothing changed yet.
+- Pypî hygiene
+  [hugovk]
 
 
 0.3.24 (2018-06-20)
 -------------------
-unreleased
 - fix `#107 <https://github.com/taichino/croniter/issues/107>`_: microsecond threshold
+  [kiorky]
 
 
 0.3.23 (2018-05-23)
