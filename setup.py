@@ -23,7 +23,7 @@ long_description = "\n\n".join(
 
 setup(
     name='croniter',
-    version='0.3.25.dev0',
+    version='0.3.26.dev0',
     py_modules=['croniter', ],
     description=(
         'croniter provides iteration for datetime '
@@ -36,6 +36,7 @@ setup(
     keywords='datetime, iterator, cron',
     install_requires=install_requires,
     license="MIT License",
+    python_requires='>=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -43,7 +44,11 @@ setup(
         "Operating System :: POSIX",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Topic :: Software Development :: Libraries :: Python Modules"],
     packages=find_packages('src'),
     package_dir={'': 'src'},
