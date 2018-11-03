@@ -4,7 +4,7 @@ Changelog
 0.3.26 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Support
 
 
 0.3.25 (2018-08-07)
