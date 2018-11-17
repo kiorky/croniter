@@ -285,6 +285,27 @@ Random "R" definition keywords are supported, and remain consistent only within 
     datetime.datetime(2021, 4, 11, 4, 19)
 
 
+Note about Ranges
+=================
+
+Note that as a deviation from cron standard, croniter is somehow laxist with ranges and will allow ranges of ``Jan-Dec``, & ``Sun-Sat`` in reverse way and interpret them as following examples:
+
+    - ``Apr-Jan``: from April to january
+    - ``Sat-Sun``: Saturday, Sunday
+    - ``Wed-Sun``: Wednesday to Saturday, Sunday
+
+Please note that if a /step is given, it will be respected.
+
+Note about Sunday
+=================
+
+Note that as a deviation from cron standard, croniter like numerous cron implementations supports ``SUNDAY`` to be expressed as ``DAY7``, allowing such expressions:
+
+    - ``0 0 * * 7``
+    - ``0 0 * * 6-7``
+    - ``0 0 * * 6,7``
+
+
 Keyword expressions
 ===================
 
@@ -302,7 +323,6 @@ What they evaluate to depends on whether you supply hash_id: no hash_id correspo
     @yearly      0 0 1 1 *    H H H H * H
     @annually    0 0 1 1 *    H H H H * H
     ============ ============ ================
-
 
 Upgrading
 ==========
