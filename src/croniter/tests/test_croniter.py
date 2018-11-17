@@ -319,13 +319,14 @@ class CroniterTest(base.TestCase):
         itr = croniter('* * * * *')
         self.assertRaises(TypeError, itr.get_next, str)
         self.assertRaises(ValueError, croniter, '* * * *')
-        self.assertRaises(ValueError, croniter, '* * 5-1 * *')
         self.assertRaises(ValueError, croniter, '-90 * * * *')
         self.assertRaises(ValueError, croniter, 'a * * * *')
         self.assertRaises(ValueError, croniter, '* * * janu-jun *')
         self.assertRaises(ValueError, croniter, '1-1_0 * * * *')
+        self.assertRaises(ValueError, croniter, '0-10/error * * * *')
         self.assertRaises(ValueError, croniter, '0-10/ * * * *')
         self.assertRaises(CroniterBadCronError, croniter, "0-1& * * * *", datetime.now())
+        self.assertRaises(ValueError, croniter, '* * 5-100 * *')
 
     def testSundayToThursdayWithAlphaConversion(self):
         base = datetime(2010, 8, 25, 15, 56)  # wednesday
@@ -1972,102 +1973,135 @@ class CroniterTest(base.TestCase):
         except OverflowError:
             raise Exception("overflow not fixed!")
 
-    def test_issue_90(self):
-        self.assertFalse(croniter.is_valid("* * * * 7"))
-        # self.assertFalse(croniter.is_valid('0 0 Sun-Sun * *'))
+    def test_revert_issue_90_aka_support_DOW7(self):
+        base = datetime(2040, 1, 1, 0, 0)
+        itr = croniter('* * * * 1-7').get_next()
+        self.assertTrue(croniter.is_valid("* * * * 1-7"))
+        self.assertTrue(croniter.is_valid("* * * * 7"))
 
     def test_sunday_ranges_to(self):
-        cron = croniter('0 0 * * Sun-Sun', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-                                17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+        self._test_sunday_ranges('0 0 * * Sun-Sun',
+                                 [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                  17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
 
-        cron = croniter('0 0 * * Mon-Sun', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-                                17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+    def test_sunday_ranges_to(self):
+        self._test_sunday_ranges('0 0 * * Sun-Sun',
+                                 [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                  17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
 
-        cron = croniter('0 0 * * Tue-Sun', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19,
-                                20, 21, 23, 24, 25, 26, 27, 28, 30, 31, 1, 2, 3, 4])
+        self._test_sunday_ranges('0 0 * * Mon-Sun',
+                                 [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                                  17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
 
-        cron = croniter('0 0 * * Wed-Sun', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 24,
-                                25, 26, 27, 28, 31, 1, 2, 3, 4, 7, 8, 9, 10, 11])
+        self._test_sunday_ranges('0 0 * * Tue-Sun',
+                                 [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19,
+                                  20, 21, 23, 24, 25, 26, 27, 28, 30, 31, 1, 2, 3, 4])
 
-        cron = croniter('0 0 * * Thu-Sun', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [4, 5, 6, 7, 11, 12, 13, 14, 18, 19, 20, 21, 25, 26,
-                                27, 28, 1, 2, 3, 4, 8, 9, 10, 11, 15, 16, 17, 18, 22, 23])
+        self._test_sunday_ranges('0 0 * * Wed-Sun',
+                                 [3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 24,
+                                  25, 26, 27, 28, 31, 1, 2, 3, 4, 7, 8, 9, 10, 11])
 
-        cron = croniter('0 0 * * Fri-Sun', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [5, 6, 7, 12, 13, 14, 19, 20, 21, 26, 27, 28, 2, 3, 4, 9,
-                                10, 11, 16, 17, 18, 23, 24, 25, 1, 2, 3, 8, 9, 10])
+        self._test_sunday_ranges('0 0 * * Thu-Sun',
+                                 [4, 5, 6, 7, 11, 12, 13, 14, 18, 19, 20, 21, 25, 26,
+                                  27, 28, 1, 2, 3, 4, 8, 9, 10, 11, 15, 16, 17, 18, 22, 23])
 
-        cron = croniter('0 0 * * Sat-Sun', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [6, 7, 13, 14, 20, 21, 27, 28, 3, 4, 10, 11, 17, 18, 24,
-                                25, 2, 3, 9, 10, 16, 17, 23, 24, 30, 31, 6, 7, 13, 14])
+        self._test_sunday_ranges('0 0 * * Fri-Sun',
+                                 [5, 6, 7, 12, 13, 14, 19, 20, 21, 26, 27, 28, 2, 3, 4, 9,
+                                  10, 11, 16, 17, 18, 23, 24, 25, 1, 2, 3, 8, 9, 10])
+
+        self._test_sunday_ranges('0 0 * * Sat-Sun',
+                                 [6, 7, 13, 14, 20, 21, 27, 28, 3, 4, 10, 11, 17, 18, 24,
+                                  25, 2, 3, 9, 10, 16, 17, 23, 24, 30, 31, 6, 7, 13, 14])
 
     def test_sunday_ranges_from(self):
-        cron = croniter('0 0 * * Sun-Mon', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [7, 8, 14, 15, 21, 22, 28, 29, 4, 5, 11, 12, 18, 19, 25,
-                                26, 3, 4, 10, 11, 17, 18, 24, 25, 31, 1, 7, 8, 14, 15])
+        self._test_sunday_ranges('0 0 * * Sun-Mon',
+                                 [7, 8, 14, 15, 21, 22, 28, 29, 4, 5, 11, 12, 18, 19, 25,
+                                  26, 3, 4, 10, 11, 17, 18, 24, 25, 31, 1, 7, 8, 14, 15])
 
-        cron = croniter('0 0 * * Sun-Tue', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 7, 8, 9, 14, 15, 16, 21, 22, 23, 28, 29, 30, 4, 5, 6, 11,
-                                12, 13, 18, 19, 20, 25, 26, 27, 3, 4, 5, 10, 11])
+        self._test_sunday_ranges('0 0 * * Sun-Tue',
+                                 [2, 7, 8, 9, 14, 15, 16, 21, 22, 23, 28, 29, 30, 4, 5, 6, 11,
+                                  12, 13, 18, 19, 20, 25, 26, 27, 3, 4, 5, 10, 11])
 
-        cron = croniter('0 0 * * Sun-Wed', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 3, 7, 8, 9, 10, 14, 15, 16, 17, 21, 22, 23, 24, 28, 29,
-                                30, 31, 4, 5, 6, 7, 11, 12, 13, 14, 18, 19, 20, 21])
+        self._test_sunday_ranges('0 0 * * Sun-Wed',
+                                 [2, 3, 7, 8, 9, 10, 14, 15, 16, 17, 21, 22, 23, 24, 28, 29,
+                                  30, 31, 4, 5, 6, 7, 11, 12, 13, 14, 18, 19, 20, 21])
 
-        cron = croniter('0 0 * * Sun-Thu', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 21, 22, 23, 24,
-                                25, 28, 29, 30, 31, 1, 4, 5, 6, 7, 8, 11, 12])
+        self._test_sunday_ranges('0 0 * * Sun-Thu',
+                                 [2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 21, 22, 23, 24,
+                                  25, 28, 29, 30, 31, 1, 4, 5, 6, 7, 8, 11, 12])
 
-        cron = croniter('0 0 * * Sun-Fri', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 21,
-                                22, 23, 24, 25, 26, 28, 29, 30, 31, 1, 2, 4, 5])
+        self._test_sunday_ranges('0 0 * * Sun-Fri',
+                                 [2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 21,
+                                  22, 23, 24, 25, 26, 28, 29, 30, 31, 1, 2, 4, 5])
 
-        cron = croniter('0 0 * * Sun-Sat', base)
-        cron.set_current(datetime(2024, 1, 1), force=True)
-        ret = [cron.get_next(datetime) for a in range(30)]
-        aret = [a.day for a in ret]
-        self.assertEqual(aret, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                                18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+        self._test_sunday_ranges('0 0 * * Sun-Sat',
+                                 [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                                  18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+
+        self._test_sunday_ranges('0 0 * * Thu-Tue/2',
+                                 [2, 4, 6, 9, 11, 13, 16, 18, 20, 23, 25, 27, 30, 1, 3, 6, 8,
+                                  10, 13, 15, 17, 20, 22, 24, 27, 29, 2, 5, 7, 9])
+
+        self._test_sunday_ranges('0 0 * * Thu-Tue/3',
+                                 [4, 7, 11, 14, 18, 21, 25, 28, 1, 4, 8, 11, 15, 18, 22, 25, 29, 3,
+                                  7, 10, 14, 17, 21, 24, 28, 31, 4, 7, 11, 14])
+
+    def test_mth_ranges_from(self):
+        self._test_mth_cron_ranges('0 0 1 Jan-Dec *', [
+            '24 2', '24 3', '24 4', '24 5', '24 6', '24 7', '24 8', '24 9', '24 10',
+            '24 11', '24 12', '25 1', '25 2', '25 3', '25 4', '25 5',])
+        self._test_mth_cron_ranges('0 0 1 Nov-Mar *', [
+            '24 2', '24 3', '24 11', '24 12', '25 1', '25 2', '25 3', '25 11', '25 12',
+            '26 1', '26 2', '26 3', '26 11', '26 12', '27 1', '27 2'])
+        self._test_mth_cron_ranges('0 0 1 Apr-Feb *', [
+            '24 2', '24 4', '24 5', '24 6', '24 7', '24 8', '24 9', '24 10', '24 11', '24 12',
+            '25 1', '25 2', '25 4', '25 5', '25 6', '25 7',])
+        self._test_mth_cron_ranges('0 0 1 Apr-Mar/3 *', [
+            '24 4', '24 7', '24 10', '25 1', '25 4', '25 7', '25 10',
+            '26 1', '26 4', '26 7', '26 10', '27 1', '27 4', '27 7', '27 10', '28 1'])
+        self._test_mth_cron_ranges('0 0 1 Apr-Mar/2 *', [
+            '24 3', '24 4', '24 6', '24 8', '24 10', '24 12', '25 3', '25 4', '25 6',
+            '25 8', '25 10', '25 12', '26 3', '26 4', '26 6', '26 8'])
+        self._test_mth_cron_ranges('0 0 1 Jan-Aug/2 *', [
+            '24 3', '24 5', '24 7', '25 1', '25 3', '25 5', '25 7',
+            '26 1', '26 3', '26 5', '26 7', '27 1', '27 3', '27 5', '27 7', '28 1'])
+        self._test_mth_cron_ranges('0 0 1 Jan-Aug/4 *', [
+            '24 5', '25 1', '25 5', '26 1', '26 5', '27 1', '27 5', '28 1', '28 5',
+            '29 1', '29 5', '30 1', '30 5', '31 1', '31 5', '32 1'])
+
+    def _test_cron_ranges(self, res_generator, expr, wanted, iterations=None, start_time=None):
+        rets = res_generator(expr, iterations=iterations, start_time=start_time)
+        for ret in rets:
+            self.assertEqual(wanted, ret)
+
+    def _test_mth_cron_ranges(self, expr, wanted, iterations=None, res_generator=None, start_time=None):
+        return self._test_cron_ranges(gen_x_mth_results, expr, wanted, iterations=iterations, start_time=start_time)
+
+    def _test_sunday_ranges(self, expr, wanted, iterations=None, start_time=None):
+        return self._test_cron_ranges(gen_all_sunday_forms, expr, wanted, iterations=iterations, start_time=start_time)
+
+
+def gen_x_mth_results(expr, iterations=None, start_time=None):
+    start_time = start_time or datetime(2024, 1, 1)
+    cron = croniter(expr, start_time=start_time)
+    return [['{0} {1}'.format(str(a.year)[-2:], a.month) for a in [cron.get_next(datetime) for i in range(iterations or 16)]]]
+
+
+def gen_x_results(expr, iterations=None, start_time=None):
+    start_time = start_time or datetime(2024, 1, 1)
+    cron = croniter(expr, start_time=start_time)
+    return [[a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]]
+
+
+def gen_all_sunday_forms(expr, iterations=None, start_time=None):
+    start_time = start_time or datetime(2024, 1, 1)
+    cron = croniter(expr, start_time=start_time)
+    ret1 = [a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]
+    cron = croniter(expr.lower().replace('sun', '7'), start_time=start_time)
+    ret2 = [a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]
+    cron = croniter(expr.lower().replace('sun', '0'), start_time=start_time)
+    ret3 = [a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]
+    return ret1, ret2, ret3
 
 
 if __name__ == '__main__':

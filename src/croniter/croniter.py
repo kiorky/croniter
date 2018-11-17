@@ -218,7 +218,7 @@ class croniter(object):
         {},
         {0: 1},
         {0: 1},
-        {},
+        {7: 0},
         {},
         {}
     )
@@ -792,6 +792,21 @@ class croniter(object):
             return False
 
     @classmethod
+    def value_alias(cls, val, field, len_expressions=UNIX_CRON_LEN):
+        if isinstance(len_expressions, (list, dict, tuple, set)):
+            len_expressions = len(len_expressions)
+        if val in cls.LOWMAP[field] and not (
+            # do not support 0 as a month either for classical 5 fields cron,
+            # 6fields second repeat form or 7 fields year form
+            # but still let conversion happen if day field is shifted
+            (field in [DAY_FIELD, MONTH_FIELD] and len_expressions == UNIX_CRON_LEN) or
+            (field in [MONTH_FIELD, DOW_FIELD] and len_expressions == SECOND_CRON_LEN) or
+            (field in [DAY_FIELD, MONTH_FIELD, DOW_FIELD] and len_expressions == YEAR_CRON_LEN)
+        ):
+            val = cls.LOWMAP[field][val]
+        return val
+
+    @classmethod
     def _expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp=None):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
@@ -886,8 +901,6 @@ class croniter(object):
 
                 if m:
                     # early abort if low/high are out of bounds
-                    add_sunday = False
-
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
                     if i == DAY_FIELD and high == 'l':
                         high = '31'
@@ -898,19 +911,21 @@ class croniter(object):
                     if not only_int_re.search(high):
                         high = "{0}".format(cls._alphaconv(i, high, expressions))
 
-                    if (
-                        not low or not high or int(low) > int(high)
-                        or not only_int_re.search(str(step))
-                    ):
-                        # handle -Sun notation as Sunday is DOW-0
-                        if i == DOW_FIELD and high == '0':
-                            add_sunday = True
-                            high = '6'
-                        else:
-                            raise CroniterBadCronError(
-                                "[{0}] is not acceptable".format(expr_format))
+                    # normally, it's already guarded by the RE that should not accept not-int values.
+                    if not only_int_re.search(str(step)):
+                        raise CroniterBadCronError(
+                            "[{0}] step '{2}' in field {1} is not acceptable".format(
+                                expr_format, i, step))
+                    step = int(step)
 
-                    low, high, step = map(int, [low, high, step])
+                    for band in low, high:
+                        if not only_int_re.search(str(band)):
+                            raise CroniterBadCronError(
+                                "[{0}] bands '{2}-{3}' in field {1} are not acceptable".format(
+                                    expr_format, i, low, high))
+
+                    low, high = [cls.value_alias(int(_val), i, expressions) for _val in (low, high)]
+
                     if (
                         max(low, high) > max(cls.RANGES[i][0], cls.RANGES[i][1])
                     ):
@@ -920,19 +935,34 @@ class croniter(object):
                     if from_timestamp:
                         low = cls._get_low_from_current_date_number(i, int(step), int(from_timestamp))
 
-                    try:
-                        rng = range(low, high + 1, step)
-                    except ValueError as exc:
-                        raise CroniterBadCronError(
-                            'invalid range: {0}'.format(exc))
+                    # Handle when the second bound of the range is in backtracking order:
+                    # eg: X-Sun or X-7 (Sat-Sun) in DOW, or X-Jan (Apr-Jan) in MONTH
+                    if low > high:
+                        whole_field_range = list(range(cls.RANGES[i][0], cls.RANGES[i][1] + 1, 1))
+                        # Add FirstBound -> ENDRANGE, respecting step
+                        rng = list(range(low, cls.RANGES[i][1] + 1, step))
+                        # Then 0 -> SecondBound, but skipping n first occurences according to step
+                        # EG to respect such expressions : Apr-Jan/3
+                        to_skip = 0
+                        if rng:
+                            already_skipped = list(reversed(whole_field_range)).index(rng[-1])
+                            curpos = whole_field_range.index(rng[-1])
+                            if ((curpos + step) > len(whole_field_range)) and (already_skipped < step):
+                                to_skip = step - already_skipped
+                        rng += list(range(cls.RANGES[i][0] + to_skip, high + 1, step))
+                    # if we include a range type: Jan-Jan, or Sun-Sun,
+                    #  it means the whole cycle (all days of week, # all monthes of year, etc)
+                    elif low == high:
+                        rng = list(range(cls.RANGES[i][0], cls.RANGES[i][1] + 1, step))
+                    else:
+                        try:
+                            rng = list(range(low, high + 1, step))
+                        except ValueError as exc:
+                            raise CroniterBadCronError('invalid range: {0}'.format(exc))
 
-                    e_list += (["{0}#{1}".format(item, nth) for item in rng]
-                               if i == DOW_FIELD and nth and nth != "l" else rng)
-                    # if low == high, this means all week
-                    if (i == DOW_FIELD) and low == high and not (add_sunday and low == 6):
-                        _ = [e_list.append(dow) for dow in range(7) if dow not in e_list]
-                    if (i == DOW_FIELD) and add_sunday and (0 not in e_list):
-                        e_list.insert(0, 0)
+                    rng = (["{0}#{1}".format(item, nth) for item in rng]
+                           if i == DOW_FIELD and nth and nth != "l" else rng)
+                    e_list += [a for a in rng if a not in e_list]
                 else:
                     if t.startswith('-'):
                         raise CroniterBadCronError((
@@ -947,15 +977,7 @@ class croniter(object):
                     except ValueError:
                         pass
 
-                    if t in cls.LOWMAP[i] and not (
-                        # do not support 0 as a month either for classical 5 fields cron,
-                        # 6fields second repeat form or 7 fields year form
-                        # but still let conversion happen if day field is shifted
-                        (i in [DAY_FIELD, MONTH_FIELD] and len(expressions) == UNIX_CRON_LEN) or
-                        (i in [MONTH_FIELD, DOW_FIELD] and len(expressions) == SECOND_CRON_LEN) or
-                        (i in [DAY_FIELD, MONTH_FIELD, DOW_FIELD] and len(expressions) == YEAR_CRON_LEN)
-                    ):
-                        t = cls.LOWMAP[i][t]
+                    t = cls.value_alias(t, i, expressions)
 
                     if (
                         t not in ["*", "l"]
