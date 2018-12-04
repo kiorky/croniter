@@ -1068,8 +1068,8 @@ class CroniterTest(base.TestCase):
             '2020-03-30T02:01:00+02:00',
             '2020-03-29T01:01:00+01:00',
             '2020-03-28T03:01:00+01:00',
-            '2020-03-29T02:01:00+02:00',
-            '2020-03-29T03:01:00+02:00'])
+            '2020-03-29T03:01:00+02:00',
+            '2020-03-30T02:01:00+02:00'])
         #
         nowp = datetime(2020, 3, 28, 1, 58, 55, tzinfo=tz)
         itp = croniter('1 2 * * *', nowp)
@@ -1081,11 +1081,11 @@ class CroniterTest(base.TestCase):
             itp.get_next(datetime).isoformat(),
         ]
         self.assertEqual(retp, [
-            '2020-03-29T02:01:00+02:00',
-            '2020-03-28T02:01:00+01:00',
-            '2020-03-27T02:01:00+01:00',
-            '2020-03-28T02:01:00+01:00',
-            '2020-03-29T03:01:00+02:00'])
+            '2020-03-29T03:01:00+02:00',
+            '2020-03-29T01:01:00+01:00',
+            '2020-03-28T03:01:00+01:00',
+            '2020-03-29T03:01:00+02:00',
+            '2020-03-30T02:01:00+02:00'])
         #
         nowt = datetime(2020, 3, 29, 2, 0, 0, tzinfo=tz)
         itt = croniter('1 2 * * *', nowt)
@@ -1100,9 +1100,22 @@ class CroniterTest(base.TestCase):
             '2020-03-30T02:01:00+02:00',
             '2020-03-29T01:01:00+01:00',
             '2020-03-28T03:01:00+01:00',
-            '2020-03-29T02:01:00+02:00',
-            '2020-03-29T03:01:00+02:00'])
+            '2020-03-29T03:01:00+02:00',
+            '2020-03-30T02:01:00+02:00'])
 
+    def test_dst_iter(self):
+        tz = pytz.timezone('Asia/Hebron')
+        now = datetime(2022, 3, 26, 0, 0, 0, tzinfo=tz)
+        it = croniter('0 0 * * *', now)
+        ret = [
+            it.get_next(datetime).isoformat(),
+            it.get_next(datetime).isoformat(),
+            it.get_next(datetime).isoformat(),
+        ]
+        self.assertEqual(ret, [
+            '2022-03-26T00:00:00+02:00',
+            '2022-03-27T01:00:00+03:00',
+            '2022-03-28T00:00:00+03:00'])
 
     def test_nth_wday_simple(self):
         f = lambda y,m,w: croniter._get_nth_weekday_of_month(y,m,w)
