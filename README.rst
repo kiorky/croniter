@@ -375,20 +375,21 @@ Thanks to all who have contributed to this project!
 If you have contributed and your name is not listed below please let us know.
 
     - Aarni Koskela (akx)
-    - mrmachine
-    - Hinnack
-    - shazow
-    - kiorky
-    - jlsandell
-    - mag009
-    - djmitche
-    - GreatCombinator
     - chris-baynes
+    - djmitche
+    - evanpurkhiser
+    - GreatCombinator
+    - Hinnack
     - ipartola
-    - yuzawa-san
+    - jlsandell
+    - kiorky
     - lowell80 (Kintyre)
-    - scop
-    - zed2015
+    - mag009
+    - mrmachine
     - Ryan Finnie (rfinnie)
     - salitaba
+    - scop
+    - shazow
+    - yuzawa-san
+    - zed2015
 

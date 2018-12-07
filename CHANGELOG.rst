@@ -4,8 +4,16 @@ Changelog
 5.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Code quality changes by @evanpurkhiser:
+    - Remove unused _get_caller_globals_and_locals [@evanpurkhiser]
+    - Remove single-use bad_length [@evanpurkhiser]
+    - Remove unused `days` in `proc_month` [@evanpurkhiser]
+    - Use `field_index` over `i` for readability [@evanpurkhiser]
+    - Always use `"""` for docstrings [@evanpurkhiser]
+    - Make helper instance methods that do not use self static [@evanpurkhiser]
+    - Remove unusd call to sys.exc_info [@evanpurkhiser]
+    - Remove unused `ALPHAS` [@evanpurkhiser]
+    - Improve `croniter.expand` documentation [@evanpurkhiser]
 
 5.0.1 (2024-10-29)
 ------------------
