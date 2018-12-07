@@ -2,5 +2,5 @@
 set -ex
 . venv3/bin/activate
 fullrelease
-git push taichino && git push taichino --tags
+git push && git push --tags
 # vim:set et sts=4 ts=4 tw=80:
