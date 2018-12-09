@@ -460,8 +460,7 @@ class croniter(object):
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
                 return
-            else:
-                raise
+            raise
 
     def all_prev(self, ret_type=None, start_time=None, update_current=None):
         """
@@ -479,8 +478,7 @@ class croniter(object):
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
                 return
-            else:
-                raise
+            raise
 
     def iter(self, *args, **kwargs):
         return self._is_prev and self.all_prev or self.all_next
@@ -797,10 +795,7 @@ class croniter(object):
 
     @staticmethod
     def is_leap(year):
-        if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):
-            return True
-        else:
-            return False
+        return bool(year % 400 == 0 or (year % 4 == 0 and year % 100 != 0))
 
     @classmethod
     def value_alias(cls, val, field_index, len_expressions=UNIX_CRON_LEN):
@@ -1121,8 +1116,7 @@ class croniter(object):
             if int(sys.version[0]) >= 3:
                 trace = _traceback.format_exc()
                 raise CroniterBadCronError(trace)
-            else:
-                raise CroniterBadCronError("{0}".format(exc))
+            raise CroniterBadCronError("{0}".format(exc))
 
     @classmethod
     def _get_low_from_current_date_number(cls, field_index, step, from_timestamp):
@@ -1157,8 +1151,7 @@ class croniter(object):
             cls.expand(expression, hash_id=hash_id, second_at_beginning=second_at_beginning)
         except CroniterError:
             return False
-        else:
-            return True
+        return True
 
     @classmethod
     def match(cls, cron_expression, testdate, day_or=True, second_at_beginning=False):
