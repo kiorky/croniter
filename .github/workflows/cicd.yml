@@ -32,6 +32,27 @@ jobs:
         venv2/bin/python2 -m pip install pytest -r <(grep -v pytest ./requirements/base.txt)
         venv2/bin/pytest src
 
+  test-code-QA:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Cache tox environments
+      uses: actions/cache@v4
+      with:
+        path: .tox
+        key: ${{ runner.os }}-${{ matrix.python }}-toxQA
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with: {python-version: "${{ matrix.python-version }}", cache: pip, cache-dependency-path: 'requirements/*.txt'}
+    - name: install tests dependencies
+      run: pip install -r requirements/test.txt -r requirements/lint.txt -r requirements/tox.txt -r requirements/format.txt
+    - name: formatters check
+      run: tox --current-env -e lint,fmt
+
   test-py3:
     runs-on: ubuntu-latest
     strategy:
@@ -49,9 +70,7 @@ jobs:
       uses: actions/setup-python@v5
       with: {python-version: "${{ matrix.python-version }}", cache: pip, cache-dependency-path: 'requirements/*.txt'}
     - name: install tests dependencies
-      run: pip install -r requirements/test.txt -r requirements/lint.txt -r requirements/tox.txt
-    - name: run lint
-      run: tox --current-env -e lint
+      run: pip install -r requirements/test.txt -r requirements/tox.txt
     - name: run tests with coverage
       run: tox --current-env -e cov
 
@@ -70,22 +89,3 @@ jobs:
          docker compose run --rm app tox --current-env -e test
       env: {COMPOSE_FILE: "docker-compose.yml:docker-compose-32bits.yml"}
 
-  formatting:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Cache tox environments
-      uses: actions/cache@v4
-      with:
-        path: .tox
-        key: ${{ runner.os }}-3.13-tox
-    - name: Set up Python 3.13
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.13
-        cache: pip
-        cache-dependency-path: 'requirements/*.txt'
-    - name: install format dependencies
-      run: pip install -r requirements/format.txt -r requirements/tox.txt
-    - name: run format
-      run: tox --current-env -e check-format
