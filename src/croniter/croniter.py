@@ -515,7 +515,7 @@ class croniter(object):
                     diff_year = nearest_diff_method(d.year, expanded[YEAR_FIELD], None)
                     if diff_year is None:
                         return None, d
-                    elif diff_year != 0:
+                    if diff_year != 0:
                         if is_prev:
                             d += relativedelta(
                                 years=diff_year,
