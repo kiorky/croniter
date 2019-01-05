@@ -38,3 +38,13 @@ jobs:
         pyver=$(python --version 2>&1 | awk '{print substr($2, 0, 4)}' | awk '{ sub(/[ \t]+$/, ""); print }')
         tox --direct -e "py${pyver//\.}-{std,coverage}"
 
+  build-32bits:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Test with pytest
+      run: |
+         export COMPOSE_FILE="docker-compose.yml:docker-compose-32bits.yml"
+         docker compose build
+         docker compose run --rm --entrypoint tox app --direct -e py312-std
+

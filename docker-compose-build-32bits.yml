@@ -1,0 +1,6 @@
+version: "3.8"
+services:
+  app:
+    build:
+      args:
+        BASE: "corpusops/debian-32:trixie"
