@@ -1,0 +1,4 @@
+version: "3.8"
+services:
+  app:
+    image: "${CRONITER_IMAGE:-corpusops/croniter:32bits}"

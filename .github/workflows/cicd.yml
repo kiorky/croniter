@@ -8,7 +8,7 @@ jobs:
       matrix:
         python-version: ["2.7"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: install dependencies && test on py27
       run: |
         set -ex
@@ -25,9 +25,9 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: install dependencies && test on py3
@@ -37,4 +37,14 @@ jobs:
         pip install --use-pep517 -r requirements/test.txt
         pyver=$(python --version 2>&1 | awk '{print substr($2, 0, 4)}' | awk '{ sub(/[ \t]+$/, ""); print }')
         tox --direct -e "py${pyver//\.}-{std,coverage}"
+
+  build-32bits:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Test with pytest
+      run: |
+         export COMPOSE_FILE="docker-compose.yml:docker-compose-32bits.yml"
+         docker compose build
+         docker compose run --rm --entrypoint tox app --direct -e py312-std
 

@@ -1,8 +1,10 @@
 version: "3.8"
 services:
   app:
-    build: {context: .}
+    image: "${CRONITER_IMAGE:-corpusops/croniter:latest}"
     volumes:
     - ./src:/app/src
+    - ./setup.cfg:/app/setup.cfg
+    - ./tox.ini:/app/tox.ini
     - ./setup.py:/app/setup.py
     - ./docker-entry.sh:/app/docker-entry.sh
