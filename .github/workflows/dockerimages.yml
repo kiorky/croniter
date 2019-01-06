@@ -1,0 +1,51 @@
+name: docker images builder
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule: [{cron: '1 0 * * 6'}]
+env:
+  DOCKER_BUILDKIT: "1"
+  COMPOSE_DOCKER_CLI_BUILD: "1"
+  BUILDKIT_PROGRESS: "plain"
+  RELEASABLE_REPOS: "^kiorky/"
+  RELEASABLE_BRANCHES: "^(refs/heads/)?(master|main|new-packaging)$"
+jobs:
+  docker-build:
+    runs-on: ubuntu-24.04
+    strategy:
+      max-parallel: 5
+      fail-fast: false
+      matrix:
+        FLAVOR: [32bits, latest]
+    env: {FLAVOR: "${{matrix.FLAVOR}}"}
+    steps:
+    - name: Set vars
+      run: |-
+          if ( echo "$GITHUB_REF" | egrep -q "${RELEASABLE_BRANCHES}" ) \
+          && ( echo "$GITHUB_REPOSITORY" | egrep -q "${RELEASABLE_REPOS}" )
+          then releasable=true;else releasable=false;fi
+          echo "releasable=$releasable" >> $GITHUB_OUTPUT
+      id: v
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+    - uses: actions/checkout@v4
+    - name: Build
+      run: |
+        set -ex
+        export COMPOSE_FILE="docker-compose.yml:docker-compose-build.yml"
+        if ( echo "${{matrix.FLAVOR}}" | grep -q 32 );then
+          export COMPOSE_FILE="${COMPOSE_FILE}:docker-compose-32bits.yml:docker-compose-build-32bits.yml"
+        fi
+        echo ${COMPOSE_FILE}
+        docker compose build
+    - name: test
+      run: set -ex && docker compose run --rm app tox --current-env
+    - name: Release
+      run: |
+           if [ "x${{steps.v.outputs.releasable}}" = "xtrue" ];then
+             set -ex && docker push corpusops/croniter:${{matrix.FLAVOR}}
+           fi
