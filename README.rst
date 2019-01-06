@@ -319,10 +319,9 @@ Develop this package
 
     git clone https://github.com/kiorky/croniter.git
     cd croniter
-    virtualenv --no-site-packages venv
-    . venv/bin/activate
-    pip install --upgrade -r requirements/test.txt
-    py.test src
+    virtualenv --no-site-packages venv3
+    venv3/bin/pip install --upgrade -r requirements/test.txt -r requirements/lint.txt -r requirements/tox.txt
+    venv3/bin/tox --current-env -e lint,test
 
 
 Testing under py2
@@ -336,7 +335,7 @@ Install prerequisisites ::
 
 Run tests::
 
-    ./venv2/bin/tox --direct -e py27-std
+    ./venv2/bin/pytest src
 
 
 Make a new release
@@ -346,16 +345,16 @@ We use zest.fullreleaser, a great release infrastructure.
 Do and follow these instructions
 ::
 
-    . venv/bin/activate
-    pip install --upgrade -r requirements/release.txt
+    venv3/bin/pip install --upgrade -r requirements/release.txt
     ./release.sh
 
 
 Contributors
 ===============
 Thanks to all who have contributed to this project!
-If you have contributed and your name is not listed below please let me know.
+If you have contributed and your name is not listed below please let us know.
 
+    - Aarni Koskela (akx)
     - mrmachine
     - Hinnack
     - shazow
