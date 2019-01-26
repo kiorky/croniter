@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 import pytz
 from croniter import croniter, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
@@ -834,6 +834,72 @@ class CroniterTest(base.TestCase):
 
     def test_invalid_zerorepeat(self):
         self.assertFalse(croniter.is_valid('*/0 * * * *'))
+
+    def test_weekday_range(self):
+        ret = []
+        # jan 14 is monday
+        dt = datetime(2019, 1, 14, 0, 0, 0, 0)
+        for i in range(10):
+            c = croniter("0 0 * * 2-4 *", start_time=dt)
+            dt = datetime.utcfromtimestamp(c.get_next())
+            ret.append(dt)
+            dt += timedelta(days=1)
+        sret = ["{0}".format(r) for r in ret]
+        self.assertEquals(
+            sret,
+            ['2019-01-15 00:00:00',
+             '2019-01-16 00:00:01',
+             '2019-01-17 00:00:02',
+             '2019-01-22 00:00:00',
+             '2019-01-23 00:00:01',
+             '2019-01-24 00:00:02',
+             '2019-01-29 00:00:00',
+             '2019-01-30 00:00:01',
+             '2019-01-31 00:00:02',
+             '2019-02-05 00:00:00'])
+        ret = []
+        dt = datetime(2019, 1, 14, 0, 0, 0, 0)
+        for i in range(10):
+            c = croniter("0 0 * * 1-7 *", start_time=dt)
+            dt = datetime.utcfromtimestamp(c.get_next())
+            ret.append(dt)
+            dt += timedelta(days=1)
+        sret = ["{0}".format(r) for r in ret]
+        self.assertEquals(
+            sret,
+            ['2019-01-14 00:00:01',
+             '2019-01-15 00:00:02',
+             '2019-01-16 00:00:03',
+             '2019-01-17 00:00:04',
+             '2019-01-18 00:00:05',
+             '2019-01-19 00:00:06',
+             '2019-01-20 00:00:07',
+             '2019-01-21 00:00:08',
+             '2019-01-22 00:00:09',
+             '2019-01-23 00:00:10'])
+
+    def test_issue_monsun_117(self):
+        ret = []
+        dt = datetime(2019, 1, 14, 0, 0, 0, 0)
+        for i in range(10):
+            # c = croniter("0 0 * * Mon-Sun *", start_time=dt)
+            c = croniter("0 0 * * Wed-Sun *", start_time=dt)
+            dt = datetime.utcfromtimestamp(c.get_next())
+            ret.append(dt)
+            dt += timedelta(days=1)
+        sret = ["{0}".format(r) for r in ret]
+        self.assertEquals(
+            sret,
+            ['2019-01-16 00:00:00',
+             '2019-01-17 00:00:01',
+             '2019-01-18 00:00:02',
+             '2019-01-19 00:00:03',
+             '2019-01-20 00:00:04',
+             '2019-01-23 00:00:00',
+             '2019-01-24 00:00:01',
+             '2019-01-25 00:00:02',
+             '2019-01-26 00:00:03',
+             '2019-01-27 00:00:04'])
 
 
 if __name__ == '__main__':
