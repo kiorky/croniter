@@ -507,8 +507,12 @@ class croniter(object):
                         not low or not high or int(low) > int(high)
                         or not only_int_re.search(str(step))
                     ):
-                        raise CroniterBadDateError(
-                            "[{0}] is not acceptable".format(expr_format))
+                        if i == 4 and high == '0':
+                            # handle -Sun notation -> 7
+                            high = '7'
+                        else:
+                            raise CroniterBadDateError(
+                                "[{0}] is not acceptable".format(expr_format))
 
                     low, high, step = map(int, [low, high, step])
                     try:
