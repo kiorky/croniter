@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.27 (unreleased)
+0.3.27 (2019-01-27)
 -------------------
 - Handle -Sun notation, This fixes `#119 <https://github.com/taichino/croniter/issues/119>`_.
   [kiorky]
