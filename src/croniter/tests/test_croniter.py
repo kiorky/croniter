@@ -832,6 +832,9 @@ class CroniterTest(base.TestCase):
         ts = "{0}".format(datetime.utcfromtimestamp(c.get_prev()))
         self.assertEqual(ts, '2018-01-01 10:00:00')
 
+    def test_invalid_zerorepeat(self):
+        self.assertFalse(croniter.is_valid('*/0 * * * *'))
+
 
 if __name__ == '__main__':
     unittest.main()
