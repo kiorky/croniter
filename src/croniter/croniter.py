@@ -511,7 +511,11 @@ class croniter(object):
                             "[{0}] is not acceptable".format(expr_format))
 
                     low, high, step = map(int, [low, high, step])
-                    rng = range(low, high + 1, step)
+                    try:
+                        rng = range(low, high + 1, step)
+                    except ValueError as exc:
+                        raise CroniterBadCronError(
+                            'invalid range: {0}'.format(exc))
                     e_list += (["{0}#{1}".format(item, nth) for item in rng]
                         if i == 4 and nth else rng)
                 else:
