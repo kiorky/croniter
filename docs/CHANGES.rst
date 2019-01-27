@@ -3,9 +3,10 @@ Changelog
 
 0.3.27 (unreleased)
 -------------------
-
-- Nothing changed yet.
-
+- Handle -Sun notation, This fixes `#119 <https://github.com/taichino/croniter/issues/119>`_.
+  [kiorky]
+- Handle invalid ranges correctly,  This fixes `#114 <https://github.com/taichino/croniter/issues/114>`_.
+  [kiorky]
 
 0.3.26 (2018-11-03)
 -------------------
