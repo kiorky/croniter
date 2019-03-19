@@ -4,7 +4,7 @@ Changelog
 0.3.28 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- credits
 
 
 0.3.27 (2019-01-27)
