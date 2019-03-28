@@ -122,7 +122,7 @@ Do and follow these instructions
 
     . venv/bin/activate
     pip install --upgrade -r requirements/release.txt
-    fullrelease
+    ./release.sh
 
 
 Contributors
