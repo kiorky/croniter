@@ -23,7 +23,7 @@ long_description = "\n\n".join(
 
 setup(
     name='croniter',
-    version='0.3.30.dev0',
+    version='0.3.26',
     py_modules=['croniter', ],
     description=(
         'croniter provides iteration for datetime '
