@@ -23,11 +23,6 @@ Travis badge
     :target: https://travis-ci.org/kiorky/croniter
 
 
-     
-Support development
-====================
-- `paypal <https://paypal.me/kiorky>`_
-
 Usage
 ============
 
