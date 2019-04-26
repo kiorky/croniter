@@ -325,6 +325,20 @@ Develop this package
     py.test src
 
 
+Testing under py2
+==================
+
+Install prerequisisites ::
+
+    # install py 2 with eg: apt install python2.7
+    mkdir venv2 && curl -sSL "https://github.com/pypa/get-virtualenv/blob/20.27.0/public/2.7/virtualenv.pyz?raw=true" > venv2/venv && python2 venv2/venv venv2
+    venv2/bin/python2 -m pip install -r ./requirements/test.txt
+
+Run tests::
+
+    ./venv2/bin/tox --direct -e py27-std
+
+
 Make a new release
 ====================
 We use zest.fullreleaser, a great release infrastructure.
