@@ -1,9 +1,27 @@
 name: croniter
 on: [workflow_dispatch, push, pull_request]
 jobs:
-  build:
+  build-py2:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["2.7"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: install dependencies && test on py27
+      run: |
+        set -ex
+        sudo apt update && sudo apt install -y python2.7
+        # install py 2 with eg: apt install python2.7
+        mkdir venv2 && curl -sSL "https://github.com/pypa/get-virtualenv/blob/20.27.0/public/2.7/virtualenv.pyz?raw=true" > venv2/venv && python2.7 venv2/venv venv2
+        venv2/bin/python2 -m pip install -r ./requirements/test.txt
+        venv2/bin/tox --direct -e "py${pyver//\.}-{std,coverage}"
+
+  build-py3:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
@@ -12,15 +30,11 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: install dependencies && test on py3
       run: |
         set -ex
         python -m pip install --upgrade --use-pep517 pip
         pip install --use-pep517 -r requirements/test.txt
-    - name: Test with pytest
-      run: |
-           pyver=$(python --version 2>&1 | awk '{print substr($2, 0, 4)}' | awk '{ sub(/[ \t]+$/, ""); print }');
-           case $pyver in
-             2.7) tox -e "py${pyver//\.}-{std,coverage}";;
-             *) tox -e "py${pyver//\.}-std";;
-           esac
+        pyver=$(python --version 2>&1 | awk '{print substr($2, 0, 4)}' | awk '{ sub(/[ \t]+$/, ""); print }')
+        tox --direct -e "py${pyver//\.}-{std,coverage}"
+

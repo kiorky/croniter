@@ -121,6 +121,11 @@ YEAR_CRON_LEN = len(YEAR_FIELDS)
 # retrocompat
 VALID_LEN_EXPRESSION = set([a for a in CRON_FIELDS if isinstance(a, int)])
 EXPRESSIONS = {}
+try:
+    # py3 recent
+    UTC_DT = datetime.timezone.utc
+except AttributeError:
+    UTC_DT = pytz.utc
 
 
 def timedelta_to_seconds(td):
@@ -1010,7 +1015,7 @@ class croniter(object):
 
     @classmethod
     def _get_low_from_current_date_number(cls, i, step, from_timestamp):
-        dt = datetime.datetime.fromtimestamp(from_timestamp, tz=datetime.timezone.utc)
+        dt = datetime.datetime.fromtimestamp(from_timestamp, tz=UTC_DT)
         if i == MINUTE_FIELD:
             return dt.minute % step
         if i == HOUR_FIELD:

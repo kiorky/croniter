@@ -5,6 +5,7 @@ Changelog
 ------------------
 
 - Fix overflow on 32bits systems (#87) [kiorky]
+- Fix python2 testing (related to #93) [kiorky]
 
 3.0.3 (2024-07-26)
 ------------------
