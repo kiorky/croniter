@@ -4,8 +4,7 @@ Changelog
 3.0.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix overflow on 32bits systems (#87) [kiorky]
 
 3.0.3 (2024-07-26)
 ------------------

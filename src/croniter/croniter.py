@@ -6,8 +6,11 @@ from __future__ import absolute_import, print_function, division
 import traceback as _traceback
 import copy
 import math
+import platform
 import re
 import sys
+import struct
+
 import inspect
 from time import time
 import datetime
@@ -21,12 +24,58 @@ import random
 # python2, just test that it's well installed
 import pytz  # noqa
 
+
+def is_32bit():
+    """
+    Detect if Python is running in 32-bit mode.
+    Compatible with Python 2.6 and later versions.
+    Returns True if running on 32-bit Python, False for 64-bit.
+    """
+    # Method 1: Check pointer size
+    bits = struct.calcsize("P") * 8
+
+    # Method 2: Check platform architecture string
+    try:
+        architecture = platform.architecture()[0]
+    except RuntimeError:
+        architecture = None
+
+    # Method 3: Check maxsize (sys.maxint in Python 2)
+    try:
+        # Python 2
+        is_small_maxsize = sys.maxint <= 2**32
+    except AttributeError:
+        # Python 3
+        is_small_maxsize = sys.maxsize <= 2**32
+
+    # Evaluate all available methods
+    is_32 = False
+
+    if bits == 32:
+        is_32 = True
+    elif architecture and '32' in architecture:
+        is_32 = True
+    elif is_small_maxsize:
+        is_32 = True
+
+    return is_32
+
+
+try:
+    # https://github.com/python/cpython/issues/101069 detection
+    if is_32bit():
+        datetime.datetime.fromtimestamp(3999999999)
+    OVERFLOW32B_MODE = False
+except OverflowError:
+    OVERFLOW32B_MODE = True
+
 try:
     from collections import OrderedDict
 except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
 
+EPOCH = datetime.datetime.fromtimestamp(0)
 M_ALPHAS = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
             'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
 DOW_ALPHAS = {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6}
@@ -274,7 +323,12 @@ class croniter(object):
         """
         Converts a UNIX timestamp `timestamp` into a `datetime` object.
         """
-        result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
+        if OVERFLOW32B_MODE:
+            # degraded mode to workaround Y2038
+            # see https://github.com/python/cpython/issues/101069
+            result = EPOCH + datetime.timedelta(seconds=timestamp)
+        else:
+            result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
         if self.tzinfo:
             result = result.replace(tzinfo=tzutc()).astimezone(self.tzinfo)
 
