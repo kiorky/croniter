@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.31 (unreleased)
+0.3.31 (2020-01-02)
 -------------------
 
 - Fix get_next() when start_time less then 1s before next instant
