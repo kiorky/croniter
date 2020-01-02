@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
+
+import math
 import re
 from time import time
 import datetime
@@ -80,9 +82,6 @@ class croniter(object):
         self.tzinfo = None
         if isinstance(start_time, datetime.datetime):
             self.tzinfo = start_time.tzinfo
-            # milliseconds/microseconds rounds
-            if start_time.microsecond:
-                start_time = start_time + relativedelta(seconds=1)
             start_time = self._datetime_to_timestamp(start_time)
 
         self.start_time = start_time
@@ -224,10 +223,12 @@ class croniter(object):
 
     def _calc(self, now, expanded, nth_weekday_of_month, is_prev):
         if is_prev:
+            now = math.ceil(now)
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
             offset = (len(expanded) == 6 or now % 60 > 0) and 1 or 60
         else:
+            now = math.floor(now)
             nearest_diff_method = self._get_next_nearest_diff
             sign = 1
             offset = (len(expanded) == 6) and 1 or 60
