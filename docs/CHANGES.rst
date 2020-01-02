@@ -4,8 +4,8 @@ Changelog
 0.3.31 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Fix get_next() when start_time less then 1s before next instant
+  [AlexHill]
 
 0.3.30 (2019-04-20)
 -------------------
