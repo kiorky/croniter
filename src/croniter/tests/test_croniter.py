@@ -3,6 +3,7 @@
 
 import unittest
 from datetime import datetime, timedelta
+from functools import partial
 from time import sleep
 import pytz
 from croniter import croniter, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
@@ -816,21 +817,38 @@ class CroniterTest(base.TestCase):
         """
         https://github.com/taichino/croniter/issues/107
         """
-        #
+
+        _croniter = partial(croniter, "0 10 * * *", ret_type=datetime)
+
         dt = datetime(2018, 1, 2, 10, 0, 0, 500)
-        c = croniter("0 10 * * * ", start_time=dt)
-        ts = "{0}".format(datetime.utcfromtimestamp(c.get_prev()))
-        self.assertEqual(ts, '2018-01-02 10:00:00')
-        #
+        self.assertEqual(
+            _croniter(start_time=dt).get_prev(),
+            datetime(2018, 1, 2, 10, 0),
+        )
+        self.assertEqual(
+            _croniter(start_time=dt).get_next(),
+            datetime(2018, 1, 3, 10, 0),
+        )
+
         dt = datetime(2018, 1, 2, 10, 0, 1, 0)
-        c = croniter("0 10 * * * ", start_time=dt)
-        ts = "{0}".format(datetime.utcfromtimestamp(c.get_prev()))
-        self.assertEqual(ts, '2018-01-02 10:00:00')
-        #
+        self.assertEqual(
+            _croniter(start_time=dt).get_prev(),
+            datetime(2018, 1, 2, 10, 0),
+        )
+        self.assertEqual(
+            _croniter(start_time=dt).get_next(),
+            datetime(2018, 1, 3, 10, 0),
+        )
+
         dt = datetime(2018, 1, 2, 9, 59, 59, 999999)
-        c = croniter("0 10 * * * ", start_time=dt)
-        ts = "{0}".format(datetime.utcfromtimestamp(c.get_prev()))
-        self.assertEqual(ts, '2018-01-01 10:00:00')
+        self.assertEqual(
+            _croniter(start_time=dt).get_prev(),
+            datetime(2018, 1, 1, 10, 0),
+        )
+        self.assertEqual(
+            _croniter(start_time=dt).get_next(),
+            datetime(2018, 1, 2, 10, 0),
+        )
 
     def test_invalid_zerorepeat(self):
         self.assertFalse(croniter.is_valid('*/0 * * * *'))
@@ -845,7 +863,7 @@ class CroniterTest(base.TestCase):
             ret.append(dt)
             dt += timedelta(days=1)
         sret = ["{0}".format(r) for r in ret]
-        self.assertEquals(
+        self.assertEqual(
             sret,
             ['2019-01-15 00:00:00',
              '2019-01-16 00:00:01',
@@ -865,7 +883,7 @@ class CroniterTest(base.TestCase):
             ret.append(dt)
             dt += timedelta(days=1)
         sret = ["{0}".format(r) for r in ret]
-        self.assertEquals(
+        self.assertEqual(
             sret,
             ['2019-01-14 00:00:01',
              '2019-01-15 00:00:02',
@@ -888,7 +906,7 @@ class CroniterTest(base.TestCase):
             ret.append(dt)
             dt += timedelta(days=1)
         sret = ["{0}".format(r) for r in ret]
-        self.assertEquals(
+        self.assertEqual(
             sret,
             ['2019-01-16 00:00:00',
              '2019-01-17 00:00:01',
