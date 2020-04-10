@@ -951,6 +951,11 @@ class CroniterTest(base.TestCase):
              '2019-01-26 00:00:03',
              '2019-01-27 00:00:04'])
 
+    def test_mixdow(self):
+        base = datetime(2018, 10, 1, 0, 0)
+        itr = croniter('1 1 7,14,21,L * *', base)
+        self.assertTrue(isinstance(itr.get_next(), float))
+
     def test_match(self):
         self.assertTrue(croniter.match(
             "0 0 * * *",
