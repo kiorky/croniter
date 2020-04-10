@@ -3,10 +3,12 @@ Changelog
 
 0.3.32 (unreleased)
 -------------------
+
 - document seconds repeats, fixes #122
   [kiorky]
 - Implement match method, fixes #54
   [kiorky] 
+
 
 0.3.31 (2020-01-02)
 -------------------
@@ -14,11 +16,11 @@ Changelog
 - Fix get_next() when start_time less then 1s before next instant
   [AlexHill]
 
+
 0.3.30 (2019-04-20)
 -------------------
 
 - credits
-
 
 
 0.3.29 (2019-03-26)
