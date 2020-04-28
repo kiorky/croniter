@@ -951,6 +951,20 @@ class CroniterTest(base.TestCase):
              '2019-01-26 00:00:03',
              '2019-01-27 00:00:04'])
 
+    def test_match(self):
+        self.assertTrue(croniter.match(
+            "0 0 * * *",
+            datetime(2019, 1, 14, 0, 0, 0, 0)
+        ))
+        self.assertFalse(croniter.match(
+            "0 0 * * *",
+            datetime(2019, 1, 14, 0, 1, 0, 0)
+        ))
+        self.assertTrue(croniter.match(
+            "31 * * * *",
+            datetime(2019, 1, 14, 1, 31, 0, 0)
+        ))
+
 
 if __name__ == '__main__':
     unittest.main()
