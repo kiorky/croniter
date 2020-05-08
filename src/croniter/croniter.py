@@ -80,13 +80,11 @@ class croniter(object):
             start_time = time()
 
         self.tzinfo = None
-        if isinstance(start_time, datetime.datetime):
-            self.tzinfo = start_time.tzinfo
-            start_time = self._datetime_to_timestamp(start_time)
 
-        self.start_time = start_time
-        self.dst_start_time = start_time
-        self.cur = start_time
+        self.start_time = None
+        self.dst_start_time = None
+        self.cur = None
+        self.set_current(start_time)
 
         self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
 
@@ -98,7 +96,9 @@ class croniter(object):
             raise CroniterNotAlphaError(
                 "[{0}] is not acceptable".format(" ".join(expressions)))
 
-    def get_next(self, ret_type=None):
+    def get_next(self, ret_type=None, start_time=None):
+        if start_time is not None:
+            self.set_current(start_time)
         return self._get_next(ret_type or self._ret_type, is_prev=False)
 
     def get_prev(self, ret_type=None):
@@ -106,8 +106,18 @@ class croniter(object):
 
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
-        if issubclass(ret_type,  datetime.datetime):
+        if issubclass(ret_type, datetime.datetime):
             return self._timestamp_to_datetime(self.cur)
+        return self.cur
+
+    def set_current(self, start_time):
+        if isinstance(start_time, datetime.datetime):
+            self.tzinfo = start_time.tzinfo
+            start_time = self._datetime_to_timestamp(start_time)
+
+        self.start_time = start_time
+        self.dst_start_time = start_time
+        self.cur = start_time
         return self.cur
 
     @classmethod
