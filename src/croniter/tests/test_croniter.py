@@ -12,6 +12,17 @@ from croniter.tests import base
 
 class CroniterTest(base.TestCase):
 
+    def testSecondSec(self):
+        base = datetime(2012, 4, 6, 13, 26, 10)
+        itr = croniter('* * * * * 15,25', base)
+        n = itr.get_next(datetime)
+        self.assertEqual(15, n.second)
+        n = itr.get_next(datetime)
+        self.assertEqual(25, n.second)
+        n = itr.get_next(datetime)
+        self.assertEqual(15, n.second)
+        self.assertEqual(27, n.minute)
+
     def testSecond(self):
         base = datetime(2012, 4, 6, 13, 26, 10)
         itr = croniter('*/1 * * * * *', base)
