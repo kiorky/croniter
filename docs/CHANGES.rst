@@ -8,9 +8,10 @@ Changelog
   [kiorky]
 - Implement match method, fixes #54
   [kiorky]
-- Adding tests for #127
+- Adding tests for #127 (test more DSTs and croniter behavior around)
   [kiorky]
-
+- Changed lag_hours comparison to absolute to manage dst boundary when getting previous
+  [Sokkka]
 
 0.3.31 (2020-01-02)
 -------------------
