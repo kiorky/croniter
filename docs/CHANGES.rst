@@ -7,7 +7,9 @@ Changelog
 - document seconds repeats, fixes #122
   [kiorky]
 - Implement match method, fixes #54
-  [kiorky] 
+  [kiorky]
+- Adding tests for #127
+  [kiorky]
 
 
 0.3.31 (2020-01-02)
