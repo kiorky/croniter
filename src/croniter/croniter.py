@@ -212,16 +212,17 @@ class croniter(object):
         if dtresult and self.tzinfo:
             dtresult_utcoffset = dtresult.utcoffset()
             lag_hours = (
-                self._timedelta_to_seconds(dtresult - dtstarttime) / (60*60)
+                self._timedelta_to_seconds(dtresult - dtstarttime) / (60 * 60)
             )
             lag = self._timedelta_to_seconds(
                 dtresult_utcoffset - dtstarttime_utcoffset
             )
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
-            if ((lag > 0 and abs(lag_hours) >= hours_before_midnight)
+            if (
+                (lag > 0 and abs(lag_hours) >= hours_before_midnight)
                 or (lag < 0 and
-                    ((3600*abs(lag_hours)+abs(lag)) >= hours_before_midnight*3600))
+                    ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600))
             ):
                 dtresult = dtresult - datetime.timedelta(seconds=lag)
                 result = self._datetime_to_timestamp(dtresult)
@@ -325,7 +326,8 @@ class croniter(object):
             for wday, nth in nth_weekday_of_month.items():
                 w = (wday + 6) % 7
                 c = calendar.Calendar(w).monthdayscalendar(d.year, d.month)
-                if c[0][0] == 0: c.pop(0)
+                if c[0][0] == 0:
+                    c.pop(0)
                 for n in nth:
                     if len(c) < n:
                         continue
@@ -532,19 +534,19 @@ class croniter(object):
                         raise CroniterBadCronError(
                             'invalid range: {0}'.format(exc))
                     e_list += (["{0}#{1}".format(item, nth) for item in rng]
-                        if i == 4 and nth else rng)
+                               if i == 4 and nth else rng)
                 else:
                     if t.startswith('-'):
-                        raise CroniterBadCronError(
-                            "[{0}] is not acceptable,\
-                            negative numbers not allowed".format(
-                                        expr_format))
+                        raise CroniterBadCronError((
+                            "[{0}] is not acceptable,"
+                            "negative numbers not allowed"
+                        ).format(expr_format))
                     if not star_or_int_re.search(t):
                         t = cls._alphaconv(i, t, expressions)
 
                     try:
                         t = int(t)
-                    except:
+                    except ValueError:
                         pass
 
                     if t in cls.LOWMAP[i]:
@@ -589,4 +591,3 @@ class croniter(object):
         cron.set_current(td + ms1)
         tdp, tdt = cron.get_current(), cron.get_prev()
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
-
