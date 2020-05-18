@@ -209,9 +209,9 @@ class croniter(object):
             )
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
-            if ((lag > 0 and lag_hours >= hours_before_midnight)
+            if ((lag > 0 and abs(lag_hours) >= hours_before_midnight)
                 or (lag < 0 and
-                    ((3600*lag_hours+abs(lag)) >= hours_before_midnight*3600))
+                    ((3600*abs(lag_hours)+abs(lag)) >= hours_before_midnight*3600))
             ):
                 dtresult = dtresult - datetime.timedelta(seconds=lag)
                 result = self._datetime_to_timestamp(dtresult)
