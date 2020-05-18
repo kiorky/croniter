@@ -776,6 +776,27 @@ class CroniterTest(base.TestCase):
         lret1 = ['{0}'.format(d[1]) for d in local_dates]
         self.assertEqual(sret1, lret1)
 
+    def test_std_dst3(self):
+        """
+        DST tests
+
+        This fixes https://github.com/taichino/croniter/issues/90
+
+        Adelaide, Australia: 15/04/2020 00:00 -> 15/03/2020
+
+        """
+
+        tz = pytz.timezone('Australia/Adelaide')
+
+        schedule = croniter('0 0 24 * *', tz.localize(datetime(2020, 4,15)))
+        val1 = schedule.get_prev(datetime)
+        dt1 = tz.localize(datetime(2020, 3, 24))
+        self.assertEqual(val1, dt1)
+        
+        val2 = schedule.get_next(datetime)
+        dt2 = tz.localize(datetime(2020, 4, 24))
+        self.assertEqual(val2, dt2)
+
     def test_error_alpha_cron(self):
         self.assertRaises(CroniterNotAlphaError, croniter.expand,
                           '* * * janu-jun *')
