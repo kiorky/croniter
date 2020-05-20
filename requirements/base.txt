@@ -1,2 +1,3 @@
 python_dateutil
+natsort
 -e .
