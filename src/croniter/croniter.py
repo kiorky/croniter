@@ -10,6 +10,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 import calendar
+import natsort
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
@@ -568,7 +569,7 @@ class croniter(object):
                             nth_weekday_of_month[t] = set()
                         nth_weekday_of_month[t].add(int(nth))
 
-            res.sort()
+            res = natsort.natsorted(res)
             expanded.append(['*'] if (len(res) == 1
                                       and res[0] == '*')
                             else res)
