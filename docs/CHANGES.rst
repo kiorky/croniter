@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.32 (unreleased)
+0.3.32 (2020-05-27)
 -------------------
 
 - document seconds repeats, fixes #122
