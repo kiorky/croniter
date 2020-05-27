@@ -95,6 +95,30 @@ Be sure to init your croniter instance with a TZ aware datetime for this to work
     >>> local_date = tz.localize(datetime(2017, 3, 26))
     >>> val = croniter('0 0 * * *', local_date).get_next(datetime)
 
+About second repeats
+=====================
+Croniter is able to do second repeatition crontabs form::
+
+    >>> croniter('* * * * * 1', local_date).get_next(datetime)
+    >>> base = datetime(2012, 4, 6, 13, 26, 10)
+    >>> itr = croniter('* * * * * 15,25', base)
+    >>> itr.get_next(datetime) # 4/6 13:26:15
+    >>> itr.get_next(datetime) # 4/6 13:26:25
+    >>> itr.get_next(datetime) # 4/6 13:27:15
+
+You can also note that this expression will repeat every second from the start datetime.
+
+    >>> croniter('* * * * * *', local_date).get_next(datetime)
+
+Testing if a date matchs a crontab
+==================================
+As simple as::
+ 
+    >>> croniter.match("0 0 * * *", datetime(2019, 1, 14, 0, 0, 0, 0))
+    True
+    >>> croniter.match("0 0 * * *", datetime(2019, 1, 14, 0, 2, 0, 0))
+    False
+
 Develop this package
 ====================
 

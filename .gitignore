@@ -1,4 +1,5 @@
 /.tox
+/dist
 \.*.cfg
 *.egg-info
 *.pyc

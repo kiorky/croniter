@@ -8,9 +8,21 @@ from time import sleep
 import pytz
 from croniter import croniter, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
 from croniter.tests import base
+from tzlocal import get_localzone
 
 
 class CroniterTest(base.TestCase):
+
+    def testSecondSec(self):
+        base = datetime(2012, 4, 6, 13, 26, 10)
+        itr = croniter('* * * * * 15,25', base)
+        n = itr.get_next(datetime)
+        self.assertEqual(15, n.second)
+        n = itr.get_next(datetime)
+        self.assertEqual(25, n.second)
+        n = itr.get_next(datetime)
+        self.assertEqual(15, n.second)
+        self.assertEqual(27, n.minute)
 
     def testSecond(self):
         base = datetime(2012, 4, 6, 13, 26, 10)
@@ -792,7 +804,7 @@ class CroniterTest(base.TestCase):
         val1 = schedule.get_prev(datetime)
         dt1 = tz.localize(datetime(2020, 3, 24))
         self.assertEqual(val1, dt1)
-        
+
         val2 = schedule.get_next(datetime)
         dt2 = tz.localize(datetime(2020, 4, 24))
         self.assertEqual(val2, dt2)
@@ -940,6 +952,78 @@ class CroniterTest(base.TestCase):
              '2019-01-26 00:00:03',
              '2019-01-27 00:00:04'])
 
+    def test_mixdow(self):
+        base = datetime(2018, 10, 1, 0, 0)
+        itr = croniter('1 1 7,14,21,L * *', base)
+        self.assertTrue(isinstance(itr.get_next(), float))
+
+    def test_match(self):
+        self.assertTrue(croniter.match(
+            "0 0 * * *",
+            datetime(2019, 1, 14, 0, 0, 0, 0)
+        ))
+        self.assertFalse(croniter.match(
+            "0 0 * * *",
+            datetime(2019, 1, 14, 0, 1, 0, 0)
+        ))
+        self.assertTrue(croniter.match(
+            "31 * * * *",
+            datetime(2019, 1, 14, 1, 31, 0, 0)
+        ))
+
+
+    def test_dst_issue90_st31ny(self):
+        tz = pytz.timezone("Europe/Paris")
+        now = datetime(2020, 3, 29, 1, 59, 55, tzinfo=tz)
+        it = croniter('1 2 * * *', now)
+        #
+        # Taking around DST @ 29/03/20 01:59
+        #
+        ret = [
+            it.get_next(datetime).isoformat(),
+            it.get_prev(datetime).isoformat(),
+            it.get_prev(datetime).isoformat(),
+            it.get_next(datetime).isoformat(),
+            it.get_next(datetime).isoformat(),
+        ]
+        self.assertEqual(ret, [
+            '2020-03-30T02:01:00+02:00',
+            '2020-03-29T01:01:00+01:00',
+            '2020-03-28T03:01:00+01:00',
+            '2020-03-29T02:01:00+02:00',
+            '2020-03-29T03:01:00+02:00'])
+        #
+        nowp = datetime(2020, 3, 28, 1, 58, 55, tzinfo=tz)
+        itp = croniter('1 2 * * *', nowp)
+        retp = [
+            itp.get_next(datetime).isoformat(),
+            itp.get_prev(datetime).isoformat(),
+            itp.get_prev(datetime).isoformat(),
+            itp.get_next(datetime).isoformat(),
+            itp.get_next(datetime).isoformat(),
+        ]
+        self.assertEqual(retp, [
+            '2020-03-29T02:01:00+02:00',
+            '2020-03-28T02:01:00+01:00',
+            '2020-03-27T02:01:00+01:00',
+            '2020-03-28T02:01:00+01:00',
+            '2020-03-29T03:01:00+02:00'])
+        #
+        nowt = datetime(2020, 3, 29, 2, 0, 0, tzinfo=tz)
+        itt = croniter('1 2 * * *', nowt)
+        rett = [
+            itt.get_next(datetime).isoformat(),
+            itt.get_prev(datetime).isoformat(),
+            itt.get_prev(datetime).isoformat(),
+            itt.get_next(datetime).isoformat(),
+            itt.get_next(datetime).isoformat(),
+        ]
+        self.assertEqual(ret, [
+            '2020-03-30T02:01:00+02:00',
+            '2020-03-29T01:01:00+01:00',
+            '2020-03-28T03:01:00+01:00',
+            '2020-03-29T02:01:00+02:00',
+            '2020-03-29T03:01:00+02:00'])
 
 if __name__ == '__main__':
     unittest.main()

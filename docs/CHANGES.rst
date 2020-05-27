@@ -1,11 +1,23 @@
 Changelog
 ==============
 
-0.3.32 (unreleased)
+0.3.33 (unreleased)
 -------------------
 
 - Nothing changed yet.
 
+
+0.3.32 (2020-05-27)
+-------------------
+
+- document seconds repeats, fixes #122
+  [kiorky]
+- Implement match method, fixes #54
+  [kiorky]
+- Adding tests for #127 (test more DSTs and croniter behavior around)
+  [kiorky]
+- Changed lag_hours comparison to absolute to manage dst boundary when getting previous
+  [Sokkka]
 
 0.3.31 (2020-01-02)
 -------------------
@@ -13,11 +25,11 @@ Changelog
 - Fix get_next() when start_time less then 1s before next instant
   [AlexHill]
 
+
 0.3.30 (2019-04-20)
 -------------------
 
 - credits
-
 
 
 0.3.29 (2019-03-26)
