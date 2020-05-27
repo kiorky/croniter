@@ -10,6 +10,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 import calendar
+import natsort
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
@@ -80,13 +81,11 @@ class croniter(object):
             start_time = time()
 
         self.tzinfo = None
-        if isinstance(start_time, datetime.datetime):
-            self.tzinfo = start_time.tzinfo
-            start_time = self._datetime_to_timestamp(start_time)
 
-        self.start_time = start_time
-        self.dst_start_time = start_time
-        self.cur = start_time
+        self.start_time = None
+        self.dst_start_time = None
+        self.cur = None
+        self.set_current(start_time)
 
         self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
 
@@ -98,7 +97,9 @@ class croniter(object):
             raise CroniterNotAlphaError(
                 "[{0}] is not acceptable".format(" ".join(expressions)))
 
-    def get_next(self, ret_type=None):
+    def get_next(self, ret_type=None, start_time=None):
+        if start_time is not None:
+            self.set_current(start_time)
         return self._get_next(ret_type or self._ret_type, is_prev=False)
 
     def get_prev(self, ret_type=None):
@@ -106,8 +107,18 @@ class croniter(object):
 
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
-        if issubclass(ret_type,  datetime.datetime):
+        if issubclass(ret_type, datetime.datetime):
             return self._timestamp_to_datetime(self.cur)
+        return self.cur
+
+    def set_current(self, start_time):
+        if isinstance(start_time, datetime.datetime):
+            self.tzinfo = start_time.tzinfo
+            start_time = self._datetime_to_timestamp(start_time)
+
+        self.start_time = start_time
+        self.dst_start_time = start_time
+        self.cur = start_time
         return self.cur
 
     @classmethod
@@ -202,16 +213,17 @@ class croniter(object):
         if dtresult and self.tzinfo:
             dtresult_utcoffset = dtresult.utcoffset()
             lag_hours = (
-                self._timedelta_to_seconds(dtresult - dtstarttime) / (60*60)
+                self._timedelta_to_seconds(dtresult - dtstarttime) / (60 * 60)
             )
             lag = self._timedelta_to_seconds(
                 dtresult_utcoffset - dtstarttime_utcoffset
             )
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
-            if ((lag > 0 and abs(lag_hours) >= hours_before_midnight)
+            if (
+                (lag > 0 and abs(lag_hours) >= hours_before_midnight)
                 or (lag < 0 and
-                    ((3600*abs(lag_hours)+abs(lag)) >= hours_before_midnight*3600))
+                    ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600))
             ):
                 dtresult = dtresult - datetime.timedelta(seconds=lag)
                 result = self._datetime_to_timestamp(dtresult)
@@ -315,7 +327,8 @@ class croniter(object):
             for wday, nth in nth_weekday_of_month.items():
                 w = (wday + 6) % 7
                 c = calendar.Calendar(w).monthdayscalendar(d.year, d.month)
-                if c[0][0] == 0: c.pop(0)
+                if c[0][0] == 0:
+                    c.pop(0)
                 for n in nth:
                     if len(c) < n:
                         continue
@@ -522,19 +535,19 @@ class croniter(object):
                         raise CroniterBadCronError(
                             'invalid range: {0}'.format(exc))
                     e_list += (["{0}#{1}".format(item, nth) for item in rng]
-                        if i == 4 and nth else rng)
+                               if i == 4 and nth else rng)
                 else:
                     if t.startswith('-'):
-                        raise CroniterBadCronError(
-                            "[{0}] is not acceptable,\
-                            negative numbers not allowed".format(
-                                        expr_format))
+                        raise CroniterBadCronError((
+                            "[{0}] is not acceptable,"
+                            "negative numbers not allowed"
+                        ).format(expr_format))
                     if not star_or_int_re.search(t):
                         t = cls._alphaconv(i, t, expressions)
 
                     try:
                         t = int(t)
-                    except:
+                    except ValueError:
                         pass
 
                     if t in cls.LOWMAP[i]:
@@ -556,7 +569,7 @@ class croniter(object):
                             nth_weekday_of_month[t] = set()
                         nth_weekday_of_month[t].add(int(nth))
 
-            res.sort()
+            res = natsort.natsorted(res)
             expanded.append(['*'] if (len(res) == 1
                                       and res[0] == '*')
                             else res)
@@ -571,3 +584,11 @@ class croniter(object):
             return False
         else:
             return True
+
+    @classmethod
+    def match(cls, cron_expression, testdate):
+        cron = cls(cron_expression, testdate, ret_type=datetime.datetime)
+        td, ms1 = cron.get_current(datetime.datetime), relativedelta(microseconds=1)
+        cron.set_current(td + ms1)
+        tdp, tdt = cron.get_current(), cron.get_prev()
+        return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
