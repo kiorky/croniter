@@ -586,8 +586,8 @@ class croniter(object):
             return True
 
     @classmethod
-    def match(cls, cron_expression, testdate):
-        cron = cls(cron_expression, testdate, ret_type=datetime.datetime)
+    def match(cls, cron_expression, testdate, day_or=True):
+        cron = cls(cron_expression, testdate, ret_type=datetime.datetime, day_or=day_or)
         td, ms1 = cron.get_current(datetime.datetime), relativedelta(microseconds=1)
         cron.set_current(td + ms1)
         tdp, tdt = cron.get_current(), cron.get_prev()
