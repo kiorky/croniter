@@ -592,3 +592,55 @@ class croniter(object):
         cron.set_current(td + ms1)
         tdp, tdt = cron.get_current(), cron.get_prev()
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
+
+
+def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False):
+    """
+    Generator that provides all times from start to stop matching the given cron expression.
+    If the cron expression matches either 'start' and/or 'stop', those times will be returned as
+    well unless 'exclude_ends=True' is passed.
+
+    You can think of this function as sibiling to the builtin range function for datetime objects.
+    Like range(start,stop,step), except that here 'step' is a cron expression.
+    """
+    if type(start) != type(stop):
+        raise TypeError("The start and stop must be same type.  {0} != {1}".
+                         format(type(start), type(stop)))
+    if ret_type is None:
+        # Automatically set return type based on the type given for start/stop
+        if isinstance(start, (int, float)):
+            ret_type = float
+        else:
+            ret_type = datetime.datetime
+        ret_type = type(start)
+    elif type(start) != ret_type:
+        # For now.  Don't support mixing types, as they can't be directly compared in the end condition
+        raise TypeError("The ret_type must be the same type as start and stop.  {0} != {1}".
+                        format(type(start), ret_type))
+    if issubclass(type(start), datetime.datetime) and start.tzinfo is not stop.tzinfo:
+        raise ValueError("The start and stop timezone must be the same.  {0} != {1}".
+                         format(start.tzinfo, stop.tzinfo))
+    if issubclass(ret_type, datetime.datetime):
+        ms1 = relativedelta(microseconds=1)
+    else:
+        ms1 = 0.000001
+    if start < stop:
+        # Forward (normal) time order
+        if not exclude_ends:
+            start -= ms1
+            stop += ms1
+        ic = croniter(expr_format, start, ret_type=ret_type, day_or=day_or)
+        dt = ic.get_next()
+        while dt < stop:
+            yield dt
+            dt = ic.get_next()
+    else:
+        # Reverse time order
+        if not exclude_ends:
+            start += ms1
+            stop -= ms1
+        ic = croniter(expr_format, start, ret_type=ret_type, day_or=day_or)
+        dt = ic.get_prev()
+        while dt > stop:
+            yield dt
+            dt = ic.get_prev()
