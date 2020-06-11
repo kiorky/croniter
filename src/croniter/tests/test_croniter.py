@@ -1128,6 +1128,8 @@ class CroniterRangeTest(base.TestCase):
         # Mix start/stop types
         with self.assertRaises(TypeError):
             list(croniter_range(dt_start1, f_stop1, "0 * * * *"), ret_type=datetime)
+        with self.assertRaises(TypeError):
+            list(croniter_range(f_start1, dt_stop1, "0 * * * *"))
 
     def test_timezone_mismatch_exceptions(self):
         cron_expr = "0 * * * *"

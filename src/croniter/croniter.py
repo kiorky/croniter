@@ -606,41 +606,38 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     auto_rt = datetime.datetime
     if type(start) != type(stop):
         raise TypeError("The start and stop must be same type.  {0} != {1}".
-                         format(type(start), type(stop)))
-    if isinstance(start, (float,int)):
-        start = datetime.datetime.utcfromtimestamp(start)
-        stop = datetime.datetime.utcfromtimestamp(stop)
+                        format(type(start), type(stop)))
+    if isinstance(start, (float, int)):
+        start, stop = (datetime.datetime.utcfromtimestamp(t) for t in (start, stop))
         auto_rt = float
     elif issubclass(type(start), datetime.datetime) and issubclass(type(stop), datetime.datetime):
         if start.tzinfo is not stop.tzinfo:
-            raise ValueError("The start and stop timezone must be the same.  {0} != {1}".
-                            format(start.tzinfo, stop.tzinfo))
-    ms1 = relativedelta(microseconds=1)
+            raise ValueError("The start and stop timezone must be the same.  {0} != {1}"
+                             .format(start.tzinfo, stop.tzinfo))
     if ret_type is None:
         ret_type = auto_rt
-    if start < stop:
-        # Forward (normal) time order
-        if not exclude_ends:
+    if not exclude_ends:
+        ms1 = relativedelta(microseconds=1)
+        if start < stop:    # Forward (normal) time order
             start -= ms1
             stop += ms1
-        ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
-        dt = ic.get_next()
-        while dt < stop:
-            if ret_type is float:
-                yield ic.get_current(float)
-            else:
-                yield dt
-            dt = ic.get_next()
-    else:
-        # Reverse time order
-        if not exclude_ends:
+        else:               # Reverse time order
             start += ms1
             stop -= ms1
-        ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
-        dt = ic.get_prev()
-        while dt > stop:
-            if ret_type is float:
-                yield ic.get_current(float)
-            else:
-                yield dt
-            dt = ic.get_prev()
+    ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
+    if start < stop:        # Forward
+        def cont(v):
+            return v < stop
+        step = ic.get_next
+    else:                   # Reverse
+        def cont(v):
+            return v > stop
+        step = ic.get_prev
+
+    dt = step()
+    while cont(dt):
+        if ret_type is float:
+            yield ic.get_current(float)
+        else:
+            yield dt
+        dt = step()
