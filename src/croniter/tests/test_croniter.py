@@ -1103,6 +1103,23 @@ class CroniterRangeTest(base.TestCase):
         self.assertEqual(res[5].day, 1)
         self.assertEqual(res[-1], datetime(1983, 12, 1))
 
+    def test_1minute_step_float(self):
+        start = datetime(2000, 1, 1, 0, 0)
+        stop =  datetime(2000, 1, 1, 0, 1)
+        res = list(croniter_range(start, stop, '* * * * *', ret_type=float))
+        self.assertEqual(len(res), 2)
+        self.assertEqual(res[0], 946684800.0)
+        self.assertEqual(res[-1] - res[0], 60)
+
+    def test_auto_ret_type(self):
+        data = [
+            (datetime(2019, 1, 1), datetime(2020, 1, 1), datetime),
+            (1552252218.0, 1591823311.0, float),
+        ]
+        for start, stop, rtype in data:
+            ret = list(croniter_range(start, stop, "0 0 * * *"))
+            self.assertIsInstance(ret[0], rtype)
+
     def test_input_type_exceptions(self):
         dt_start1 = datetime(2019, 1, 1)
         dt_stop1 = datetime(2020, 1, 1)
@@ -1110,13 +1127,7 @@ class CroniterRangeTest(base.TestCase):
         f_stop1 = 1591823311.0
         # Mix start/stop types
         with self.assertRaises(TypeError):
-            list(croniter_range(dt_start1, f_stop1, "0 * * * *"))
-
-        # Mix return and input type
-        with self.assertRaises(TypeError):
-            list(croniter_range(dt_start1, dt_stop1, "0 * * * *", ret_type=float))
-        with self.assertRaises(TypeError):
-            list(croniter_range(f_start1, f_stop1, "0 * * * *", ret_type=datetime))
+            list(croniter_range(dt_start1, f_stop1, "0 * * * *"), ret_type=datetime)
 
     def test_timezone_mismatch_exceptions(self):
         cron_expr = "0 * * * *"

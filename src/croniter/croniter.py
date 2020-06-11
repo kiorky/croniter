@@ -600,47 +600,47 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     If the cron expression matches either 'start' and/or 'stop', those times will be returned as
     well unless 'exclude_ends=True' is passed.
 
-    You can think of this function as sibiling to the builtin range function for datetime objects.
+    You can think of this function as sibling to the builtin range function for datetime objects.
     Like range(start,stop,step), except that here 'step' is a cron expression.
     """
+    auto_rt = datetime.datetime
     if type(start) != type(stop):
         raise TypeError("The start and stop must be same type.  {0} != {1}".
                          format(type(start), type(stop)))
+    if isinstance(start, (float,int)):
+        start = datetime.datetime.utcfromtimestamp(start)
+        stop = datetime.datetime.utcfromtimestamp(stop)
+        auto_rt = float
+    elif issubclass(type(start), datetime.datetime) and issubclass(type(stop), datetime.datetime):
+        if start.tzinfo is not stop.tzinfo:
+            raise ValueError("The start and stop timezone must be the same.  {0} != {1}".
+                            format(start.tzinfo, stop.tzinfo))
+    ms1 = relativedelta(microseconds=1)
     if ret_type is None:
-        # Automatically set return type based on the type given for start/stop
-        if isinstance(start, (int, float)):
-            ret_type = float
-        else:
-            ret_type = datetime.datetime
-        ret_type = type(start)
-    elif type(start) != ret_type:
-        # For now.  Don't support mixing types, as they can't be directly compared in the end condition
-        raise TypeError("The ret_type must be the same type as start and stop.  {0} != {1}".
-                        format(type(start), ret_type))
-    if issubclass(type(start), datetime.datetime) and start.tzinfo is not stop.tzinfo:
-        raise ValueError("The start and stop timezone must be the same.  {0} != {1}".
-                         format(start.tzinfo, stop.tzinfo))
-    if issubclass(ret_type, datetime.datetime):
-        ms1 = relativedelta(microseconds=1)
-    else:
-        ms1 = 0.000001
+        ret_type = auto_rt
     if start < stop:
         # Forward (normal) time order
         if not exclude_ends:
             start -= ms1
             stop += ms1
-        ic = croniter(expr_format, start, ret_type=ret_type, day_or=day_or)
+        ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
         dt = ic.get_next()
         while dt < stop:
-            yield dt
+            if ret_type is float:
+                yield ic.get_current(float)
+            else:
+                yield dt
             dt = ic.get_next()
     else:
         # Reverse time order
         if not exclude_ends:
             start += ms1
             stop -= ms1
-        ic = croniter(expr_format, start, ret_type=ret_type, day_or=day_or)
+        ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
         dt = ic.get_prev()
         while dt > stop:
-            yield dt
+            if ret_type is float:
+                yield ic.get_current(float)
+            else:
+                yield dt
             dt = ic.get_prev()
