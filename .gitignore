@@ -8,3 +8,6 @@
 /venv
 /.cache
 .idea
+*.py,cover
+.coverage
+.python-version
