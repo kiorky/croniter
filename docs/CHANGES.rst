@@ -4,8 +4,10 @@ Changelog
 0.3.33 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Make dateutil tz support more official
+  [lowell80]
+- Feat/support for day or
+  [田口信元]
 
 0.3.32 (2020-05-27)
 -------------------
