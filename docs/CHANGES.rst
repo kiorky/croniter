@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.33 (unreleased)
+0.3.33 (2020-06-15)
 -------------------
 
 - Make dateutil tz support more official
