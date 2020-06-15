@@ -9,6 +9,7 @@ import pytz
 from croniter import croniter, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
 from croniter.tests import base
 from tzlocal import get_localzone
+import dateutil.tz
 
 
 class CroniterTest(base.TestCase):
@@ -649,6 +650,13 @@ class CroniterTest(base.TestCase):
         itr2 = croniter('* * * * *', tokyo.localize(base))
         n2 = itr2.get_next(datetime)
         self.assertEqual(n2.tzinfo.zone, 'Asia/Tokyo')
+
+    def testTimezoneDateutil(self):
+        tokyo = dateutil.tz.gettz('Asia/Tokyo')
+        base = datetime(2013, 3, 4, 12, 15, tzinfo=tokyo)
+        itr = croniter('* * * * *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.tzinfo.tzname(n1), 'JST')
 
     def testInitNoStartTime(self):
         itr = croniter('* * * * *')
