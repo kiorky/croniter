@@ -1048,7 +1048,7 @@ class CroniterTest(base.TestCase):
             itt.get_next(datetime).isoformat(),
             itt.get_next(datetime).isoformat(),
         ]
-        self.assertEqual(ret, [
+        self.assertEqual(rett, [
             '2020-03-30T02:01:00+02:00',
             '2020-03-29T01:01:00+01:00',
             '2020-03-28T03:01:00+01:00',
