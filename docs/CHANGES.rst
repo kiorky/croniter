@@ -57,7 +57,7 @@ Changelog
 0.3.23 (2018-05-23)
 -------------------
 
-- fix `get_next` while perserving the fix of `get_prev` in 7661c2aaa
+- fix ``get_next`` while perserving the fix of ``get_prev`` in 7661c2aaa
   [Avikam Agur <avikam@pagaya-inv.com>]
 
 
@@ -65,7 +65,7 @@ Changelog
 -------------------
 - Don't count previous minute if now is dynamic
   If the code is triggered from 5-asterisk based cron
-  `get_prev` based on `datetime.now()` is expected to return
+  ``get_prev`` based on ``datetime.now()`` is expected to return
   current cron iteration and not previous execution.
   [Igor Khrol <igor.khrol@toptal.com>]
 
@@ -175,7 +175,7 @@ Changelog
 ------------------
 
 - Fix default behavior when no start_time given
-  Default value for `start_time` parameter is calculated at module init time rather than call time.
+  Default value for ``start_time`` parameter is calculated at module init time rather than call time.
 - Fix timezone support and stop depending on the system time zone
 
 
