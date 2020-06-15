@@ -118,6 +118,11 @@ As simple as::
     True
     >>> croniter.match("0 0 * * *", datetime(2019, 1, 14, 0, 2, 0, 0))
     False
+    >>>
+    >>> croniter.match("2 4 1 * wed", datetime(2019, 1, 1, 4, 2, 0, 0)) # 04:02 on every Wednesday OR on 1st day of month
+    True
+    >>> croniter.match("2 4 1 * wed", datetime(2019, 1, 1, 4, 2, 0, 0), day_or=False) # 04:02 on every 1st day of the month if it is a Wednesday
+    False
 
 Develop this package
 ====================

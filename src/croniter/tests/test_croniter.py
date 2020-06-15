@@ -970,6 +970,36 @@ class CroniterTest(base.TestCase):
             "31 * * * *",
             datetime(2019, 1, 14, 1, 31, 0, 0)
         ))
+        self.assertTrue(croniter.match(
+            "0 0 10 * wed",
+            datetime(2020, 6, 10, 0, 0, 0, 0),
+            day_or=True
+        ))
+        self.assertTrue(croniter.match(
+            "0 0 10 * fri",
+            datetime(2020, 6, 10, 0, 0, 0, 0),
+            day_or=True
+        ))
+        self.assertTrue(croniter.match(
+            "0 0 10 * fri",
+            datetime(2020, 6, 12, 0, 0, 0, 0),
+            day_or=True
+        ))
+        self.assertTrue(croniter.match(
+            "0 0 10 * wed",
+            datetime(2020, 6, 10, 0, 0, 0, 0),
+            day_or=False
+        ))
+        self.assertFalse(croniter.match(
+            "0 0 10 * fri",
+            datetime(2020, 6, 10, 0, 0, 0, 0),
+            day_or=False
+        ))
+        self.assertFalse(croniter.match(
+            "0 0 10 * fri",
+            datetime(2020, 6, 12, 0, 0, 0, 0),
+            day_or=False
+        ))
 
 
     def test_dst_issue90_st31ny(self):
