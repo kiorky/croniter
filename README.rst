@@ -140,7 +140,7 @@ Test for a match with (>=0.3.32)::
 Iterating over a range using cron
 =================================
 Finding all matching times in at time range can be handled with the ``croniter_range()`` function.  This is much like the builtin ``range(start,stop,step)`` function, but for dates using a cron expression as "step".
-Added in (>=0.3.XX)
+Added in (>=0.3.34)
 
 List the first Saturday of every month in 2019::
 
