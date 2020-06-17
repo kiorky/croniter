@@ -610,7 +610,7 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     if isinstance(start, (float, int)):
         start, stop = (datetime.datetime.utcfromtimestamp(t) for t in (start, stop))
         auto_rt = float
-    elif issubclass(type(start), datetime.datetime) and issubclass(type(stop), datetime.datetime):
+    elif isinstance(start, datetime.datetime) and isinstance(stop, datetime.datetime):
         if start.tzinfo is not stop.tzinfo:
             raise ValueError("The start and stop timezone must be the same.  {0} != {1}"
                              .format(start.tzinfo, stop.tzinfo))
@@ -625,6 +625,7 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
             start += ms1
             stop -= ms1
     ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
+    # define a continue (cont) condition function and step function for the main while loop
     if start < stop:        # Forward
         def cont(v):
             return v < stop
