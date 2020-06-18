@@ -1140,6 +1140,20 @@ class CroniterRangeTest(base.TestCase):
         self.assertNotEqual(res[0].tzinfo, res[-1].tzinfo)
         self.assertEqual(len(res), 12)
 
+    def test_extra_hour_day_prio(self):
+        def datetime_tz(*args, tzinfo=None):
+            """ Defined this in another branch.  single-use-version """
+            return tzinfo.localize(datetime(*args))
+        tz = pytz.timezone("US/Eastern")
+        cron = "0 3 * * *"
+        start = datetime_tz(2020, 3, 7, tzinfo=tz)
+        end = datetime_tz(2020, 3, 11, tzinfo=tz)
+        ret = [ i.isoformat() for i in croniter_range(start, end, cron) ]
+        self.assertEqual(ret, [
+            "2020-03-07T03:00:00-05:00",
+            "2020-03-08T03:00:00-04:00",
+            "2020-03-09T03:00:00-04:00",
+            "2020-03-10T03:00:00-04:00"])
 
 
 if __name__ == '__main__':
