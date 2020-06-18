@@ -1141,8 +1141,9 @@ class CroniterRangeTest(base.TestCase):
         self.assertEqual(len(res), 12)
 
     def test_extra_hour_day_prio(self):
-        def datetime_tz(*args, tzinfo=None):
+        def datetime_tz(*args, **kw):
             """ Defined this in another branch.  single-use-version """
+            tzinfo = kw.pop("tzinfo")
             return tzinfo.localize(datetime(*args))
         tz = pytz.timezone("US/Eastern")
         cron = "0 3 * * *"
