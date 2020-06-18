@@ -299,6 +299,32 @@ class CroniterTest(base.TestCase):
         self.assertEqual(22, next.hour)
         self.assertEqual(30, next.minute)
 
+    def testOptimizeCronExpressions(self):
+        """ Non-optimal cron expressions that can be simplified."""
+        wildcard = ['*']
+        m, h, d, mon, dow, s = range(6)
+        # Test each field individually 
+        self.assertEqual(croniter('0-59 0 0 0 0').expanded[m], wildcard)
+        self.assertEqual(croniter('0 0-23 0 0 0').expanded[h], wildcard)
+        self.assertEqual(croniter('0 0 0-31 0 0').expanded[d], wildcard)
+        self.assertEqual(croniter('0 0 0 1-12 0').expanded[mon], wildcard)
+        self.assertEqual(croniter('0 0 0 0 0-6').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 0 0 1-7').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 0 0 0 0-59').expanded[s], wildcard)
+        # Real life examples
+        self.assertEqual(croniter('30 1-12,0,10-23 15-21 * fri').expanded[h], wildcard)
+        self.assertEqual(croniter('30 1-23,0 15-21 * fri').expanded[h], wildcard)
+
+    def testBlockDupRanges(self):
+        """ Ensure that duplicate/overlapping ranges are squashed """
+        m, h, d, mon, dow, s = range(6)
+        self.assertEqual(croniter('* 5,5,1-6 * * *').expanded[h], [1,2,3,4,5,6])
+        self.assertEqual(croniter('* * * * 2-3,4-5,3,3,3').expanded[dow], [2,3,4,5])
+        self.assertEqual(croniter('* * * * * 1,5,*/20,20,15').expanded[s], [0, 1, 5, 15, 20, 40])
+        self.assertEqual(croniter('* 4,1-4,5,4 * * *').expanded[h], [1, 2, 3, 4, 5])
+        # Real life example
+        self.assertEqual(croniter('59 23 * 1 wed,fri,mon-thu,tue,tue').expanded[dow], [1,2,3,4,5])
+
     def testPrevMinute(self):
         base = datetime(2010, 8, 25, 15, 56)
         itr = croniter('*/1 * * * *', base)
