@@ -1131,22 +1131,14 @@ class CroniterRangeTest(base.TestCase):
         with self.assertRaises(TypeError):
             list(croniter_range(f_start1, dt_stop1, "0 * * * *"))
 
-    def test_timezone_mismatch_exceptions(self):
-        cron_expr = "0 * * * *"
-        tz1 = pytz.timezone("US/Eastern")
-        tz2 = pytz.timezone("Europe/Athens")
-
-        # With and without a timezone combos
-        with self.assertRaises(ValueError):
-            list(croniter_range(datetime(2020,1,1, tzinfo=tz1),
-                                datetime(2020,1,1), cron_expr))
-        with self.assertRaises(ValueError):
-            list(croniter_range(datetime(2020,1,1),
-                                datetime(2020,1,1, tzinfo=tz2), cron_expr))
-        # Mismatch timezones
-        with self.assertRaises(ValueError):
-            list(croniter_range(datetime(2020,1,1, tzinfo=tz1),
-                                datetime(2020,1,1, tzinfo=tz2), cron_expr))
+    def test_timezone_dst(self):
+        """ Test across DST transition, which technially is a timzone change. """
+        tz = pytz.timezone("US/Eastern")
+        start = tz.localize(datetime(2020, 10, 30))
+        stop =  tz.localize(datetime(2020, 11, 10))
+        res = list(croniter_range(start, stop, '0 0 * * *'))
+        self.assertNotEqual(res[0].tzinfo, res[-1].tzinfo)
+        self.assertEqual(len(res), 12)
 
 
 
