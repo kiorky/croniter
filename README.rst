@@ -136,6 +136,18 @@ Test for a match with (>=0.3.32)::
     >>> croniter.match("2 4 1 * wed", datetime(2019, 1, 1, 4, 2, 0, 0), day_or=False) # 04:02 on every 1st day of the month if it is a Wednesday
     False
 
+
+Iterating over a range using cron
+=================================
+Finding all matching times in at time range can be handled with the ``croniter_range()`` function.  This is much like the builtin ``range(start,stop,step)`` function, but for dates using a cron expression as "step".
+Added in (>=0.3.34)
+
+List the first Saturday of every month in 2019::
+
+    >>> from croniter import croniter_range
+    >>> for dt in croniter_range(datetime(2019, 1, 1), datetime(2019, 12, 31), "0 0 * * sat#1"):
+    >>>     print(dt)
+
 Develop this package
 ====================
 

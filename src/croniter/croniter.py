@@ -605,3 +605,49 @@ class croniter(object):
         cron.set_current(td + ms1)
         tdp, tdt = cron.get_current(), cron.get_prev()
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
+
+
+def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False):
+    """
+    Generator that provides all times from start to stop matching the given cron expression.
+    If the cron expression matches either 'start' and/or 'stop', those times will be returned as
+    well unless 'exclude_ends=True' is passed.
+
+    You can think of this function as sibling to the builtin range function for datetime objects.
+    Like range(start,stop,step), except that here 'step' is a cron expression.
+    """
+    auto_rt = datetime.datetime
+    if type(start) != type(stop):
+        raise TypeError("The start and stop must be same type.  {0} != {1}".
+                        format(type(start), type(stop)))
+    if isinstance(start, (float, int)):
+        start, stop = (datetime.datetime.utcfromtimestamp(t) for t in (start, stop))
+        auto_rt = float
+    if ret_type is None:
+        ret_type = auto_rt
+    if not exclude_ends:
+        ms1 = relativedelta(microseconds=1)
+        if start < stop:    # Forward (normal) time order
+            start -= ms1
+            stop += ms1
+        else:               # Reverse time order
+            start += ms1
+            stop -= ms1
+    ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
+    # define a continue (cont) condition function and step function for the main while loop
+    if start < stop:        # Forward
+        def cont(v):
+            return v < stop
+        step = ic.get_next
+    else:                   # Reverse
+        def cont(v):
+            return v > stop
+        step = ic.get_prev
+
+    dt = step()
+    while cont(dt):
+        if ret_type is float:
+            yield ic.get_current(float)
+        else:
+            yield dt
+        dt = step()
