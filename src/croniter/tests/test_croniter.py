@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
 import pytz
-from croniter import croniter, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
+from croniter import croniter, croniter_range, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
 from croniter.tests import base
 from tzlocal import get_localzone
 import dateutil.tz
@@ -1088,6 +1088,100 @@ class CroniterTest(base.TestCase):
             '2020-03-28T03:01:00+01:00',
             '2020-03-29T02:01:00+02:00',
             '2020-03-29T03:01:00+02:00'])
+
+
+class CroniterRangeTest(base.TestCase):
+
+    def test_1day_step(self):
+        start = datetime(2016, 12, 2)
+        stop = datetime(2016, 12, 10)
+        fwd = list(croniter_range(start, stop, '0 0 * * *'))
+        self.assertEqual(len(fwd), 9)
+        self.assertEqual(fwd[0], start)
+        self.assertEqual(fwd[-1], stop)
+        # Test the same, but in reverse
+        rev = list(croniter_range(stop, start, '0 0 * * *'))
+        self.assertEqual(len(rev), 9)
+        # Ensure forward/reverse are a mirror image
+        rev.reverse()
+        self.assertEqual(fwd, rev)
+
+    def test_1day_step_no_ends(self):
+        # Test without ends (exclusive)
+        start = datetime(2016, 12, 2)
+        stop = datetime(2016, 12, 10)
+        fwd = list(croniter_range(start, stop, '0 0 * * *', exclude_ends=True))
+        self.assertEqual(len(fwd), 7)
+        self.assertNotEqual(fwd[0], start)
+        self.assertNotEqual(fwd[-1], stop)
+        # Test the same, but in reverse
+        rev = list(croniter_range(stop, start, '0 0 * * *', exclude_ends=True))
+        self.assertEqual(len(rev), 7)
+        self.assertNotEqual(fwd[0], stop)
+        self.assertNotEqual(fwd[-1], start)
+
+    def test_1month_step(self):
+        start = datetime(1982, 1, 1)
+        stop = datetime(1983, 12, 31)
+        res = list(croniter_range(start, stop, '0 0 1 * *'))
+        self.assertEqual(len(res), 24)
+        self.assertEqual(res[0], start)
+        self.assertEqual(res[5].day, 1)
+        self.assertEqual(res[-1], datetime(1983, 12, 1))
+
+    def test_1minute_step_float(self):
+        start = datetime(2000, 1, 1, 0, 0)
+        stop =  datetime(2000, 1, 1, 0, 1)
+        res = list(croniter_range(start, stop, '* * * * *', ret_type=float))
+        self.assertEqual(len(res), 2)
+        self.assertEqual(res[0], 946684800.0)
+        self.assertEqual(res[-1] - res[0], 60)
+
+    def test_auto_ret_type(self):
+        data = [
+            (datetime(2019, 1, 1), datetime(2020, 1, 1), datetime),
+            (1552252218.0, 1591823311.0, float),
+        ]
+        for start, stop, rtype in data:
+            ret = list(croniter_range(start, stop, "0 0 * * *"))
+            self.assertIsInstance(ret[0], rtype)
+
+    def test_input_type_exceptions(self):
+        dt_start1 = datetime(2019, 1, 1)
+        dt_stop1 = datetime(2020, 1, 1)
+        f_start1 = 1552252218.0
+        f_stop1 = 1591823311.0
+        # Mix start/stop types
+        with self.assertRaises(TypeError):
+            list(croniter_range(dt_start1, f_stop1, "0 * * * *"), ret_type=datetime)
+        with self.assertRaises(TypeError):
+            list(croniter_range(f_start1, dt_stop1, "0 * * * *"))
+
+    def test_timezone_dst(self):
+        """ Test across DST transition, which technially is a timzone change. """
+        tz = pytz.timezone("US/Eastern")
+        start = tz.localize(datetime(2020, 10, 30))
+        stop =  tz.localize(datetime(2020, 11, 10))
+        res = list(croniter_range(start, stop, '0 0 * * *'))
+        self.assertNotEqual(res[0].tzinfo, res[-1].tzinfo)
+        self.assertEqual(len(res), 12)
+
+    def test_extra_hour_day_prio(self):
+        def datetime_tz(*args, **kw):
+            """ Defined this in another branch.  single-use-version """
+            tzinfo = kw.pop("tzinfo")
+            return tzinfo.localize(datetime(*args))
+        tz = pytz.timezone("US/Eastern")
+        cron = "0 3 * * *"
+        start = datetime_tz(2020, 3, 7, tzinfo=tz)
+        end = datetime_tz(2020, 3, 11, tzinfo=tz)
+        ret = [ i.isoformat() for i in croniter_range(start, end, cron) ]
+        self.assertEqual(ret, [
+            "2020-03-07T03:00:00-05:00",
+            "2020-03-08T03:00:00-04:00",
+            "2020-03-09T03:00:00-04:00",
+            "2020-03-10T03:00:00-04:00"])
+
 
 if __name__ == '__main__':
     unittest.main()
