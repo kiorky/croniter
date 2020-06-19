@@ -69,6 +69,15 @@ class croniter(object):
         {},
     )
 
+    LEN_MEANS_ALL = (
+        60,
+        24,
+        31,
+        12,
+        7,
+        60
+    )
+
     bad_length = 'Exactly 5 or 6 columns has to be specified for iterator' \
                  'expression.'
 
@@ -569,7 +578,11 @@ class croniter(object):
                             nth_weekday_of_month[t] = set()
                         nth_weekday_of_month[t].add(int(nth))
 
+            res = set(res)
             res = natsort.natsorted(res)
+            if len(res) == cls.LEN_MEANS_ALL[i]:
+                res = ['*']
+
             expanded.append(['*'] if (len(res) == 1
                                       and res[0] == '*')
                             else res)
