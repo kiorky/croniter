@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.34 (unreleased)
+0.3.34 (2020-06-19)
 -------------------
 
 - Feat croniter_range(start, stop, cron)
