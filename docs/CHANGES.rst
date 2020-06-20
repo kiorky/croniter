@@ -4,8 +4,10 @@ Changelog
 0.3.34 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Feat croniter_range(start, stop, cron)
+  [Kintyr]
+- Optimization for poorly written cron expression
+  [Kintyr]
 
 0.3.33 (2020-06-15)
 -------------------
