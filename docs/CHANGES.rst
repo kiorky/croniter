@@ -5,15 +5,17 @@ Changelog
 -------------------
 
 - Nothing changed yet.
+- Minor docs update
+  [Kintyre]
 
 
 0.3.34 (2020-06-19)
 -------------------
 
 - Feat croniter_range(start, stop, cron)
-  [Kintyr]
+  [Kintyre]
 - Optimization for poorly written cron expression
-  [Kintyr]
+  [Kintyre]
 
 0.3.33 (2020-06-15)
 -------------------
