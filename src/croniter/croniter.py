@@ -22,18 +22,22 @@ VALID_LEN_EXPRESSION = [5, 6]
 UNDEFINED = object()
 
 class CroniterError(ValueError):
+    """ General top-level Cronier base exception """
     pass
 
 
 class CroniterBadCronError(CroniterError):
+    """ Syntax, unknown value, or range error within a cron expression """
     pass
 
 
 class CroniterBadDateError(CroniterError):
+    """ Unable to find next/prev timestamp match """
     pass
 
 
-class CroniterNotAlphaError(CroniterError):
+class CroniterNotAlphaError(CroniterBadCronError):
+    """ Cron syntax contains an invalid day or month abreviation """
     pass
 
 
@@ -523,7 +527,7 @@ class croniter(object):
                 if i == 4:
                     e, sep, nth = str(e).partition('#')
                     if nth and not re.match(r'[1-5]', nth):
-                        raise CroniterBadDateError(
+                        raise CroniterBadCronError(
                             "[{0}] is not acceptable".format(expr_format))
 
                 t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
@@ -555,7 +559,7 @@ class croniter(object):
                             # handle -Sun notation -> 7
                             high = '7'
                         else:
-                            raise CroniterBadDateError(
+                            raise CroniterBadCronError(
                                 "[{0}] is not acceptable".format(expr_format))
 
                     low, high, step = map(int, [low, high, step])
