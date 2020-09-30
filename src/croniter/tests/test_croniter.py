@@ -1183,11 +1183,15 @@ class CroniterRangeTest(base.TestCase):
             "2020-03-10T03:00:00-04:00"])
 
     def test_issue145_getnext(self):
+        # Example of quarterly event cron schedule
         start = datetime(2020, 9, 24)
         cron = "0 13 8 1,4,7,10 wed"
         with self.assertRaises(CroniterBadDateError):
             it = croniter(cron, start, day_or=False)
             it.get_next()
+        # New functionality (0.3.35) allowing croniter to find spare matches of cron patterns across multiple years
+        it = croniter(cron, start, day_or=False, max_years_between_matches=5)
+        self.assertEqual(it.get_next(datetime), datetime(2025, 1, 8, 13))
 
     def test_issue145_range(self):
         cron = "0 13 8 1,4,7,10 wed"
@@ -1197,10 +1201,9 @@ class CroniterRangeTest(base.TestCase):
         self.assertEqual(matches[1], datetime(2020, 4, 8, 13))
         self.assertEqual(matches[2], datetime(2020, 7, 8, 13))
 
-        # No matches in this time range
+        # No matches within this range; therefore expect empty list
         matches = list(croniter_range(datetime(2020, 9, 30), datetime(2020, 10, 30), cron, day_or=False))
         self.assertEqual(len(matches), 0)
-
 
 
 if __name__ == '__main__':
