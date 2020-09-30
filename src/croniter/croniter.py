@@ -82,9 +82,10 @@ class croniter(object):
                  'expression.'
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
-                 day_or=True):
+                 day_or=True, max_years_between_matches=1):
         self._ret_type = ret_type
         self._day_or = day_or
+        self._max_years_between_matches = max(int(max_years_between_matches), 1)
 
         if start_time is None:
             start_time = time()
@@ -414,7 +415,7 @@ class croniter(object):
                  proc_minute,
                  proc_second]
 
-        while abs(year - current_year) <= 1:
+        while abs(year - current_year) <= self._max_years_between_matches:
             next = False
             for proc in procs:
                 (changed, dst) = proc(dst)
@@ -633,7 +634,9 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
         else:               # Reverse time order
             start += ms1
             stop -= ms1
-    ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
+    year_span = math.floor(abs(stop.year - start.year)) + 1
+    ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
+                  max_years_between_matches=year_span)
     # define a continue (cont) condition function and step function for the main while loop
     if start < stop:        # Forward
         def cont(v):
@@ -643,11 +646,14 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
         def cont(v):
             return v > stop
         step = ic.get_prev
-
-    dt = step()
-    while cont(dt):
-        if ret_type is float:
-            yield ic.get_current(float)
-        else:
-            yield dt
+    try:
         dt = step()
+        while cont(dt):
+            if ret_type is float:
+                yield ic.get_current(float)
+            else:
+                yield dt
+            dt = step()
+    except CroniterBadDateError:
+        # Stop iteration when this exception is raised; no match found within the given year range
+        return
