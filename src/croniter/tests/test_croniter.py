@@ -1182,6 +1182,26 @@ class CroniterRangeTest(base.TestCase):
             "2020-03-09T03:00:00-04:00",
             "2020-03-10T03:00:00-04:00"])
 
+    def test_issue145_getnext(self):
+        start = datetime(2020, 9, 24)
+        cron = "0 13 8 1,4,7,10 wed"
+        with self.assertRaises(CroniterBadDateError):
+            it = croniter(cron, start, day_or=False)
+            it.get_next()
+
+    def test_issue145_range(self):
+        cron = "0 13 8 1,4,7,10 wed"
+        matches = list(croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, day_or=False))
+        self.assertEqual(len(matches), 3)
+        self.assertEqual(matches[0], datetime(2020, 1, 8, 13))
+        self.assertEqual(matches[1], datetime(2020, 4, 8, 13))
+        self.assertEqual(matches[2], datetime(2020, 7, 8, 13))
+
+        # No matches in this time range
+        matches = list(croniter_range(datetime(2020, 9, 30), datetime(2020, 10, 30), cron, day_or=False))
+        self.assertEqual(len(matches), 0)
+
+
 
 if __name__ == '__main__':
     unittest.main()
