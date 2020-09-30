@@ -1205,6 +1205,40 @@ class CroniterRangeTest(base.TestCase):
         matches = list(croniter_range(datetime(2020, 9, 30), datetime(2020, 10, 30), cron, day_or=False))
         self.assertEqual(len(matches), 0)
 
+    def test_explicit_year_forward(self):
+        start = datetime(2020, 9, 24)
+        cron = "0 13 8 1,4,7,10 wed"
+
+        # Expect exception because no explict range was provided.  Therefore, the caller should be made aware that an implicit limit was hit.
+        iterable = croniter(cron, start, day_or=False).all_next()
+        with self.assertRaises(CroniterBadDateError):
+            next(iterable)
+
+        iterable = croniter(cron, start, day_or=False, max_years_between_matches=5).all_next(datetime)
+        n = next(iterable)
+        self.assertEqual(n, datetime(2025, 1, 8, 13))
+
+        # If the explictly given lookahead isn't enough to reach the next date, that's fine.  The caller specified the maximum gap, so no just stop iteration
+        iterable = croniter(cron, start, day_or=False, max_years_between_matches=2).all_next(datetime)
+        with self.assertRaises(StopIteration):
+            next(iterable)
+
+    def test_explicit_year_reverse(self):
+        start = datetime(2025, 1, 8)
+        cron = "0 13 8 1,4,7,10 wed"
+
+        iterable = croniter(cron, start, day_or=False).all_prev()
+        with self.assertRaises(CroniterBadDateError):
+            next(iterable)
+
+        iterable = croniter(cron, start, day_or=False, max_years_between_matches=5).all_prev(datetime)
+        n = next(iterable)
+        self.assertEqual(n, datetime(2020, 7, 8, 13))
+
+        iterable = croniter(cron, start, day_or=False, max_years_between_matches=2).all_prev()
+        with self.assertRaises(StopIteration):
+            next(iterable)
+
 
 if __name__ == '__main__':
     unittest.main()

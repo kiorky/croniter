@@ -19,6 +19,7 @@ any_int_re = re.compile(r'^\d+')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 VALID_LEN_EXPRESSION = [5, 6]
 
+UNDEFINED = object()
 
 class CroniterError(ValueError):
     pass
@@ -82,10 +83,16 @@ class croniter(object):
                  'expression.'
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
-                 day_or=True, max_years_between_matches=1):
+                 day_or=True, max_years_between_matches=UNDEFINED):
         self._ret_type = ret_type
         self._day_or = day_or
-        self._max_years_between_matches = max(int(max_years_between_matches), 1)
+
+        if max_years_between_matches is UNDEFINED:
+            self._max_years_between_matches = 1
+            self._max_years_between_matches_set = False
+        else:
+            self._max_years_between_matches = max(int(max_years_between_matches), 1)
+            self._max_years_between_matches_set = True
 
         if start_time is None:
             start_time = time()
@@ -175,13 +182,26 @@ class croniter(object):
         implicit call to __iter__, whenever non-default
         'ret_type' has to be specified.
         '''
-        while True:
-            yield self._get_next(ret_type or self._ret_type, is_prev=False)
+        # In a Python 3.7+ world:  contextlib.supress and contextlib.nullcontext could be used instead
+        try:
+            while True:
+                yield self._get_next(ret_type or self._ret_type, is_prev=False)
+        except CroniterBadDateError:
+            if self._max_years_between_matches_set:
+                return
+            else:
+                raise
 
     def all_prev(self, ret_type=None):
         '''Generator of all previous dates.'''
-        while True:
-            yield self._get_next(ret_type or self._ret_type, is_prev=True)
+        try:
+            while True:
+                yield self._get_next(ret_type or self._ret_type, is_prev=True)
+        except CroniterBadDateError:
+            if self._max_years_between_matches_set:
+                return
+            else:
+                raise
 
     iter = all_next  # alias, you can call .iter() instead of .all_next()
 
