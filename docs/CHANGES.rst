@@ -9,15 +9,17 @@ Changelog
 - Updated exception handling classes:  ``CroniterBadDateError`` now only* applies during date finding operations (next/prev), and all parsing errors can now be caught using ``CroniterBadCronError``.  The ``CroniterNotAlphaError`` exception is now a subclass of ``CroniterBadCronError``.  A breif description of each exception class was added as an inline docstring.
 - Updated iterable interfaces to replace the ``CroniterBadDateError`` with ``StopIteration`` if (and only if) the ``max_years_between_matches`` argument is provided.  The rationale here is that if the user has specified the max tollernace between matches, then there's no need to further inform them of no additional matches.  Just stop the iteration.  This also keeps backwards compatibility.
 - Nothing changed yet.
+- Minor docs update
+  [Kintyre]
 
 
 0.3.34 (2020-06-19)
 -------------------
 
 - Feat croniter_range(start, stop, cron)
-  [Kintyr]
+  [Kintyre]
 - Optimization for poorly written cron expression
-  [Kintyr]
+  [Kintyre]
 
 0.3.33 (2020-06-15)
 -------------------

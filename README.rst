@@ -176,7 +176,7 @@ In summary:  For many cron expressions this will never matter.  Use ``max_years_
 
 Iterating over a range using cron
 =================================
-Finding all matching times in at time range can be handled with the ``croniter_range()`` function.  This is much like the builtin ``range(start,stop,step)`` function, but for dates using a cron expression as "step".
+Find matches within a range using the ``croniter_range()`` function.  This is much like the builtin ``range(start,stop,step)`` function, but for dates.  The `step` argument is a cron expression.
 Added in (>=0.3.34)
 
 List the first Saturday of every month in 2019::
@@ -227,3 +227,4 @@ If you have contributed and your name is not listed below please let me know.
     - chris-baynes
     - ipartola
     - yuzawa-san
+    - lowell80
