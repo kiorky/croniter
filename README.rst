@@ -136,6 +136,43 @@ Test for a match with (>=0.3.32)::
     >>> croniter.match("2 4 1 * wed", datetime(2019, 1, 1, 4, 2, 0, 0), day_or=False) # 04:02 on every 1st day of the month if it is a Wednesday
     False
 
+Gaps between date matches
+=========================
+For performance reasons, croniter limits the amount of CPU cycles spent attempting to find the next match.
+By default croniter stops looking for dates more than 1 year away from the current time, and if the next cannot be reached within that span then ``CroniterBadDateError`` is raised.
+This works fine for most "normal" cron expressions, but can be limiting for very rare cron expressions.
+
+For example, say you're looking to match 4AM Friday January 1st.
+Since January 1 isn't often a Friday, it can be a few years between each occurrence.
+Starting in v0.3.35, croniter provides a ``max_years_between_matches`` parameter that allows this 1 year default to be extended for scenarios like this::
+
+    >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False, max_years_between_matches=11).all_next(datetime)
+    >>> for i in range(5):
+    ...     print(next(it))
+    ...
+    2010-01-01 04:00:00
+    2016-01-01 04:00:00
+    2021-01-01 04:00:00
+    2027-01-01 04:00:00
+    2038-01-01 04:00:00
+
+Trying this without ``max_years_between_matches`` results in an exception, because there's a full decade between the 2000 start date and the first match in 2010::
+
+    >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False).all_next()
+    >>> next(it)
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      ...
+    croniter.CroniterBadDateError: failed to find next date
+
+One advantage of explicitly specifying ``max_years_between_matches`` is that it simplifies the various iterable interfaces.
+Specifically ``all_next()``, ``all_prev()`` and ``iter()``) stop raising the ``CroniterBadDateError`` exception when a window is specified.
+The rationale is that since you've explicitly told croniter how far to look into the future (or past) to find the next/previous date, there's no need for a special exception.
+Instead, if no match is found then iteration is stopped.
+This makes the these iterable interfaces act as more like normal Python iterators without having to deal with any extra exceptions.
+This distinction allows v0.3.35 and later to keep the same default behavior as earlier versions.
+
+In summary:  For many cron expressions this will never matter.  Use ``max_years_between_matches`` to make iteration simplier.
 
 Iterating over a range using cron
 =================================
@@ -147,6 +184,7 @@ List the first Saturday of every month in 2019::
     >>> from croniter import croniter_range
     >>> for dt in croniter_range(datetime(2019, 1, 1), datetime(2019, 12, 31), "0 0 * * sat#1"):
     >>>     print(dt)
+
 
 Develop this package
 ====================
