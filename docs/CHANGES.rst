@@ -4,7 +4,8 @@ Changelog
 0.3.35 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Handle L in ranges. This fixes #142.
+  [kiorky]
 
 
 0.3.34 (2020-06-19)
