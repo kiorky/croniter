@@ -51,13 +51,13 @@ class croniter(object):
     )
 
     ALPHACONV = (
-        {},
-        {},
-        {"l": "l"},
+        {},  # 0: min
+        {},  # 1: hour
+        {"l": "l"},  # 2: dom
         {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},
-        {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},
-        {}
+         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},  # 3: mon 
+        {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},  #4: dow
+        {}  # command/user
     )
 
     LOWMAP = (
@@ -519,6 +519,8 @@ class croniter(object):
 
                 if m:
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
+                    if i == 2 and high == 'l':
+                        high = '31'
 
                     if not any_int_re.search(low):
                         low = "{0}".format(cls._alphaconv(i, low, expressions))

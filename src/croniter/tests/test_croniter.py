@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
 import pytz
+import croniter as cr
 from croniter import croniter, croniter_range, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
 from croniter.tests import base
 from tzlocal import get_localzone
@@ -303,7 +304,7 @@ class CroniterTest(base.TestCase):
         """ Non-optimal cron expressions that can be simplified."""
         wildcard = ['*']
         m, h, d, mon, dow, s = range(6)
-        # Test each field individually 
+        # Test each field individually
         self.assertEqual(croniter('0-59 0 0 0 0').expanded[m], wildcard)
         self.assertEqual(croniter('0 0-23 0 0 0').expanded[h], wildcard)
         self.assertEqual(croniter('0 0 0-31 0 0').expanded[d], wildcard)
@@ -1181,6 +1182,47 @@ class CroniterRangeTest(base.TestCase):
             "2020-03-08T03:00:00-04:00",
             "2020-03-09T03:00:00-04:00",
             "2020-03-10T03:00:00-04:00"])
+
+    def test_issue_142_dow(self):
+        ret = []
+        for i in range(1, 31):
+            ret.append((i,
+                croniter('35 * 0-l/8 * *', datetime(2020, 1, i),
+                         ret_type=datetime).get_next())
+            )
+            i += 1
+        self.assertEqual(
+            ret,
+            [(1, datetime(2020, 1, 1, 0, 35)),
+             (2, datetime(2020, 1, 8, 0, 35)),
+             (3, datetime(2020, 1, 8, 0, 35)),
+             (4, datetime(2020, 1, 8, 0, 35)),
+             (5, datetime(2020, 1, 8, 0, 35)),
+             (6, datetime(2020, 1, 8, 0, 35)),
+             (7, datetime(2020, 1, 8, 0, 35)),
+             (8, datetime(2020, 1, 8, 0, 35)),
+             (9, datetime(2020, 1, 16, 0, 35)),
+             (10, datetime(2020, 1, 16, 0, 35)),
+             (11, datetime(2020, 1, 16, 0, 35)),
+             (12, datetime(2020, 1, 16, 0, 35)),
+             (13, datetime(2020, 1, 16, 0, 35)),
+             (14, datetime(2020, 1, 16, 0, 35)),
+             (15, datetime(2020, 1, 16, 0, 35)),
+             (16, datetime(2020, 1, 16, 0, 35)),
+             (17, datetime(2020, 1, 24, 0, 35)),
+             (18, datetime(2020, 1, 24, 0, 35)),
+             (19, datetime(2020, 1, 24, 0, 35)),
+             (20, datetime(2020, 1, 24, 0, 35)),
+             (21, datetime(2020, 1, 24, 0, 35)),
+             (22, datetime(2020, 1, 24, 0, 35)),
+             (23, datetime(2020, 1, 24, 0, 35)),
+             (24, datetime(2020, 1, 24, 0, 35)),
+             (25, datetime(2020, 2, 1, 0, 35)),
+             (26, datetime(2020, 2, 1, 0, 35)),
+             (27, datetime(2020, 2, 1, 0, 35)),
+             (28, datetime(2020, 2, 1, 0, 35)),
+             (29, datetime(2020, 2, 1, 0, 35)),
+             (30, datetime(2020, 2, 1, 0, 35))])
 
 
 if __name__ == '__main__':
