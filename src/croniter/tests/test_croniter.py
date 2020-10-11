@@ -1229,7 +1229,7 @@ class CroniterRangeTest(base.TestCase):
         start = datetime(2020, 9, 24)
         cron = "0 13 8 1,4,7,10 wed"
         with self.assertRaises(CroniterBadDateError):
-            it = croniter(cron, start, day_or=False)
+            it = croniter(cron, start, day_or=False, max_years_between_matches=1)
             it.get_next()
         # New functionality (0.3.35) allowing croniter to find spare matches of cron patterns across multiple years
         it = croniter(cron, start, day_or=False, max_years_between_matches=5)
@@ -1252,7 +1252,9 @@ class CroniterRangeTest(base.TestCase):
         cron = "0 13 8 1,4,7,10 wed"
 
         # Expect exception because no explict range was provided.  Therefore, the caller should be made aware that an implicit limit was hit.
-        iterable = croniter(cron, start, day_or=False).all_next()
+        ccron = croniter(cron, start, day_or=False)
+        ccron._max_years_between_matches = 1
+        iterable = ccron.all_next()
         with self.assertRaises(CroniterBadDateError):
             next(iterable)
 
@@ -1266,10 +1268,12 @@ class CroniterRangeTest(base.TestCase):
             next(iterable)
 
     def test_explicit_year_reverse(self):
-        start = datetime(2025, 1, 8)
+        start = datetime(2025, 1, 1)
         cron = "0 13 8 1,4,7,10 wed"
 
-        iterable = croniter(cron, start, day_or=False).all_prev()
+        ccron = croniter(cron, start, day_or=False)
+        ccron._max_years_between_matches = 1
+        iterable = ccron.all_prev()
         with self.assertRaises(CroniterBadDateError):
             next(iterable)
 

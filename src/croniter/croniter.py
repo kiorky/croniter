@@ -19,10 +19,9 @@ any_int_re = re.compile(r'^\d+')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 VALID_LEN_EXPRESSION = [5, 6]
 
-UNDEFINED = object()
 
 class CroniterError(ValueError):
-    """ General top-level Cronier base exception """
+    """ General top-level Croniter base exception """
     pass
 
 
@@ -60,7 +59,7 @@ class croniter(object):
         {},  # 1: hour
         {"l": "l"},  # 2: dom
         {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},  # 3: mon 
+         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},  # 3: mon
         {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},  #4: dow
         {}  # command/user
     )
@@ -87,16 +86,15 @@ class croniter(object):
                  'expression.'
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
-                 day_or=True, max_years_between_matches=UNDEFINED):
+                 day_or=True, max_years_between_matches=None, is_prev=False):
         self._ret_type = ret_type
         self._day_or = day_or
 
-        if max_years_between_matches is UNDEFINED:
-            self._max_years_between_matches = 1
-            self._max_years_between_matches_set = False
-        else:
-            self._max_years_between_matches = max(int(max_years_between_matches), 1)
-            self._max_years_between_matches_set = True
+        self._max_years_btw_matches_explicitly_set = (
+            max_years_between_matches is not None)
+        if not self._max_years_btw_matches_explicitly_set:
+            max_years_between_matches = 50
+        self._max_years_between_matches = max(int(max_years_between_matches), 1)
 
         if start_time is None:
             start_time = time()
@@ -109,6 +107,7 @@ class croniter(object):
         self.set_current(start_time)
 
         self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
+        self._is_prev = is_prev
 
     @classmethod
     def _alphaconv(cls, index, key, expressions):
@@ -173,43 +172,10 @@ class croniter(object):
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
             / 10**6
 
-    # iterator protocol, to enable direct use of croniter
-    # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
-    # or for combining multiple croniters into single
-    # dates feed using 'itertools' module
-    def __iter__(self):
-        return self
-    __next__ = next = get_next
-
-    def all_next(self, ret_type=None):
-        '''Generator of all consecutive dates. Can be used instead of
-        implicit call to __iter__, whenever non-default
-        'ret_type' has to be specified.
-        '''
-        # In a Python 3.7+ world:  contextlib.supress and contextlib.nullcontext could be used instead
-        try:
-            while True:
-                yield self._get_next(ret_type or self._ret_type, is_prev=False)
-        except CroniterBadDateError:
-            if self._max_years_between_matches_set:
-                return
-            else:
-                raise
-
-    def all_prev(self, ret_type=None):
-        '''Generator of all previous dates.'''
-        try:
-            while True:
-                yield self._get_next(ret_type or self._ret_type, is_prev=True)
-        except CroniterBadDateError:
-            if self._max_years_between_matches_set:
-                return
-            else:
-                raise
-
-    iter = all_next  # alias, you can call .iter() instead of .all_next()
-
-    def _get_next(self, ret_type=None, is_prev=False):
+    def _get_next(self, ret_type=None, is_prev=None):
+        if is_prev is None:
+            is_prev = self._is_prev
+        self._is_prev = is_prev
         expanded = self.expanded[:]
         nth_weekday_of_month = self.nth_weekday_of_month.copy()
 
@@ -266,6 +232,45 @@ class croniter(object):
         if issubclass(ret_type, datetime.datetime):
             result = dtresult
         return result
+
+    # iterator protocol, to enable direct use of croniter
+    # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
+    # or for combining multiple croniters into single
+    # dates feed using 'itertools' module
+    def all_next(self, ret_type=None):
+        '''Generator of all consecutive dates. Can be used instead of
+        implicit call to __iter__, whenever non-default
+        'ret_type' has to be specified.
+        '''
+        # In a Python 3.7+ world:  contextlib.supress and contextlib.nullcontext could be used instead
+        try:
+            while True:
+                self._is_prev = False
+                yield self._get_next(ret_type or self._ret_type)
+        except CroniterBadDateError:
+            if self._max_years_btw_matches_explicitly_set:
+                return
+            else:
+                raise
+
+    def all_prev(self, ret_type=None):
+        '''Generator of all previous dates.'''
+        try:
+            while True:
+                self._is_prev = True
+                yield self._get_next(ret_type or self._ret_type)
+        except CroniterBadDateError:
+            if self._max_years_btw_matches_explicitly_set:
+                return
+            else:
+                raise
+
+    def iter(self, *args, **kwargs):
+        return (self._is_prev and self.all_prev or self.all_next)
+
+    def __iter__(self):
+        return self
+    __next__ = next = _get_next
 
     def _calc(self, now, expanded, nth_weekday_of_month, is_prev):
         if is_prev:

@@ -139,14 +139,14 @@ Test for a match with (>=0.3.32)::
 Gaps between date matches
 =========================
 For performance reasons, croniter limits the amount of CPU cycles spent attempting to find the next match.
-By default croniter stops looking for dates more than 1 year away from the current time, and if the next cannot be reached within that span then ``CroniterBadDateError`` is raised.
+By default croniter stops looking for dates more than 50 years away from the current time, and if the next cannot be reached within that span then ``CroniterBadDateError`` is raised.
 This works fine for most "normal" cron expressions, but can be limiting for very rare cron expressions.
 
 For example, say you're looking to match 4AM Friday January 1st.
 Since January 1 isn't often a Friday, it can be a few years between each occurrence.
-Starting in v0.3.35, croniter provides a ``max_years_between_matches`` parameter that allows this 1 year default to be extended for scenarios like this::
+Starting in v0.3.35, croniter provides a ``max_years_between_matches`` parameter that allows more than 50 years default to be extended for scenarios like this::
 
-    >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False, max_years_between_matches=11).all_next(datetime)
+    >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False, max_years_between_matches=100).all_next(datetime)
     >>> for i in range(5):
     ...     print(next(it))
     ...

@@ -10,4 +10,5 @@
 .idea
 *.py,cover
 .coverage
+/venv*
 .python-version
