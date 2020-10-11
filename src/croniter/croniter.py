@@ -19,20 +19,25 @@ any_int_re = re.compile(r'^\d+')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 VALID_LEN_EXPRESSION = [5, 6]
 
+UNDEFINED = object()
 
 class CroniterError(ValueError):
+    """ General top-level Cronier base exception """
     pass
 
 
 class CroniterBadCronError(CroniterError):
+    """ Syntax, unknown value, or range error within a cron expression """
     pass
 
 
 class CroniterBadDateError(CroniterError):
+    """ Unable to find next/prev timestamp match """
     pass
 
 
-class CroniterNotAlphaError(CroniterError):
+class CroniterNotAlphaError(CroniterBadCronError):
+    """ Cron syntax contains an invalid day or month abreviation """
     pass
 
 
@@ -82,9 +87,16 @@ class croniter(object):
                  'expression.'
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
-                 day_or=True):
+                 day_or=True, max_years_between_matches=UNDEFINED):
         self._ret_type = ret_type
         self._day_or = day_or
+
+        if max_years_between_matches is UNDEFINED:
+            self._max_years_between_matches = 1
+            self._max_years_between_matches_set = False
+        else:
+            self._max_years_between_matches = max(int(max_years_between_matches), 1)
+            self._max_years_between_matches_set = True
 
         if start_time is None:
             start_time = time()
@@ -174,13 +186,26 @@ class croniter(object):
         implicit call to __iter__, whenever non-default
         'ret_type' has to be specified.
         '''
-        while True:
-            yield self._get_next(ret_type or self._ret_type, is_prev=False)
+        # In a Python 3.7+ world:  contextlib.supress and contextlib.nullcontext could be used instead
+        try:
+            while True:
+                yield self._get_next(ret_type or self._ret_type, is_prev=False)
+        except CroniterBadDateError:
+            if self._max_years_between_matches_set:
+                return
+            else:
+                raise
 
     def all_prev(self, ret_type=None):
         '''Generator of all previous dates.'''
-        while True:
-            yield self._get_next(ret_type or self._ret_type, is_prev=True)
+        try:
+            while True:
+                yield self._get_next(ret_type or self._ret_type, is_prev=True)
+        except CroniterBadDateError:
+            if self._max_years_between_matches_set:
+                return
+            else:
+                raise
 
     iter = all_next  # alias, you can call .iter() instead of .all_next()
 
@@ -414,7 +439,7 @@ class croniter(object):
                  proc_minute,
                  proc_second]
 
-        while abs(year - current_year) <= 1:
+        while abs(year - current_year) <= self._max_years_between_matches:
             next = False
             for proc in procs:
                 (changed, dst) = proc(dst)
@@ -502,7 +527,7 @@ class croniter(object):
                 if i == 4:
                     e, sep, nth = str(e).partition('#')
                     if nth and not re.match(r'[1-5]', nth):
-                        raise CroniterBadDateError(
+                        raise CroniterBadCronError(
                             "[{0}] is not acceptable".format(expr_format))
 
                 t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
@@ -536,7 +561,7 @@ class croniter(object):
                             # handle -Sun notation -> 7
                             high = '7'
                         else:
-                            raise CroniterBadDateError(
+                            raise CroniterBadCronError(
                                 "[{0}] is not acceptable".format(expr_format))
 
                     low, high, step = map(int, [low, high, step])
@@ -635,7 +660,9 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
         else:               # Reverse time order
             start += ms1
             stop -= ms1
-    ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or)
+    year_span = math.floor(abs(stop.year - start.year)) + 1
+    ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
+                  max_years_between_matches=year_span)
     # define a continue (cont) condition function and step function for the main while loop
     if start < stop:        # Forward
         def cont(v):
@@ -645,11 +672,14 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
         def cont(v):
             return v > stop
         step = ic.get_prev
-
-    dt = step()
-    while cont(dt):
-        if ret_type is float:
-            yield ic.get_current(float)
-        else:
-            yield dt
+    try:
         dt = step()
+        while cont(dt):
+            if ret_type is float:
+                yield ic.get_current(float)
+            else:
+                yield dt
+            dt = step()
+    except CroniterBadDateError:
+        # Stop iteration when this exception is raised; no match found within the given year range
+        return
