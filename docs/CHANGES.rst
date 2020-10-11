@@ -6,15 +6,25 @@ Changelog
 
 - Handle L in ranges. This fixes #142.
   [kiorky]
+- Add a new initializaton paramter ``max_years_between_matches`` to support finding the next/previous date beyond the default 1 year window, if so desired.  Updated README to include additional notes and example of this usage.  Fixes #145.
+  [Kintyre]
+- The ``croniter_range()`` function was updated to automatically determines the appropriate ``max_years_between_matches`` value, this preventing handling of the ``CroniterBadDateError`` exception.
+  [Kintyre]
+- Updated exception handling classes:  ``CroniterBadDateError`` now *only* applies during date finding operations (next/prev), and all parsing errors can now be caught using ``CroniterBadCronError``.  The ``CroniterNotAlphaError`` exception is now a subclass of ``CroniterBadCronError``.  A breif description of each exception class was added as an inline docstring.
+  [Kintyre]
+- Updated iterable interfaces to replace the ``CroniterBadDateError`` with ``StopIteration`` if (and only if) the ``max_years_between_matches`` argument is provided.  The rationale here is that if the user has specified the max tollernace between matches, then there's no need to further inform them of no additional matches.  Just stop the iteration.  This also keeps backwards compatibility.
+  [Kintyre]
+- Minor docs update
+  [Kintyre]
 
 
 0.3.34 (2020-06-19)
 -------------------
 
 - Feat croniter_range(start, stop, cron)
-  [Kintyr]
+  [Kintyre]
 - Optimization for poorly written cron expression
-  [Kintyr]
+  [Kintyre]
 
 0.3.33 (2020-06-15)
 -------------------
