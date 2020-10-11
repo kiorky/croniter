@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.35 (unreleased)
+0.3.35 (2020-10-11)
 -------------------
 
 - Handle L in ranges. This fixes #142.
