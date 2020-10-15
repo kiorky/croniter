@@ -5,6 +5,8 @@ Changelog
 -------------------
 
 - Nothing changed yet.
+- Updated docs section regarding ``max_years_between_matches`` to be more shorter and hopefully more relevlant.
+  [Kintyre]
 
 
 0.3.35 (2020-10-11)
