@@ -139,16 +139,16 @@ Test for a match with (>=0.3.32)::
 Gaps between date matches
 =========================
 For performance reasons, croniter limits the amount of CPU cycles spent attempting to find the next match.
-Starting in v0.3.35 this behavior is configurable via the ``max_years_between_matches`` parameter, and the default window increased from 1 year to 50 years.
+Starting in v0.3.35, this behavior is configurable via the ``max_years_between_matches`` parameter, and the default window has been increased from 1 year to 50 years.
 
 The defaults should be fine for many use cases.
-Applications that evaluate multiple cron expressions, or handle cron expressions from untrusted sources or end-users should use this parameter.
+Applications that evaluate multiple cron expressions or handle cron expressions from untrusted sources or end-users should use this parameter.
 Iterating over sparse cron expressions can result in increased CPU consumption or a raised ``CroniterBadDateError`` exception which indicates that croniter has given up attempting to find the next (or previous) match.
-Explicitly specifying ``max_years_between_matches`` provides a way to limit CPU utilization and it also simplifies the iterable interface by eliminating the need for ``CroniterBadDateError``.
+Explicitly specifying ``max_years_between_matches`` provides a way to limit CPU utilization and simplifies the iterable interface by eliminating the need for ``CroniterBadDateError``.
 The difference in the iterable interface is based on the reasoning that whenever ``max_years_between_matches`` is explicitly agreed upon, there is no need for croniter to signal that it has given up; simply stopping the iteration is preferable.
 
 This example matches 4 AM Friday, January 1st.
-Since January 1 isn't often a Friday, it can be a few years between each occurrence.
+Since January 1st isn't often a Friday, there may be a few years between each occurrence.
 Setting the limit to 15 years ensures all matches::
 
     >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False, max_years_between_matches=15).all_next(datetime)
@@ -161,8 +161,8 @@ Setting the limit to 15 years ensures all matches::
     2027-01-01 04:00:00
     2038-01-01 04:00:00
 
-However, when only concerned with dates within the next 5 years, simply set ``max_years_between_matches=5`` in the above example and then no matches are found.
-No additional cycles are wasted on unwanted matches far in the future.
+However, when only concerned with dates within the next 5 years, simply set ``max_years_between_matches=5`` in the above example.
+This will result in no matches found, but no additional cycles will be wasted on unwanted matches far in the future.
 
 Iterating over a range using cron
 =================================
