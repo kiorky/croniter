@@ -139,14 +139,19 @@ Test for a match with (>=0.3.32)::
 Gaps between date matches
 =========================
 For performance reasons, croniter limits the amount of CPU cycles spent attempting to find the next match.
-By default croniter stops looking for dates more than 50 years away from the current time, and if the next cannot be reached within that span then ``CroniterBadDateError`` is raised.
-This works fine for most "normal" cron expressions, but can be limiting for very rare cron expressions.
+Starting in v0.3.35, this behavior is configurable via the ``max_years_between_matches`` parameter, and the default window has been increased from 1 year to 50 years.
 
-For example, say you're looking to match 4AM Friday January 1st.
-Since January 1 isn't often a Friday, it can be a few years between each occurrence.
-Starting in v0.3.35, croniter provides a ``max_years_between_matches`` parameter that allows more than 50 years default to be extended for scenarios like this::
+The defaults should be fine for many use cases.
+Applications that evaluate multiple cron expressions or handle cron expressions from untrusted sources or end-users should use this parameter.
+Iterating over sparse cron expressions can result in increased CPU consumption or a raised ``CroniterBadDateError`` exception which indicates that croniter has given up attempting to find the next (or previous) match.
+Explicitly specifying ``max_years_between_matches`` provides a way to limit CPU utilization and simplifies the iterable interface by eliminating the need for ``CroniterBadDateError``.
+The difference in the iterable interface is based on the reasoning that whenever ``max_years_between_matches`` is explicitly agreed upon, there is no need for croniter to signal that it has given up; simply stopping the iteration is preferable.
 
-    >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False, max_years_between_matches=100).all_next(datetime)
+This example matches 4 AM Friday, January 1st.
+Since January 1st isn't often a Friday, there may be a few years between each occurrence.
+Setting the limit to 15 years ensures all matches::
+
+    >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False, max_years_between_matches=15).all_next(datetime)
     >>> for i in range(5):
     ...     print(next(it))
     ...
@@ -156,23 +161,8 @@ Starting in v0.3.35, croniter provides a ``max_years_between_matches`` parameter
     2027-01-01 04:00:00
     2038-01-01 04:00:00
 
-Trying this without ``max_years_between_matches`` results in an exception, because there's a full decade between the 2000 start date and the first match in 2010::
-
-    >>> it = croniter("0 4 1 1 fri", datetime(2000,1,1), day_or=False).all_next()
-    >>> next(it)
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      ...
-    croniter.CroniterBadDateError: failed to find next date
-
-One advantage of explicitly specifying ``max_years_between_matches`` is that it simplifies the various iterable interfaces.
-Specifically ``all_next()``, ``all_prev()`` and ``iter()``) stop raising the ``CroniterBadDateError`` exception when a window is specified.
-The rationale is that since you've explicitly told croniter how far to look into the future (or past) to find the next/previous date, there's no need for a special exception.
-Instead, if no match is found then iteration is stopped.
-This makes the these iterable interfaces act as more like normal Python iterators without having to deal with any extra exceptions.
-This distinction allows v0.3.35 and later to keep the same default behavior as earlier versions.
-
-In summary:  For many cron expressions this will never matter.  Use ``max_years_between_matches`` to make iteration simplier.
+However, when only concerned with dates within the next 5 years, simply set ``max_years_between_matches=5`` in the above example.
+This will result in no matches found, but no additional cycles will be wasted on unwanted matches far in the future.
 
 Iterating over a range using cron
 =================================
@@ -227,4 +217,4 @@ If you have contributed and your name is not listed below please let me know.
     - chris-baynes
     - ipartola
     - yuzawa-san
-    - lowell80
+    - lowell80 (Kintyre)

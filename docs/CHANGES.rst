@@ -5,6 +5,8 @@ Changelog
 -------------------
 
 - Nothing changed yet.
+- Updated docs section regarding ``max_years_between_matches`` to be more shorter and hopefully more relevant.
+  [Kintyre]
 
 
 0.3.35 (2020-10-11)
@@ -12,14 +14,14 @@ Changelog
 
 - Handle L in ranges. This fixes #142.
   [kiorky]
-- Add a new initializaton paramter ``max_years_between_matches`` to support finding the next/previous date beyond the default 1 year window, if so desired.  Updated README to include additional notes and example of this usage.  Fixes #145.
+- Add a new initialization parameter ``max_years_between_matches`` to support finding the next/previous date beyond the default 1 year window, if so desired.  Updated README to include additional notes and example of this usage.  Fixes #145.
   [Kintyre]
 - The ``croniter_range()`` function was updated to automatically determines the appropriate ``max_years_between_matches`` value, this preventing handling of the ``CroniterBadDateError`` exception.
   [Kintyre]
 - Updated exception handling classes:  ``CroniterBadDateError`` now only
-  applies during date finding operations (next/prev), and all parsing errors can now be caught using ``CroniterBadCronError``.  The ``CroniterNotAlphaError`` exception is now a subclass of ``CroniterBadCronError``.  A breif description of each exception class was added as an inline docstring.
+  applies during date finding operations (next/prev), and all parsing errors can now be caught using ``CroniterBadCronError``.  The ``CroniterNotAlphaError`` exception is now a subclass of ``CroniterBadCronError``.  A brief description of each exception class was added as an inline docstring.
   [Kintyre]
-- Updated iterable interfaces to replace the ``CroniterBadDateError`` with ``StopIteration`` if (and only if) the ``max_years_between_matches`` argument is provided.  The rationale here is that if the user has specified the max tollernace between matches, then there's no need to further inform them of no additional matches.  Just stop the iteration.  This also keeps backwards compatibility.
+- Updated iterable interfaces to replace the ``CroniterBadDateError`` with ``StopIteration`` if (and only if) the ``max_years_between_matches`` argument is provided.  The rationale here is that if the user has specified the max tolerance between matches, then there's no need to further inform them of no additional matches.  Just stop the iteration.  This also keeps backwards compatibility.
   [Kintyre]
 - Minor docs update
   [Kintyre]
@@ -28,7 +30,7 @@ Changelog
 0.3.34 (2020-06-19)
 -------------------
 
-- Feat croniter_range(start, stop, cron)
+- Feat ``croniter_range(start, stop, cron)``
   [Kintyre]
 - Optimization for poorly written cron expression
   [Kintyre]
@@ -91,7 +93,7 @@ Changelog
 0.3.23 (2018-05-23)
 -------------------
 
-- fix ``get_next`` while perserving the fix of ``get_prev`` in 7661c2aaa
+- fix ``get_next`` while preserving the fix of ``get_prev`` in 7661c2aaa
   [Avikam Agur <avikam@pagaya-inv.com>]
 
 
@@ -183,7 +185,7 @@ Changelog
 0.3.10 (2015-11-29)
 -------------------
 
-- The fuctionality of 'l' as day of month was broken, since the month variable
+- The functionality of 'l' as day of month was broken, since the month variable
   was not properly updated
   [Iddo Aviram <iddo.aviram@similarweb.com>]
 
@@ -224,7 +226,7 @@ Changelog
 ------------------
 
 - Python 3 compat
-- QA Relase
+- QA Release
 
 
 0.3.3 (2012-09-29)
