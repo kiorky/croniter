@@ -52,7 +52,8 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Topic :: Software Development :: Libraries :: Python Modules"],
-    packages=find_packages('src'),
+    packages=find_packages('src', exclude=['tests*', '*.tests*']),
     package_dir={'': 'src'},
     include_package_data=True,
+    exclude_package_data={'croniter': ['tests/*']},
 )
