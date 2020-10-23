@@ -7,6 +7,8 @@ Changelog
 - Nothing changed yet.
 - Updated docs section regarding ``max_years_between_matches`` to be more shorter and hopefully more relevant.
   [Kintyre]
+- Don't install tests
+  [scop]
 
 
 0.3.35 (2020-10-11)
