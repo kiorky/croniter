@@ -218,3 +218,4 @@ If you have contributed and your name is not listed below please let me know.
     - ipartola
     - yuzawa-san
     - lowell80 (Kintyre)
+    - scop
