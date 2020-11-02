@@ -58,10 +58,13 @@ class croniter(object):
         {},  # 0: min
         {},  # 1: hour
         {"l": "l"},  # 2: dom
+        # 3: mon
         {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},  # 3: mon
-        {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},  #4: dow
-        {}  # command/user
+         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},
+        # 4: dow
+        {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},
+        # command/user
+        {}
     )
 
     LOWMAP = (
