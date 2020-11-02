@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-0.3.36 (unreleased)
+0.3.36 (2020-11-02)
 -------------------
 
 - Nothing changed yet.
