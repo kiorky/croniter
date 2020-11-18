@@ -10,7 +10,6 @@ Changelog
 0.3.36 (2020-11-02)
 -------------------
 
-- Nothing changed yet.
 - Updated docs section regarding ``max_years_between_matches`` to be more shorter and hopefully more relevant.
   [Kintyre]
 - Don't install tests
