@@ -4,7 +4,8 @@ Changelog
 0.3.37 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Added Python 3.8 and 3.9 support
+  [eumiro]
 
 
 0.3.36 (2020-11-02)
