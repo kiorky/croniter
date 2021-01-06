@@ -1,10 +1,10 @@
 Changelog
 ==============
 
-0.3.38 (unreleased)
+1.0.1 (unreleased)
 -------------------
-
-- Nothing changed yet.
+- no changes, just to make sense with new semver2 (making croniter on a stable state)
+  [kiorky]
 
 
 0.3.37 (2020-12-31)
