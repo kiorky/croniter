@@ -1,6 +1,12 @@
 Changelog
 ==============
 
+1.0.2 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 1.0.1 (2021-01-06)
 ------------------
 - no changes, just to make sense with new semver2 (making croniter on a stable state)
