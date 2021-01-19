@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.2 (unreleased)
+1.0.2 (2021-01-19)
 ------------------
 
 - Fix match when datetime has microseconds
