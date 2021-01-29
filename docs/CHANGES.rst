@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.5 (unreleased)
+1.0.5 (2021-01-29)
 ------------------
 
 - Security fix: fix overflow when using cron ranges
