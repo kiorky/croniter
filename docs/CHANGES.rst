@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.4 (unreleased)
+1.0.4 (2021-01-29)
 ------------------
 
 - Spelling fix release
