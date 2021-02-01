@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.6 (unreleased)
+1.0.6 (2021-02-01)
 ------------------
 
 - Fix combination of star and invalid expression bugs
