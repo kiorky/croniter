@@ -288,6 +288,7 @@ class CroniterTest(base.TestCase):
         self.assertRaises(ValueError, croniter, '-90 * * * *')
         self.assertRaises(ValueError, croniter, 'a * * * *')
         self.assertRaises(ValueError, croniter, '* * * janu-jun *')
+        self.assertRaises(ValueError, croniter, '0-10/ * * * *')
         self.assertRaises(CroniterBadCronError, croniter, "0-1& * * * *", datetime.now())
 
     def testSundayToThursdayWithAlphaConversion(self):
