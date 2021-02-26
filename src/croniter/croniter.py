@@ -18,7 +18,6 @@ from future.utils import raise_from
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 only_int_re = re.compile(r'^\d+$')
-any_int_re = re.compile(r'^\d+')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 VALID_LEN_EXPRESSION = [5, 6]
 
@@ -573,10 +572,10 @@ class croniter(object):
                     if i == 2 and high == 'l':
                         high = '31'
 
-                    if not any_int_re.search(low):
+                    if not only_int_re.search(low):
                         low = "{0}".format(cls._alphaconv(i, low, expressions))
 
-                    if not any_int_re.search(high):
+                    if not only_int_re.search(high):
                         high = "{0}".format(cls._alphaconv(i, high, expressions))
 
                     if (
