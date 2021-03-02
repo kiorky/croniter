@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.7 (unreleased)
+1.0.7 (2021-03-02)
 ------------------
 
 - Fix _expand to reject int literals with underscores
