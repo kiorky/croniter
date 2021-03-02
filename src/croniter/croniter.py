@@ -654,7 +654,6 @@ class croniter(object):
             return cls._expand(expr_format)
         except ValueError as exc:
             error_type, error_instance, traceback = sys.exc_info()
-            aaa =exc
             if isinstance(exc, CroniterError):
                 raise
             raise_from(CroniterBadCronError, exc)
