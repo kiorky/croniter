@@ -15,8 +15,7 @@ import natsort
 from future.utils import raise_from
 
 
-step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
-search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
+step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 VALID_LEN_EXPRESSION = [5, 6]
@@ -553,13 +552,18 @@ class croniter(object):
                         raise CroniterBadCronError(
                             "[{0}] is not acceptable".format(expr_format))
 
+                # Before matching step_search_re, normalize "*" to "{min}-{max}".
+                # Example: in the minute field, "*/5" normalizes to "0-59/5"
                 t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
                     cls.RANGES[i][0],
                     cls.RANGES[i][1]),
                     str(e))
-                m = search_re.search(t)
+                m = step_search_re.search(t)
 
                 if not m:
+                    # Before matching step_search_re,
+                    # normalize "{start}/{step}" to "{start}-{max}/{step}".
+                    # Example: in the minute field, "10/5" normalizes to "10-59/5"
                     t = re.sub(r'^(.+)\/(.+)$', r'\1-%d/\2' % (
                         cls.RANGES[i][1]),
                         str(e))
