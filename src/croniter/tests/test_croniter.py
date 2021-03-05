@@ -6,10 +6,8 @@ from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
 import pytz
-import croniter as cr
 from croniter import croniter, croniter_range, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
 from croniter.tests import base
-from tzlocal import get_localzone
 import dateutil.tz
 
 
@@ -236,6 +234,16 @@ class CroniterTest(base.TestCase):
         n4 = itr.get_next(datetime)
         self.assertEqual(n4.month, 12)
         self.assertEqual(n4.day, 31)
+
+    def testRangeWithUppercaseLastDayOfMonth(self):
+        base = datetime(2015, 9, 4)
+        itr = croniter('0 0 29-L * *', base)
+        n1 = itr.get_next(datetime)
+        self.assertEqual(n1.month, 9)
+        self.assertEqual(n1.day, 29)
+        n2 = itr.get_next(datetime)
+        self.assertEqual(n2.month, 9)
+        self.assertEqual(n2.day, 30)
 
     def testPrevLastDayOfMonth(self):
         base = datetime(2009, 12, 31, hour=20)

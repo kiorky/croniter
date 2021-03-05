@@ -93,7 +93,6 @@ class croniter(object):
                  day_or=True, max_years_between_matches=None, is_prev=False):
         self._ret_type = ret_type
         self._day_or = day_or
-        self._expr_format = expr_format
 
         self._max_years_btw_matches_explicitly_set = (
             max_years_between_matches is not None)
@@ -117,7 +116,7 @@ class croniter(object):
     @classmethod
     def _alphaconv(cls, index, key, expressions):
         try:
-            return cls.ALPHACONV[index][key.lower()]
+            return cls.ALPHACONV[index][key]
         except KeyError:
             raise CroniterNotAlphaError(
                 "[{0}] is not acceptable".format(" ".join(expressions)))
@@ -531,7 +530,10 @@ class croniter(object):
 
     @classmethod
     def _expand(cls, expr_format):
-        expressions = expr_format.split()
+        # Split the expression in components, and normalize L -> l, MON -> mon,
+        # etc. Keep expr_format untouched so we can use it in the exception
+        # messages.
+        expressions = [e.lower() for e in expr_format.split()]
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
             raise CroniterBadCronError(cls.bad_length)
