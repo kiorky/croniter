@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.8 (unreleased)
+1.0.8 (2021-03-06)
 ------------------
 
 - Update `_expand` to lowercase each component of the expression.
