@@ -4,7 +4,10 @@ Changelog
 1.0.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Remove external library ``natsort``.
+  Sorting of cron expression components now handled with ``sorted()`` with a custom ``key`` function.
+  [Kintyre]
+
 
 
 1.0.8 (2021-03-06)
@@ -107,7 +110,7 @@ Changelog
 -------------------
 
 - Make dateutil tz support more official
-  [lowell80]
+  [Kintyre]
 - Feat/support for day or
   [田口信元]
 
