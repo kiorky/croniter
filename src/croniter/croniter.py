@@ -11,7 +11,6 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 import calendar
-import natsort
 from future.utils import raise_from
 
 
@@ -642,7 +641,8 @@ class croniter(object):
                         nth_weekday_of_month[t].add(int(nth))
 
             res = set(res)
-            res = natsort.natsorted(res)
+            res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
+            # res = sorted(res)
             if len(res) == cls.LEN_MEANS_ALL[i]:
                 res = ['*']
 

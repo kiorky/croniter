@@ -1313,6 +1313,13 @@ class CroniterRangeTest(base.TestCase):
         dt = croniter("0 0 * * *,sat#3", datetime(2019, 1, 14, 11, 0, 59, 999999)).get_next()
         self.assertEqual(1547856000.0, dt)
 
+    def test_confirm_sort(self):
+        m, h, d, mon, dow, s = range(6)
+        self.assertListEqual(croniter('0 8,22,10,23 0 0 0').expanded[h], [8, 10, 22, 23])
+        self.assertListEqual(croniter('0 0 25-L 0 0').expanded[d], [25, 26, 27, 28, 29, 30, 31])
+        self.assertListEqual(croniter("1 1 7,14,21,L * *").expanded[d], [7, 14, 21, "l"])
+        self.assertListEqual(croniter("0 0 * * *,sat#3").expanded[dow], ["*", 6])
+
 
 if __name__ == '__main__':
     unittest.main()
