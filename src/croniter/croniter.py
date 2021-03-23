@@ -37,7 +37,7 @@ class CroniterBadDateError(CroniterError):
 
 
 class CroniterNotAlphaError(CroniterBadCronError):
-    """ Cron syntax contains an invalid day or month abreviation """
+    """ Cron syntax contains an invalid day or month abbreviation """
     pass
 
 
@@ -86,7 +86,7 @@ class croniter(object):
         60
     )
 
-    bad_length = 'Exactly 5 or 6 columns has to be specified for iterator' \
+    bad_length = 'Exactly 5 or 6 columns has to be specified for iterator ' \
                  'expression.'
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
