@@ -76,7 +76,7 @@ class CroniterRangeTest(base.TestCase):
             list(croniter_range(f_start1, dt_stop1, "0 * * * *"))
 
     def test_timezone_dst(self):
-        """ Test across DST transition, which technially is a timzone change. """
+        """ Test across DST transition, which technically is a timzone change. """
         tz = pytz.timezone("US/Eastern")
         start = tz.localize(datetime(2020, 10, 30))
         stop =  tz.localize(datetime(2020, 11, 10))
@@ -144,7 +144,7 @@ class CroniterRangeTest(base.TestCase):
             croniter_nosec(cron)
 
         with self.assertRaises(CroniterBadCronError):
-            # Should similiarly fail because it's using the custom classs too
+            # Should similarly fail because the custom class rejects seconds expr
             i = croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, _croniter=croniter_nosec)
             next(i)
 
