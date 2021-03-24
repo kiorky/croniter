@@ -5,6 +5,8 @@ Changelog
 -------------------
 
 - Nothing changed yet.
+- Update ``croniter_range()`` to allow an alternate ``croniter`` class to be used.  Helpful when using a custom class derived from croniter.
+  [Kintyre]
 
 
 1.0.10 (2021-03-25)
