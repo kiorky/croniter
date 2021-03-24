@@ -1157,7 +1157,7 @@ class CroniterTest(base.TestCase):
         start = datetime(2020, 9, 24)
         cron = "0 13 8 1,4,7,10 wed"
 
-        # Expect exception because no explict range was provided.  Therefore, the caller should be made aware that an implicit limit was hit.
+        # Expect exception because no explicit range was provided.  Therefore, the caller should be made aware that an implicit limit was hit.
         ccron = croniter(cron, start, day_or=False)
         ccron._max_years_between_matches = 1
         iterable = ccron.all_next()
@@ -1168,7 +1168,7 @@ class CroniterTest(base.TestCase):
         n = next(iterable)
         self.assertEqual(n, datetime(2025, 1, 8, 13))
 
-        # If the explictly given lookahead isn't enough to reach the next date, that's fine.  The caller specified the maximum gap, so no just stop iteration
+        # If the explicitly given lookahead isn't enough to reach the next date, that's fine.  The caller specified the maximum gap, so no just stop iteration
         iterable = croniter(cron, start, day_or=False, max_years_between_matches=2).all_next(datetime)
         with self.assertRaises(StopIteration):
             next(iterable)
