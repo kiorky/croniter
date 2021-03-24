@@ -698,7 +698,8 @@ class croniter(object):
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
 
 
-def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False):
+def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,
+                   croniter=croniter):
     """
     Generator that provides all times from start to stop matching the given cron expression.
     If the cron expression matches either 'start' and/or 'stop', those times will be returned as

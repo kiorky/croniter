@@ -1258,6 +1258,31 @@ class CroniterRangeTest(base.TestCase):
         matches = list(croniter_range(datetime(2020, 9, 30), datetime(2020, 10, 30), cron, day_or=False))
         self.assertEqual(len(matches), 0)
 
+    def test_croniter_range_derived_class(self):
+        # trivial example extending croniter
+
+        class croniter_nosec(croniter):
+            """ Like croniter, but it forbids second-level cron expressions. """
+            @classmethod
+            def expand(cls, expr_format):
+                if len(expr_format.split()) == 6:
+                    raise CroniterBadCronError("Expected 'min hour day mon dow'")
+                return croniter.expand(expr_format)
+
+        cron = "0 13 8 1,4,7,10 wed"
+        matches = list(croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, day_or=False, croniter=croniter_nosec))
+        self.assertEqual(len(matches), 3)
+
+        cron = "0 1 8 1,15,L wed 15,45"
+        with self.assertRaises(CroniterBadCronError):
+            # Should fail using the custom class that forbids the seconds expression
+            croniter_nosec(cron)
+
+        with self.assertRaises(CroniterBadCronError):
+            # Should similiarly fail because it's using the custom classs too
+            i = croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, croniter=croniter_nosec)
+            next(i)
+
     def test_explicit_year_forward(self):
         start = datetime(2020, 9, 24)
         cron = "0 13 8 1,4,7,10 wed"
