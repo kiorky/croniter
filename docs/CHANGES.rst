@@ -1,13 +1,20 @@
 Changelog
 ==============
 
-1.0.9 (unreleased)
-------------------
+1.0.10 (unreleased)
+-------------------
 
 - Remove external library ``natsort``.
   Sorting of cron expression components now handled with ``sorted()`` with a custom ``key`` function.
   [Kintyre]
 
+
+
+1.0.9 (2021-03-23)
+------------------
+
+- Remove futures dependency
+  [kiorky]
 
 
 1.0.8 (2021-03-06)

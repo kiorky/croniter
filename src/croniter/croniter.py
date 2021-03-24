@@ -6,18 +6,30 @@ from __future__ import absolute_import, print_function, division
 import math
 import re
 import sys
+import inspect
 from time import time
 import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 import calendar
-from future.utils import raise_from
 
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 VALID_LEN_EXPRESSION = [5, 6]
+
+
+def _get_caller_globals_and_locals():
+    """
+    Returns the globals and locals of the calling frame.
+
+    Is there an alternative to frame hacking here?
+    """
+    caller_frame = inspect.stack()[2]
+    myglobals = caller_frame[0].f_globals
+    mylocals = caller_frame[0].f_locals
+    return myglobals, mylocals
 
 
 class CroniterError(ValueError):
@@ -661,7 +673,11 @@ class croniter(object):
             error_type, error_instance, traceback = sys.exc_info()
             if isinstance(exc, CroniterError):
                 raise
-            raise_from(CroniterBadCronError, exc)
+            if int(sys.version[0]) >= 3:
+                globs, locs = _get_caller_globals_and_locals()
+                exec("raise CroniterBadCronError from  exc", globs, locs)
+            else:
+                raise CroniterBadCronError("{0}".format(exc))
 
     @classmethod
     def is_valid(cls, expression):
