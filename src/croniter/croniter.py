@@ -220,12 +220,14 @@ class croniter(object):
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
             / 10**6
 
-    def __get_next(self, ret_type=None, is_prev=None):
+    def _get_next(self, ret_type=None, is_prev=None):
         if is_prev is None:
             is_prev = self._is_prev
         self._is_prev = is_prev
         expanded = self.expanded[:]
         nth_weekday_of_month = self.nth_weekday_of_month.copy()
+        # Q: Will we be updating this?  if not, no need to copy.... but having a local reference is nice
+        last_weekday_of_month = self.last_weekday_of_month.copy()
 
         ret_type = ret_type or self._ret_type
 
@@ -237,18 +239,20 @@ class croniter(object):
         if (expanded[2][0] != '*' and expanded[4][0] != '*') and self._day_or:
             bak = expanded[4]
             expanded[4] = ['*']
-            t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
+            t1 = self._calc(self.cur, expanded, nth_weekday_of_month,
+                            last_weekday_of_month, is_prev)
             expanded[4] = bak
             expanded[2] = ['*']
 
-            t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
+            t2 = self._calc(self.cur, expanded, nth_weekday_of_month,
+                            last_weekday_of_month, is_prev)
             if not is_prev:
                 result = t1 if t1 < t2 else t2
             else:
                 result = t1 if t1 > t2 else t2
         else:
-            result = self._calc(self.cur, expanded,
-                                nth_weekday_of_month, is_prev)
+            result = self._calc(self.cur, expanded, nth_weekday_of_month,
+                                last_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning accross days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
@@ -280,35 +284,6 @@ class croniter(object):
         if issubclass(ret_type, datetime.datetime):
             result = dtresult
         return result
-
-    def _filter_output(self, timestamp):
-        # type: (datetime)
-        # Currently assumes ret_type=datetime; all I need
-        if self.last_weekday_of_month:
-            ts_dow = timestamp.isoweekday() % 7
-            if ts_dow in self.last_weekday_of_month:
-                last_dow = self._get_last_weekday_of_month(
-                    timestamp.year, timestamp.month, ts_dow)
-                return timestamp.day == last_dow
-            else:
-                # Have LDOM, but not for current day, return anyways???
-                # Q: Can this still happen after blocking L/non-L mixing in dow?
-                return True
-        else:
-            # For all the other "normal" cron expression, no extra filter needed
-            return True
-
-    def _get_next(self, ret_type=None, is_prev=None):
-        """ Basically hijack the next() mechanism, and keep finding going until
-        the output filter accepts.
-
-        This could be expensive, for example, if the cron expression fires every
-        second, then this could try and fail 86400 times before the next match.
-        """
-        while True:
-            result = self.__get_next(ret_type, is_prev)
-            if self._filter_output(result):
-                return result
 
     # iterator protocol, to enable direct use of croniter
     # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
@@ -349,7 +324,8 @@ class croniter(object):
         return self
     __next__ = next = _get_next
 
-    def _calc(self, now, expanded, nth_weekday_of_month, is_prev):
+    def _calc(self, now, expanded, nth_weekday_of_month, last_weekday_of_month,
+              is_prev):
         if is_prev:
             now = math.ceil(now)
             nearest_diff_method = self._get_prev_nearest_diff
@@ -485,6 +461,27 @@ class croniter(object):
                 return True, d
             return False, d
 
+        def proc_day_of_week_last(d):
+            # Most of the work is handled by proc_day_of_week_nth, because internally 'L5' becomes '5#4,5#5'
+            changed, dst = proc_day_of_week_nth(d)
+            if not changed:
+                ts_dow = d.isoweekday() % 7
+                if ts_dow in self.last_weekday_of_month:
+                    last_dow = self._get_last_weekday_of_month(
+                        d.year, d.month, ts_dow)
+                    if d.day == last_dow:
+                        return False, d
+                    else:
+                        # NEED HELP here!!
+                        # XXX How do we know how much/little to bump forward/backwards?
+                        # This seems to work, even if the next match is less than 1 day away, making me even *more* confused!
+                        if is_prev:
+                            d -= relativedelta(days=1)
+                        else:
+                            d += relativedelta(days=1)
+                        return True, d
+            return changed, dst
+
         def proc_hour(d):
             try:
                 expanded[1].index('*')
@@ -525,10 +522,16 @@ class croniter(object):
                 d += relativedelta(second=0)
             return False, d
 
+        if last_weekday_of_month:
+            proc_dow = proc_day_of_week_last
+        elif nth_weekday_of_month:
+            proc_dow = proc_day_of_week_nth
+        else:
+            proc_dow = proc_day_of_week
+
         procs = [proc_month,
                  proc_day_of_month,
-                 (proc_day_of_week_nth if nth_weekday_of_month
-                     else proc_day_of_week),
+                 proc_dow,
                  proc_hour,
                  proc_minute,
                  proc_second]

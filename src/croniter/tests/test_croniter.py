@@ -322,6 +322,7 @@ class CroniterTest(base.TestCase):
         self.assertEqual(croniter('0 0 0 1-12 0').expanded[mon], wildcard)
         self.assertEqual(croniter('0 0 0 0 0-6').expanded[dow], wildcard)
         self.assertEqual(croniter('0 0 0 0 1-7').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 0 0 1-7,sat#3').expanded[dow], wildcard)
         self.assertEqual(croniter('0 0 0 0 0 0-59').expanded[s], wildcard)
         # Real life examples
         self.assertEqual(croniter('30 1-12,0,10-23 15-21 * fri').expanded[h], wildcard)
@@ -1126,7 +1127,7 @@ class CroniterTest(base.TestCase):
     def test_croniter_last_friday(self):
         it = croniter("0 0 * * L5", datetime(1987, 1, 15), ret_type=datetime)
         items = [next(it) for i in range(12)]
-        self.maxDiff = 100000
+        self.maxDiff = 1000
         self.assertListEqual(items, [
             datetime(1987, 1, 30),
             datetime(1987, 2, 27),
@@ -1142,6 +1143,64 @@ class CroniterTest(base.TestCase):
             datetime(1987, 12, 25),
         ])
 
+    def test_croniter_last_friday_2hours(self):
+        # This works with +/- 'days=1' in proc_day_of_week_last() and I don't know WHY?!?
+        it = croniter("0 1,5 * * L5", datetime(1987, 1, 15), ret_type=datetime)
+        items = [next(it) for i in range(12)]
+        self.maxDiff = 1000
+        self.assertListEqual(items, [
+            datetime(1987, 1, 30, 1),
+            datetime(1987, 1, 30, 5),
+            datetime(1987, 2, 27, 1),
+            datetime(1987, 2, 27, 5),
+            datetime(1987, 3, 27, 1),
+            datetime(1987, 3, 27, 5),
+            datetime(1987, 4, 24, 1),
+            datetime(1987, 4, 24, 5),
+            datetime(1987, 5, 29, 1),
+            datetime(1987, 5, 29, 5),
+            datetime(1987, 6, 26, 1),
+            datetime(1987, 6, 26, 5),
+        ])
+
+    def test_croniter_last_friday_2xh_2xm(self):
+        it = croniter("0,30 1,5 * * L5", datetime(1987, 1, 15), ret_type=datetime)
+        items = [next(it) for i in range(12)]
+        self.maxDiff = 1000
+        self.assertListEqual(items, [
+            datetime(1987, 1, 30, 1, 0),
+            datetime(1987, 1, 30, 1, 30),
+            datetime(1987, 1, 30, 5, 0),
+            datetime(1987, 1, 30, 5, 30),
+            datetime(1987, 2, 27, 1, 0),
+            datetime(1987, 2, 27, 1, 30),
+            datetime(1987, 2, 27, 5, 0),
+            datetime(1987, 2, 27, 5, 30),
+            datetime(1987, 3, 27, 1, 0),
+            datetime(1987, 3, 27, 1, 30),
+            datetime(1987, 3, 27, 5, 0),
+            datetime(1987, 3, 27, 5, 30),
+        ])
+
+    def test_croniter_last_saturday_rev(self):
+        it = croniter("0 0 * * L6", datetime(2017, 12, 31), ret_type=datetime, is_prev=True)
+        items = [next(it) for i in range(12)]
+        self.maxDiff = 1000
+        self.assertListEqual(items, [
+            datetime(2017, 12, 30),
+            datetime(2017, 11, 25),
+            datetime(2017, 10, 28),
+            datetime(2017, 9, 30),
+            datetime(2017, 8, 26),
+            datetime(2017, 7, 29),
+            datetime(2017, 6, 24),
+            datetime(2017, 5, 27),
+            datetime(2017, 4, 29),
+            datetime(2017, 3, 25),
+            datetime(2017, 2, 25),
+            datetime(2017, 1, 28),
+        ])
+    
     def test_issue_142_dow(self):
         ret = []
         for i in range(1, 31):
