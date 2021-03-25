@@ -1102,27 +1102,26 @@ class CroniterTest(base.TestCase):
             '2020-03-29T03:01:00+02:00'])
 
     def test_last_wdom_simple(self):
-        f = croniter.find_day_of_last_dow
+        f = croniter._get_last_weekday_of_month
         sun, mon, tue, wed, thu, fri, sat = range(7)
-        self.assertEqual(f(datetime(2021, 3, 6), sun), 28)
-        self.assertEqual(f(datetime(2035, 12, 31), sat), 29)
-        self.assertEqual(f(datetime(2000, 1, 1), fri), 28)
-        self.assertEqual(f(datetime(2014, 8, 15), mon), 25)
-        self.assertEqual(f(datetime(2022, 2, 19), tue), 22)
-        self.assertEqual(f(datetime(1999, 10, 10), wed), 27)
-        self.assertEqual(f(datetime(2005, 7, 19), thu), 28)
+        self.assertEqual(f(2021, 3, sun), 28)
+        self.assertEqual(f(2035, 12, sat), 29)
+        self.assertEqual(f(2000, 1, fri), 28)
+        self.assertEqual(f(2014, 8, mon), 25)
+        self.assertEqual(f(2022, 2, tue), 22)
+        self.assertEqual(f(1999, 10, wed), 27)
+        self.assertEqual(f(2005, 7, thu), 28)
 
     def test_last_wdom_leap_year(self):
-        f = croniter.find_day_of_last_dow
+        f = croniter._get_last_weekday_of_month
         sun, mon, tue, wed, thu, fri, sat = range(7)
-        self.assertEqual(f(datetime(2000, 2, 1), tue), 29)
-        self.assertEqual(f(datetime(2000, 2, 10), tue), 29) # day doesn't matter
-        self.assertEqual(f(datetime(2000, 2, 1), sun), 27)
-        self.assertEqual(f(datetime(2000, 2, 1), mon), 28)
-        self.assertEqual(f(datetime(2000, 2, 1), wed), 23)
-        self.assertEqual(f(datetime(2000, 2, 1), thu), 24)
-        self.assertEqual(f(datetime(2000, 2, 1), fri), 25)
-        self.assertEqual(f(datetime(2000, 2, 1), sat), 26)
+        self.assertEqual(f(2000, 2, tue), 29)
+        self.assertEqual(f(2000, 2, sun), 27)
+        self.assertEqual(f(2000, 2, mon), 28)
+        self.assertEqual(f(2000, 2, wed), 23)
+        self.assertEqual(f(2000, 2, thu), 24)
+        self.assertEqual(f(2000, 2, fri), 25)
+        self.assertEqual(f(2000, 2, sat), 26)
 
     def test_croniter_last_friday(self):
         it = croniter("0 0 * * L5", datetime(1987, 1, 15), ret_type=datetime)
