@@ -1201,48 +1201,95 @@ class CroniterTest(base.TestCase):
             datetime(2017, 1, 28),
         ])
 
-    @unittest.expectedFailure
-    def test_lwom_mixup_all_fri_last_sat(self):
-        with self.assertRaises(CroniterBadCronError):
-            it = croniter("0 0 * * 5,L6", datetime(2021, 3, 1), ret_type=datetime)
-        ''' # When supported, should match:
-        items = [next(it) for i in range(5)]
+    def test_lwom_tue_thu(self):
+        it = croniter("0 0 * * L2,L4", datetime(2016, 6, 1), ret_type=datetime)
+        items = [next(it) for i in range(10)]
         self.maxDiff = 1000
         self.assertListEqual(items, [
+            datetime(2016, 6, 28),
+            datetime(2016, 6, 30),
+            datetime(2016, 7, 26),
+            datetime(2016, 7, 28),
+            datetime(2016, 8, 25),  # last tuesday comes before the last thursday
+            datetime(2016, 8, 30),
+            datetime(2016, 9, 27),
+            datetime(2016, 9, 29),
+            datetime(2016, 10, 25),
+            datetime(2016, 10, 27),
+        ])
+
+    def test_lwom_mixup_all_fri_last_sat(self):
+        cron_a = "0 0 * * L6"
+        cron_b = "0 0 * * 5"
+        cron_c = "0 0 * * 5,L6"
+        start = datetime(2021, 3, 1)
+        expect_a = [ datetime(2021, 3, 27) ]
+        expect_b = [
             datetime(2021, 3, 5),
             datetime(2021, 3, 12),
             datetime(2021, 3, 19),
             datetime(2021, 3, 26),
-            datetime(2021, 3, 27),
-        ])
-        '''
+        ]
+        expect_c = sorted(set(expect_a) & set(expect_b))
+        def getn(expr, n):
+            it = croniter(expr, start, ret_type=datetime)
+            return [next(it) for i in range(n)]
+        self.assertListEqual(getn(cron_a, 1), expect_a)
+        self.assertListEqual(getn(cron_b, 4), expect_b)
+        with self.assertRaises(CroniterBadCronError):
+            self.assertListEqual(getn(cron_c, 5), expect_c)
 
-    @unittest.expectedFailure
     def test_lwom_mixup_firstlast_sat(self):
         # First saturday, last saturday
+        start = datetime(2021, 3, 1)
+        cron_a = "0 0 * * 6#1"
+        cron_b = "0 0 * * L6"
+        cron_c = "0 0 * * L6,6#1"
+        expect_a = [
+            datetime(2021, 3, 6),
+            datetime(2021, 4, 3),
+            datetime(2021, 5, 1),
+        ]
+        expect_b = [
+            datetime(2021, 3, 27),
+            datetime(2021, 4, 24),
+            datetime(2021, 5, 29),
+        ]
+        expect_c = sorted(expect_a + expect_b)
+        def getn(expr, n):
+            it = croniter(expr, start, ret_type=datetime)
+            return [next(it) for i in range(n)]
+        self.assertListEqual(getn(cron_a, 3), expect_a)
+        self.assertListEqual(getn(cron_b, 3), expect_b)
         with self.assertRaises(CroniterBadCronError):
-            it = croniter("0 0 * * L6,6#1", datetime(2021, 3, 1), ret_type=datetime)
-        """ # When supported, should match:
-        self.assertEqual(next(it), datetime(2021, 3, 6))
-        self.assertEqual(next(it), datetime(2021, 3, 27))
-        self.assertEqual(next(it), datetime(2021, 4, 3))
-        self.assertEqual(next(it), datetime(2021, 4, 24))
-        self.assertEqual(next(it), datetime(2021, 5, 1))
-        self.assertEqual(next(it), datetime(2021, 5, 29))
-        """
+            self.assertListEqual(getn(cron_c, 6), expect_c)
 
-    @unittest.expectedFailure
     def test_lwom_mixup_4th_and_last(self):
         # 4th and last monday
+        start = datetime(2021, 11, 1)
+        cron_a = "0 0 * * 1#4"
+        cron_b = "0 0 * * L1"
+        cron_c = "0 0 * * 1#4,L1"
+        expect_a = [
+            datetime(2021, 11, 22),
+            datetime(2021, 12, 27),
+            datetime(2022, 1, 24)
+        ]
+        expect_b = [
+            datetime(2021, 11, 29),
+            datetime(2021, 12, 27),
+            datetime(2022, 1, 31),
+        ]
+        expect_c = sorted(set(expect_a) & set(expect_b))
+
+        def getn(expr, n):
+            it = croniter(expr, start, ret_type=datetime)
+            return [next(it) for i in range(n)]
+
+        self.assertListEqual(getn(cron_a, 3), expect_a)
+        self.assertListEqual(getn(cron_b, 3), expect_b)
         with self.assertRaises(CroniterBadCronError):
-            it = croniter("0 0 * * L1,1#4", datetime(2021, 11, 1), ret_type=datetime)
-        """ # When supported, should match:
-        self.assertEqual(next(it), datetime(2021, 11, 22))
-        self.assertEqual(next(it), datetime(2021, 11, 29))
-        self.assertEqual(next(it), datetime(2021, 12, 27)) # only 4 mondays in Dec '21
-        self.assertEqual(next(it), datetime(2022, 1, 24))
-        self.assertEqual(next(it), datetime(2022, 1, 31))
-        """
+            self.assertListEqual(getn(cron_c, 5), expect_c)
 
     def test_issue_142_dow(self):
         ret = []
