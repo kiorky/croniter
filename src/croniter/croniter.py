@@ -121,8 +121,7 @@ class croniter(object):
         self.dst_start_time = None
         self.cur = None
         self.set_current(start_time)
-        self.expanded, self.nth_weekday_of_month, self.last_weekday_of_month = \
-            self.expand(expr_format)
+        self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
         self._is_prev = is_prev
 
     @classmethod
@@ -194,8 +193,6 @@ class croniter(object):
         self._is_prev = is_prev
         expanded = self.expanded[:]
         nth_weekday_of_month = self.nth_weekday_of_month.copy()
-        # Q: Will we be updating this?  if not, no need to copy.... but having a local reference is nice
-        last_weekday_of_month = self.last_weekday_of_month.copy()
 
         ret_type = ret_type or self._ret_type
 
@@ -207,20 +204,17 @@ class croniter(object):
         if (expanded[2][0] != '*' and expanded[4][0] != '*') and self._day_or:
             bak = expanded[4]
             expanded[4] = ['*']
-            t1 = self._calc(self.cur, expanded, nth_weekday_of_month,
-                            last_weekday_of_month, is_prev)
+            t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
             expanded[4] = bak
             expanded[2] = ['*']
 
-            t2 = self._calc(self.cur, expanded, nth_weekday_of_month,
-                            last_weekday_of_month, is_prev)
+            t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
             if not is_prev:
                 result = t1 if t1 < t2 else t2
             else:
                 result = t1 if t1 > t2 else t2
         else:
-            result = self._calc(self.cur, expanded, nth_weekday_of_month,
-                                last_weekday_of_month, is_prev)
+            result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning accross days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
@@ -292,8 +286,7 @@ class croniter(object):
         return self
     __next__ = next = _get_next
 
-    def _calc(self, now, expanded, nth_weekday_of_month, last_weekday_of_month,
-              is_prev):
+    def _calc(self, now, expanded, nth_weekday_of_month, is_prev):
         if is_prev:
             now = math.ceil(now)
             nearest_diff_method = self._get_prev_nearest_diff
@@ -391,19 +384,24 @@ class croniter(object):
 
             candidates = []
             for wday, nth in nth_weekday_of_month.items():
+                # XXX: Optimize to only run calendar, when needed:  if len(nth) > 1 or nth[0] != "l":
                 w = (wday + 6) % 7
                 c = calendar.Calendar(w).monthdayscalendar(d.year, d.month)
                 if c[0][0] == 0:
                     c.pop(0)
                 for n in nth:
-                    if len(c) < n:
-                        continue
-                    candidate = c[n - 1][0]
+                    if n == "l":
+                        candidate = self._get_last_weekday_of_month(d.year, d.month, wday)
+                    else:
+                        if len(c) < n:
+                            continue
+                        candidate = c[n - 1][0]
                     if (
                         (is_prev and candidate <= d.day) or
                         (not is_prev and d.day <= candidate)
                     ):
                         candidates.append(candidate)
+                del w, c
 
             if not candidates:
                 if is_prev:
@@ -428,26 +426,6 @@ class croniter(object):
                                        hour=0, minute=0, second=0)
                 return True, d
             return False, d
-
-        def proc_day_of_week_last(d):
-            # Most of the work is handled by proc_day_of_week_nth, because internally 'L5' becomes '5#4,5#5'
-            changed, dst = proc_day_of_week_nth(d)
-            if not changed:
-                ts_dow = d.isoweekday() % 7
-                if ts_dow in self.last_weekday_of_month:
-                    last_dow = self._get_last_weekday_of_month(
-                        d.year, d.month, ts_dow)
-                    if d.day == last_dow:
-                        return False, d
-                    else:
-                        # NEED HELP here!!
-                        # XXX How do we know how much/little to bump forward/backwards?
-                        if is_prev:
-                            d -= relativedelta(days=1)
-                        else:
-                            d += relativedelta(days=1)
-                        return True, d
-            return changed, dst
 
         def proc_hour(d):
             try:
@@ -489,16 +467,10 @@ class croniter(object):
                 d += relativedelta(second=0)
             return False, d
 
-        if last_weekday_of_month:
-            proc_dow = proc_day_of_week_last
-        elif nth_weekday_of_month:
-            proc_dow = proc_day_of_week_nth
-        else:
-            proc_dow = proc_day_of_week
-
         procs = [proc_month,
                  proc_day_of_month,
-                 proc_dow,
+                 (proc_day_of_week_nth if nth_weekday_of_month
+                     else proc_day_of_week),
                  proc_hour,
                  proc_minute,
                  proc_second]
@@ -600,11 +572,6 @@ class croniter(object):
 
         expanded = []
         nth_weekday_of_month = {}
-        last_weekday_of_month = set()
-
-        # Track to see if unsupported combinations exist in the 'dow' expr
-        dow_types = set()
-        dot_types_exclusions = set()
 
         for i, expr in enumerate(expressions):
             e_list = expr.split(',')
@@ -617,26 +584,16 @@ class croniter(object):
                     # Handle special case in the day-of-week expression
                     m = last_weekday_re.match(str(e))
                     if m:
-                        dow = int(m.group(1)) % 7
-                        last_weekday_of_month.add(dow)
-                        # Last dow should always be either the 4 or 5th occurrence of that dow
-                        new_e = {"{}#4".format(dow), "{}#5".format(dow)}
-                        if new_e.intersection(e_list):
-                            dow_types.add("implicit w#n")
-                        e_list += new_e
-                        dot_types_exclusions.update(new_e)
-                        dow_types.add("lwom")
-                        del dow, new_e
-                        continue
-                    elif e in dot_types_exclusions:
-                        pass
+                        e = m.group(1)
+                        nth = "l"
                     else:
-                        dow_types.add("other")
-
-                    e, sep, nth = str(e).partition('#')
-                    if nth and not re.match(r'[1-5]', nth):
-                        raise CroniterBadCronError(
-                            "[{0}] is not acceptable".format(expr_format))
+                        e, sep, nth = str(e).partition('#')
+                        if nth:
+                            if not re.match(r'[1-5]', nth):
+                                raise CroniterBadCronError(
+                                    "[{0}] is not acceptable".format(expr_format))
+                            nth = int(nth)
+                        del sep
 
                 # Before matching step_search_re, normalize "*" to "{min}-{max}".
                 # Example: in the minute field, "*/5" normalizes to "0-59/5"
@@ -691,7 +648,7 @@ class croniter(object):
                         raise CroniterBadCronError(
                             'invalid range: {0}'.format(exc))
                     e_list += (["{0}#{1}".format(item, nth) for item in rng]
-                               if i == 4 and nth else rng)
+                               if i == 4 and nth and nth != "l" else rng)
                 else:
                     if t.startswith('-'):
                         raise CroniterBadCronError((
@@ -723,7 +680,7 @@ class croniter(object):
                     if i == 4 and nth:
                         if t not in nth_weekday_of_month:
                             nth_weekday_of_month[t] = set()
-                        nth_weekday_of_month[t].add(int(nth))
+                        nth_weekday_of_month[t].add(nth)
 
             res = set(res)
             res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
@@ -734,19 +691,14 @@ class croniter(object):
                                       and res[0] == '*')
                             else res)
 
-        if len(dow_types) > 1:
-            # This is more of a current implementation limit, not something that's impossible
-
-            # For example `fri#1,L5` first and last friday of the month could be pretty easily
-            # supported, but `fri#4,L5` should really be translated to just `5#4,5#5` with
-            # last_weekday_of_month.discard(5).  It gets complicated, so starting with a simple
-            # implementation that can be expanded overtime.
-            raise CroniterBadCronError(
-                "Mixing 'L' and non-'L' syntax in day of week field is not "
-                "currently supported.  "
-                "Failed expression:  {}".format(expr_format))
-
-        return expanded, nth_weekday_of_month, last_weekday_of_month
+        '''
+        for dow, nth_values in nth_weekday_of_month.items():
+            if "l" in nth_values:
+                if 5 in nth_values or 4 in nth_values:
+                    raise CroniterBadCronError("Mixing 'L' and w#4 or w#5 is not supported "
+                                               "found {} in '{}'".format(nth_values, expr_format))
+        '''
+        return expanded, nth_weekday_of_month
 
     @classmethod
     def expand(cls, expr_format):
