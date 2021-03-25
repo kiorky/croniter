@@ -131,13 +131,21 @@ class croniter(object):
     def prep_expr(self, expr_format):
         """ Intercept "<dow>L" entries in day-of-week and handle them specially.
         Everything else is passed along as-is.  Unpack / repack. """
-        expressions = expr_format.split()
+        def handle_dow(day_of_week):
+            mo = re.match(r"^L([0-7])$", day_of_week, re.IGNORECASE)
+            if mo:
+                dow = int(mo.group(1)) % 7
+                self.last_weekday_of_month.add(dow)
+                # Last dow should always be either the 4 or 5th occurrence of that dow
+                return "L", "{dow}#4,{dow}#5".format(dow=dow)
+            return "other", day_of_week
 
+        expressions = expr_format.split()
         # day of week field manipulations
         found_types = set()
         items = []
         for dow in expressions[4].split(","):
-            type_, dow = self.handle_dow(dow)
+            type_, dow = handle_dow(dow)
             found_types.add(type_)
             items.append(dow)
         if len(found_types) > 1:
@@ -148,32 +156,6 @@ class croniter(object):
         expressions[4] = ",".join(items)
         expr_format = " ".join(expressions)
         return expr_format
-
-    def handle_dow(self, day_of_week):
-        mo = re.match(r"^L([0-7])$", day_of_week, re.IGNORECASE)
-        if mo:
-            dow = int(mo.group(1)) % 7
-            self.last_weekday_of_month.add(dow)
-            # Last dow should always be either the 4 or 5th occurrence of that dow
-            return "L", "{dow}#4,{dow}#5".format(dow=dow)
-        return "other", day_of_week
-
-    @staticmethod
-    def find_day_of_last_dow(timestamp, day_of_week):
-        """ Given the year/month of timestamp, determine the last day of the
-        month which is the day of the week.  Calendar week starts on Sunday, to
-        match cron day_of_week convention.
-        """
-        # How expensive is this?  Easily cache by (year, month, dow)
-        day_of_week = int(day_of_week)
-        cal = calendar.Calendar(6).monthdayscalendar(timestamp.year, timestamp.month)
-        week = -1
-        while True:
-            day = cal[week][day_of_week]
-            if day == 0:    # 0 means absent / different month
-                week -= 1
-            else:
-                return day
 
     @classmethod
     def _alphaconv(cls, index, key, expressions):
@@ -305,11 +287,12 @@ class croniter(object):
         if self.last_weekday_of_month:
             ts_dow = timestamp.isoweekday() % 7
             if ts_dow in self.last_weekday_of_month:
-                last_dow = self.find_day_of_last_dow(timestamp, ts_dow)
+                last_dow = self._get_last_weekday_of_month(
+                    timestamp.year, timestamp.month, ts_dow)
                 return timestamp.day == last_dow
             else:
                 # Have LDOM, but not for current day, return anyways???
-                # Q:  Can this still happen after blocking L/non-L missing in dow....
+                # Q: Can this still happen after blocking L/non-L mixing in dow?
                 return True
         else:
             # For all the other "normal" cron expression, no extra filter needed
@@ -611,6 +594,23 @@ class croniter(object):
                 break
 
         return (candidate - x - range_val)
+
+    @staticmethod
+    def _get_last_weekday_of_month(year, month, day_of_week):
+        """ Given the year/month of timestamp, determine the last day of the
+        month which is a particular day of the week.  Calendar week starts on
+        Sunday, to match cron's day_of_week convention.
+        """
+        # How expensive is this?  Easily cache by (year, month, dow)
+        day_of_week = int(day_of_week)
+        cal = calendar.Calendar(6).monthdayscalendar(year, month)
+        week = -1
+        while True:
+            day = cal[week][day_of_week]
+            if day == 0:    # 0 means absent / different month
+                week -= 1
+            else:
+                return day
 
     def is_leap(self, year):
         if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):
