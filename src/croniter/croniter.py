@@ -601,7 +601,10 @@ class croniter(object):
         expanded = []
         nth_weekday_of_month = {}
         last_weekday_of_month = set()
-        # dow_types = set()
+
+        # Track to see if unsupported combinations exist in the 'dow' expr
+        dow_types = set()
+        dot_types_exclusions = set()
 
         for i, expr in enumerate(expressions):
             e_list = expr.split(',')
@@ -617,14 +620,18 @@ class croniter(object):
                         dow = int(m.group(1)) % 7
                         last_weekday_of_month.add(dow)
                         # Last dow should always be either the 4 or 5th occurrence of that dow
-                        e = "{}#4".format(dow)
-                        e_list.insert(0, "{}#5".format(dow))
-                        # dow_types.add("last-weekday-of-month")
-                        del dow
-                    '''
+                        new_e = {"{}#4".format(dow), "{}#5".format(dow)}
+                        if new_e.intersection(e_list):
+                            dow_types.add("implicit w#n")
+                        e_list += new_e
+                        dot_types_exclusions.update(new_e)
+                        dow_types.add("lwom")
+                        del dow, new_e
+                        continue
+                    elif e in dot_types_exclusions:
+                        pass
                     else:
                         dow_types.add("other")
-                    '''
 
                     e, sep, nth = str(e).partition('#')
                     if nth and not re.match(r'[1-5]', nth):
@@ -727,7 +734,6 @@ class croniter(object):
                                       and res[0] == '*')
                             else res)
 
-        '''
         if len(dow_types) > 1:
             # This is more of a current implementation limit, not something that's impossible
 
@@ -739,7 +745,6 @@ class croniter(object):
                 "Mixing 'L' and non-'L' syntax in day of week field is not "
                 "currently supported.  "
                 "Failed expression:  {}".format(expr_format))
-        '''
 
         return expanded, nth_weekday_of_month, last_weekday_of_month
 
