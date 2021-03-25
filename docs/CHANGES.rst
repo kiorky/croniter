@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.10 (unreleased)
+1.0.10 (2021-03-25)
 -------------------
 
 - Remove external library ``natsort``.
