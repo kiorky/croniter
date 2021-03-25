@@ -699,7 +699,7 @@ class croniter(object):
 
 
 def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,
-                   croniter=croniter):
+                   _croniter=None):
     """
     Generator that provides all times from start to stop matching the given cron expression.
     If the cron expression matches either 'start' and/or 'stop', those times will be returned as
@@ -708,6 +708,7 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     You can think of this function as sibling to the builtin range function for datetime objects.
     Like range(start,stop,step), except that here 'step' is a cron expression.
     """
+    _croniter = _croniter or croniter
     auto_rt = datetime.datetime
     if type(start) != type(stop):
         raise TypeError("The start and stop must be same type.  {0} != {1}".
@@ -726,8 +727,8 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
             start += ms1
             stop -= ms1
     year_span = math.floor(abs(stop.year - start.year)) + 1
-    ic = croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
-                  max_years_between_matches=year_span)
+    ic = _croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
+                   max_years_between_matches=year_span)
     # define a continue (cont) condition function and step function for the main while loop
     if start < stop:        # Forward
         def cont(v):
