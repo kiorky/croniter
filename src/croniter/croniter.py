@@ -654,7 +654,6 @@ class croniter(object):
 
             res = set(res)
             res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
-            # res = sorted(res)
             if len(res) == cls.LEN_MEANS_ALL[i]:
                 res = ['*']
 
