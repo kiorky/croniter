@@ -17,6 +17,7 @@ import calendar
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
+last_weekday_re = re.compile(r'^l([0-7])$')
 VALID_LEN_EXPRESSION = [5, 6]
 
 
@@ -120,42 +121,9 @@ class croniter(object):
         self.dst_start_time = None
         self.cur = None
         self.set_current(start_time)
-        self.last_weekday_of_month = set()
-        try:
-            expr_format = self.prep_expr(expr_format)
-        except IndexError as e:
-            raise ValueError(e)
-        self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
+        self.expanded, self.nth_weekday_of_month, self.last_weekday_of_month = \
+            self.expand(expr_format)
         self._is_prev = is_prev
-
-    def prep_expr(self, expr_format):
-        """ Intercept "<dow>L" entries in day-of-week and handle them specially.
-        Everything else is passed along as-is.  Unpack / repack. """
-        def handle_dow(day_of_week):
-            mo = re.match(r"^L([0-7])$", day_of_week, re.IGNORECASE)
-            if mo:
-                dow = int(mo.group(1)) % 7
-                self.last_weekday_of_month.add(dow)
-                # Last dow should always be either the 4 or 5th occurrence of that dow
-                return "L", "{dow}#4,{dow}#5".format(dow=dow)
-            return "other", day_of_week
-
-        expressions = expr_format.split()
-        # day of week field manipulations
-        found_types = set()
-        items = []
-        for dow in expressions[4].split(","):
-            type_, dow = handle_dow(dow)
-            found_types.add(type_)
-            items.append(dow)
-        if len(found_types) > 1:
-            raise CroniterBadCronError(
-                "Mixing 'L' and non-'L' syntax in day of week field is not "
-                "supported in the cron expression:  {}".format(expr_format))
-
-        expressions[4] = ",".join(items)
-        expr_format = " ".join(expressions)
-        return expr_format
 
     @classmethod
     def _alphaconv(cls, index, key, expressions):
@@ -474,7 +442,6 @@ class croniter(object):
                     else:
                         # NEED HELP here!!
                         # XXX How do we know how much/little to bump forward/backwards?
-                        # This seems to work, even if the next match is less than 1 day away, making me even *more* confused!
                         if is_prev:
                             d -= relativedelta(days=1)
                         else:
@@ -633,6 +600,8 @@ class croniter(object):
 
         expanded = []
         nth_weekday_of_month = {}
+        last_weekday_of_month = set()
+        # dow_types = set()
 
         for i, expr in enumerate(expressions):
             e_list = expr.split(',')
@@ -642,6 +611,21 @@ class croniter(object):
                 e = e_list.pop()
 
                 if i == 4:
+                    # Handle special case in the day-of-week expression
+                    m = last_weekday_re.match(str(e))
+                    if m:
+                        dow = int(m.group(1)) % 7
+                        last_weekday_of_month.add(dow)
+                        # Last dow should always be either the 4 or 5th occurrence of that dow
+                        e = "{}#4".format(dow)
+                        e_list.insert(0, "{}#5".format(dow))
+                        # dow_types.add("last-weekday-of-month")
+                        del dow
+                    '''
+                    else:
+                        dow_types.add("other")
+                    '''
+
                     e, sep, nth = str(e).partition('#')
                     if nth and not re.match(r'[1-5]', nth):
                         raise CroniterBadCronError(
@@ -743,7 +727,21 @@ class croniter(object):
                                       and res[0] == '*')
                             else res)
 
-        return expanded, nth_weekday_of_month
+        '''
+        if len(dow_types) > 1:
+            # This is more of a current implementation limit, not something that's impossible
+
+            # For example `fri#1,L5` first and last friday of the month could be pretty easily
+            # supported, but `fri#4,L5` should really be translated to just `5#4,5#5` with
+            # last_weekday_of_month.discard(5).  It gets complicated, so starting with a simple
+            # implementation that can be expanded overtime.
+            raise CroniterBadCronError(
+                "Mixing 'L' and non-'L' syntax in day of week field is not "
+                "currently supported.  "
+                "Failed expression:  {}".format(expr_format))
+        '''
+
+        return expanded, nth_weekday_of_month, last_weekday_of_month
 
     @classmethod
     def expand(cls, expr_format):
