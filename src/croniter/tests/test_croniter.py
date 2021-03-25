@@ -1102,7 +1102,7 @@ class CroniterTest(base.TestCase):
             '2020-03-29T02:01:00+02:00',
             '2020-03-29T03:01:00+02:00'])
 
-    def test_last_wdom_simple(self):
+    def test_wdom_core_simple(self):
         f = croniter._get_last_weekday_of_month
         sun, mon, tue, wed, thu, fri, sat = range(7)
         self.assertEqual(f(2021, 3, sun), 28)
@@ -1113,7 +1113,7 @@ class CroniterTest(base.TestCase):
         self.assertEqual(f(1999, 10, wed), 27)
         self.assertEqual(f(2005, 7, thu), 28)
 
-    def test_last_wdom_leap_year(self):
+    def test_wdom_core_leap_year(self):
         f = croniter._get_last_weekday_of_month
         sun, mon, tue, wed, thu, fri, sat = range(7)
         self.assertEqual(f(2000, 2, tue), 29)
@@ -1124,7 +1124,7 @@ class CroniterTest(base.TestCase):
         self.assertEqual(f(2000, 2, fri), 25)
         self.assertEqual(f(2000, 2, sat), 26)
 
-    def test_croniter_last_friday(self):
+    def test_lwom_friday(self):
         it = croniter("0 0 * * L5", datetime(1987, 1, 15), ret_type=datetime)
         items = [next(it) for i in range(12)]
         self.maxDiff = 1000
@@ -1143,7 +1143,7 @@ class CroniterTest(base.TestCase):
             datetime(1987, 12, 25),
         ])
 
-    def test_croniter_last_friday_2hours(self):
+    def test_lwom_friday_2hours(self):
         # This works with +/- 'days=1' in proc_day_of_week_last() and I don't know WHY?!?
         it = croniter("0 1,5 * * L5", datetime(1987, 1, 15), ret_type=datetime)
         items = [next(it) for i in range(12)]
@@ -1163,7 +1163,7 @@ class CroniterTest(base.TestCase):
             datetime(1987, 6, 26, 5),
         ])
 
-    def test_croniter_last_friday_2xh_2xm(self):
+    def test_lwom_friday_2xh_2xm(self):
         it = croniter("0,30 1,5 * * L5", datetime(1987, 1, 15), ret_type=datetime)
         items = [next(it) for i in range(12)]
         self.maxDiff = 1000
@@ -1182,7 +1182,7 @@ class CroniterTest(base.TestCase):
             datetime(1987, 3, 27, 5, 30),
         ])
 
-    def test_croniter_last_saturday_rev(self):
+    def test_lwom_saturday_rev(self):
         it = croniter("0 0 * * L6", datetime(2017, 12, 31), ret_type=datetime, is_prev=True)
         items = [next(it) for i in range(12)]
         self.maxDiff = 1000
@@ -1200,7 +1200,50 @@ class CroniterTest(base.TestCase):
             datetime(2017, 2, 25),
             datetime(2017, 1, 28),
         ])
-    
+
+    @unittest.expectedFailure
+    def test_lwom_mixup_all_fri_last_sat(self):
+        with self.assertRaises(CroniterBadCronError):
+            it = croniter("0 0 * * 5,L6", datetime(2021, 3, 1), ret_type=datetime)
+        ''' # When supported, should match:
+        items = [next(it) for i in range(5)]
+        self.maxDiff = 1000
+        self.assertListEqual(items, [
+            datetime(2021, 3, 5),
+            datetime(2021, 3, 12),
+            datetime(2021, 3, 19),
+            datetime(2021, 3, 26),
+            datetime(2021, 3, 27),
+        ])
+        '''
+
+    @unittest.expectedFailure
+    def test_lwom_mixup_firstlast_sat(self):
+        # First saturday, last saturday
+        with self.assertRaises(CroniterBadCronError):
+            it = croniter("0 0 * * L6,6#1", datetime(2021, 3, 1), ret_type=datetime)
+        """ # When supported, should match:
+        self.assertEqual(next(it), datetime(2021, 3, 6))
+        self.assertEqual(next(it), datetime(2021, 3, 27))
+        self.assertEqual(next(it), datetime(2021, 4, 3))
+        self.assertEqual(next(it), datetime(2021, 4, 24))
+        self.assertEqual(next(it), datetime(2021, 5, 1))
+        self.assertEqual(next(it), datetime(2021, 5, 29))
+        """
+
+    @unittest.expectedFailure
+    def test_lwom_mixup_4th_and_last(self):
+        # 4th and last monday
+        with self.assertRaises(CroniterBadCronError):
+            it = croniter("0 0 * * L1,1#4", datetime(2021, 11, 1), ret_type=datetime)
+        """ # When supported, should match:
+        self.assertEqual(next(it), datetime(2021, 11, 22))
+        self.assertEqual(next(it), datetime(2021, 11, 29))
+        self.assertEqual(next(it), datetime(2021, 12, 27)) # only 4 mondays in Dec '21
+        self.assertEqual(next(it), datetime(2022, 1, 24))
+        self.assertEqual(next(it), datetime(2022, 1, 31))
+        """
+
     def test_issue_142_dow(self):
         ret = []
         for i in range(1, 31):
