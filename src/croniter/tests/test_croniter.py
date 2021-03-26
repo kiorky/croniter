@@ -1128,7 +1128,6 @@ class CroniterTest(base.TestCase):
     def test_lwom_friday(self):
         it = croniter("0 0 * * L5", datetime(1987, 1, 15), ret_type=datetime)
         items = [next(it) for i in range(12)]
-        self.maxDiff = 1000
         self.assertListEqual(items, [
             datetime(1987, 1, 30),
             datetime(1987, 2, 27),
@@ -1148,7 +1147,6 @@ class CroniterTest(base.TestCase):
         # This works with +/- 'days=1' in proc_day_of_week_last() and I don't know WHY?!?
         it = croniter("0 1,5 * * L5", datetime(1987, 1, 15), ret_type=datetime)
         items = [next(it) for i in range(12)]
-        self.maxDiff = 1000
         self.assertListEqual(items, [
             datetime(1987, 1, 30, 1),
             datetime(1987, 1, 30, 5),
@@ -1167,7 +1165,6 @@ class CroniterTest(base.TestCase):
     def test_lwom_friday_2xh_2xm(self):
         it = croniter("0,30 1,5 * * L5", datetime(1987, 1, 15), ret_type=datetime)
         items = [next(it) for i in range(12)]
-        self.maxDiff = 1000
         self.assertListEqual(items, [
             datetime(1987, 1, 30, 1, 0),
             datetime(1987, 1, 30, 1, 30),
@@ -1186,7 +1183,6 @@ class CroniterTest(base.TestCase):
     def test_lwom_saturday_rev(self):
         it = croniter("0 0 * * L6", datetime(2017, 12, 31), ret_type=datetime, is_prev=True)
         items = [next(it) for i in range(12)]
-        self.maxDiff = 1000
         self.assertListEqual(items, [
             datetime(2017, 12, 30),
             datetime(2017, 11, 25),
@@ -1205,7 +1201,6 @@ class CroniterTest(base.TestCase):
     def test_lwom_tue_thu(self):
         it = croniter("0 0 * * L2,L4", datetime(2016, 6, 1), ret_type=datetime)
         items = [next(it) for i in range(10)]
-        self.maxDiff = 1000
         self.assertListEqual(items, [
             datetime(2016, 6, 28),
             datetime(2016, 6, 30),
@@ -1220,7 +1215,7 @@ class CroniterTest(base.TestCase):
         ])
 
     def test_hash_mixup_all_fri_3rd_sat(self):
-        # It appears that it's not possible to MIX a literal dow with a  `dow#n` format
+        # It appears that it's not possible to MIX a literal dow with a `dow#n` format
         cron_a = "0 0 * * 6#3"
         cron_b = "0 0 * * 5"
         cron_c = "0 0 * * 5,6#3"

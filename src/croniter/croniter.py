@@ -129,6 +129,7 @@ class croniter(object):
         self.dst_start_time = None
         self.cur = None
         self.set_current(start_time)
+
         self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
         self._is_prev = is_prev
 
@@ -222,7 +223,8 @@ class croniter(object):
             else:
                 result = t1 if t1 > t2 else t2
         else:
-            result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
+            result = self._calc(self.cur, expanded,
+                                nth_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning accross days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
