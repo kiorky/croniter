@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
 import pytz
-from croniter import croniter, CroniterBadDateError, CroniterBadCronError, CroniterNotAlphaError
+from croniter import (croniter, CroniterBadDateError,  CroniterBadCronError,
+                      CroniterNotAlphaError, CroniterUnsupportedSyntaxError)
 from croniter.tests import base
 import dateutil.tz
 
@@ -1218,7 +1219,6 @@ class CroniterTest(base.TestCase):
             datetime(2016, 10, 27),
         ])
 
-    @unittest.expectedFailure
     def test_hash_mixup_all_fri_3rd_sat(self):
         # It appears that it's not possible to MIX a literal dow with a  `dow#n` format
         cron_a = "0 0 * * 6#3"
@@ -1238,10 +1238,9 @@ class CroniterTest(base.TestCase):
             return [next(it) for i in range(n)]
         self.assertListEqual(getn(cron_a, 1), expect_a)
         self.assertListEqual(getn(cron_b, 4), expect_b)
-        #with self.assertRaises(CroniterBadCronError):
-        self.assertListEqual(getn(cron_c, 5), expect_c)
+        with self.assertRaises(CroniterUnsupportedSyntaxError):
+            self.assertListEqual(getn(cron_c, 5), expect_c)
 
-    @unittest.expectedFailure
     def test_lwom_mixup_all_fri_last_sat(self):
         # Based on the failure of test_hash_mixup_all_fri_3rd_sat, we should expect this to fail too as this implementation simply extends nth_weekday_of_month
         cron_a = "0 0 * * L6"
@@ -1261,8 +1260,8 @@ class CroniterTest(base.TestCase):
             return [next(it) for i in range(n)]
         self.assertListEqual(getn(cron_a, 1), expect_a)
         self.assertListEqual(getn(cron_b, 4), expect_b)
-        #with self.assertRaises(CroniterBadCronError):
-        self.assertListEqual(getn(cron_c, 5), expect_c)
+        with self.assertRaises(CroniterUnsupportedSyntaxError):
+            self.assertListEqual(getn(cron_c, 5), expect_c)
 
     def test_lwom_mixup_firstlast_sat(self):
         # First saturday, last saturday
