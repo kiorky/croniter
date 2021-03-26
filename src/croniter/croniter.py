@@ -43,6 +43,14 @@ class CroniterBadCronError(CroniterError):
     pass
 
 
+class CroniterUnsupportedSyntaxError(CroniterBadCronError):
+    """ Valid cron syntax, but likely to produce inaccurate results """
+    # Extending CroniterBadCronError, which may be contridatory, but this allows
+    # catching both errors with a single exception.  From a user perspective
+    # these will likely be handled the same way.
+    pass
+
+
 class CroniterBadDateError(CroniterError):
     """ Unable to find next/prev timestamp match """
     pass
@@ -691,13 +699,16 @@ class croniter(object):
                                       and res[0] == '*')
                             else res)
 
-        '''
-        for dow, nth_values in nth_weekday_of_month.items():
-            if "l" in nth_values:
-                if 5 in nth_values or 4 in nth_values:
-                    raise CroniterBadCronError("Mixing 'L' and w#4 or w#5 is not supported "
-                                               "found {} in '{}'".format(nth_values, expr_format))
-        '''
+        # Check to make sure the dow combo in use is supported
+        if nth_weekday_of_month:
+            dow_expanded_set = set(expanded[4])
+            dow_expanded_set = dow_expanded_set.difference(nth_weekday_of_month.keys())
+            dow_expanded_set.discard("*")
+            if dow_expanded_set:
+                raise CroniterUnsupportedSyntaxError(
+                    "day-of-week field does not support mixing literal values and nth day of week syntax.  "
+                    "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
+
         return expanded, nth_weekday_of_month
 
     @classmethod

@@ -5,6 +5,7 @@ from .croniter import (
     croniter_range,
     CroniterBadDateError,  # noqa
     CroniterBadCronError,  # noqa
-    CroniterNotAlphaError  # noqa
+    CroniterNotAlphaError, # noqa
+    CroniterUnsupportedSyntaxError, #noqa
 )  # noqa
 croniter.__name__  # make flake8 happy
