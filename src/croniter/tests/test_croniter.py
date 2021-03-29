@@ -1103,19 +1103,31 @@ class CroniterTest(base.TestCase):
             '2020-03-29T02:01:00+02:00',
             '2020-03-29T03:01:00+02:00'])
 
-    def test_wdom_core_simple(self):
-        f = croniter._get_last_weekday_of_month
+
+    def test_nth_wday_simple(self):
+        f = lambda y,m,w: croniter._get_nth_weekday_of_month(y,m,w)
         sun, mon, tue, wed, thu, fri, sat = range(7)
-        self.assertEqual(f(2021, 3, sun), 28)
-        self.assertEqual(f(2035, 12, sat), 29)
-        self.assertEqual(f(2000, 1, fri), 28)
-        self.assertEqual(f(2014, 8, mon), 25)
-        self.assertEqual(f(2022, 2, tue), 22)
-        self.assertEqual(f(1999, 10, wed), 27)
-        self.assertEqual(f(2005, 7, thu), 28)
+
+        self.assertEqual(f(2000, 1, mon), (3, 10, 17, 24, 31))
+        self.assertEqual(f(2000, 2, tue), (1, 8, 15, 22, 29)) # Leap year
+        self.assertEqual(f(2000, 3, wed), (1, 8, 15, 22, 29))
+        self.assertEqual(f(2000, 4, thu), (6, 13, 20, 27))
+        self.assertEqual(f(2000, 2, fri), (4, 11, 18, 25))
+        self.assertEqual(f(2000, 2, sat), (5, 12, 19, 26))
+
+    def test_nth_as_last_wday_simple(self):
+        f = lambda y,m,w: croniter._get_nth_weekday_of_month(y,m,w)[-1]
+        sun, mon, tue, wed, thu, fri, sat = range(7)
+        self.assertEqual(f(2000, 2, tue), 29)
+        self.assertEqual(f(2000, 2, sun), 27)
+        self.assertEqual(f(2000, 2, mon), 28)
+        self.assertEqual(f(2000, 2, wed), 23)
+        self.assertEqual(f(2000, 2, thu), 24)
+        self.assertEqual(f(2000, 2, fri), 25)
+        self.assertEqual(f(2000, 2, sat), 26)
 
     def test_wdom_core_leap_year(self):
-        f = croniter._get_last_weekday_of_month
+        f = lambda y,m,w: croniter._get_nth_weekday_of_month(y,m,w)[-1]
         sun, mon, tue, wed, thu, fri, sat = range(7)
         self.assertEqual(f(2000, 2, tue), 29)
         self.assertEqual(f(2000, 2, sun), 27)
