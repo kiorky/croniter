@@ -394,19 +394,14 @@ class croniter(object):
 
             candidates = []
             for wday, nth in nth_weekday_of_month.items():
-                c = None
-                if nth != {"l"}:
-                    w = (wday + 6) % 7
-                    c = calendar.Calendar(w).monthdayscalendar(d.year, d.month)
-                    if c[0][0] == 0:
-                        c.pop(0)
+                c = self._get_nth_weekday_of_month(d.year, d.month, wday)
                 for n in nth:
                     if n == "l":
-                        candidate = self._get_last_weekday_of_month(d.year, d.month, wday)
+                        candidate = c[-1]
                     elif len(c) < n:
                         continue
                     else:
-                        candidate = c[n - 1][0]
+                        candidate = c[n - 1]
                     if (
                         (is_prev and candidate <= d.day) or
                         (not is_prev and d.day <= candidate)
@@ -548,21 +543,15 @@ class croniter(object):
         return (candidate - x - range_val)
 
     @staticmethod
-    def _get_last_weekday_of_month(year, month, day_of_week):
-        """ Given the year/month of timestamp, determine the last day of the
-        month which is a particular day of the week.  Calendar week starts on
-        Sunday, to match cron's day_of_week convention.
+    def _get_nth_weekday_of_month(year, month, day_of_week):
+        """ For a given year/month return a list of days in nth-day-of-month order.
+        The last weekday of the month is always [-1].
         """
-        # How expensive is this?  Easily cache by (year, month, dow)
-        day_of_week = int(day_of_week)
-        cal = calendar.Calendar(6).monthdayscalendar(year, month)
-        week = -1
-        while True:
-            day = cal[week][day_of_week]
-            if day == 0:    # 0 means absent / different month
-                week -= 1
-            else:
-                return day
+        w = (day_of_week + 6) % 7
+        c = calendar.Calendar(w).monthdayscalendar(year, month)
+        if c[0][0] == 0:
+            c.pop(0)
+        return tuple(i[0] for i in c)
 
     def is_leap(self, year):
         if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):
