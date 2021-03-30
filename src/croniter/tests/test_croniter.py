@@ -1308,6 +1308,18 @@ class CroniterTest(base.TestCase):
         self.assertListEqual(getn(cron_b, 3), expect_b)
         self.assertListEqual(getn(cron_c, 5), expect_c)
 
+    def test_nth_out_of_range(self):
+        with self.assertRaises(CroniterBadCronError):
+            croniter("0 0 * * 1#7")
+        with self.assertRaises(CroniterBadCronError):
+            croniter("0 0 * * 1#0")
+
+    def test_last_out_of_range(self):
+        with self.assertRaises(CroniterBadCronError):
+            croniter("0 0 * * L-1")
+        with self.assertRaises(CroniterBadCronError):
+            croniter("0 0 * * L8")
+
     def test_issue_142_dow(self):
         ret = []
         for i in range(1, 31):
