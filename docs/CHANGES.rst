@@ -4,7 +4,14 @@ Changelog
 1.0.11 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add support for ``L`` in the day_of_week component.  This enable expressions like ``* * * * L4``, which means last Thursday of the month.  This resolves #159.
+  [Kintyre]
+- Create ``CroniterUnsupportedSyntaxError`` exception for situations where CRON syntax may be valid but some combinations of features is not supported.
+  Currently, this is used when the ``day_of_week`` component has a combination of literal values and nth/last syntax at the same time.
+  For example, ``0 0 * * 1,L6`` or ``0 0 * * 15,sat#1`` will both raise this exception because of mixing literal days of the week with nth-weekday or last-weekday syntax.
+  This *may* impact existing cron expressions in prior releases, because ``0 0 * * 15,sat#1`` was previously allowed but incorrectly handled.
+  [Kintyre]
+
 - Update ``croniter_range()`` to allow an alternate ``croniter`` class to be used.  Helpful when using a custom class derived from croniter.
   [Kintyre]
 

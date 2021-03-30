@@ -17,7 +17,7 @@ import calendar
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
-last_weekday_re = re.compile(r'^l([0-7])$')
+special_weekday_re = re.compile(r'^(\w+)#(\d+)|l(\d+)$')
 VALID_LEN_EXPRESSION = [5, 6]
 
 
@@ -394,24 +394,24 @@ class croniter(object):
 
             candidates = []
             for wday, nth in nth_weekday_of_month.items():
-                # XXX: Optimize to only run calendar, when needed:  if len(nth) > 1 or nth[0] != "l":
-                w = (wday + 6) % 7
-                c = calendar.Calendar(w).monthdayscalendar(d.year, d.month)
-                if c[0][0] == 0:
-                    c.pop(0)
+                c = None
+                if nth != {"l"}:
+                    w = (wday + 6) % 7
+                    c = calendar.Calendar(w).monthdayscalendar(d.year, d.month)
+                    if c[0][0] == 0:
+                        c.pop(0)
                 for n in nth:
                     if n == "l":
                         candidate = self._get_last_weekday_of_month(d.year, d.month, wday)
+                    elif len(c) < n:
+                        continue
                     else:
-                        if len(c) < n:
-                            continue
                         candidate = c[n - 1][0]
                     if (
                         (is_prev and candidate <= d.day) or
                         (not is_prev and d.day <= candidate)
                     ):
                         candidates.append(candidate)
-                del w, c
 
             if not candidates:
                 if is_prev:
@@ -592,18 +592,24 @@ class croniter(object):
 
                 if i == 4:
                     # Handle special case in the day-of-week expression
-                    m = last_weekday_re.match(str(e))
+                    m = special_weekday_re.match(str(e))
                     if m:
-                        e = m.group(1)
-                        nth = "l"
-                    else:
-                        e, sep, nth = str(e).partition('#')
+                        orig_e = e
+                        e, nth, last = m.groups()
                         if nth:
-                            if not re.match(r'[1-5]', nth):
+                            try:
+                                nth = int(nth)
+                                assert (nth >= 1 and nth <= 5)
+                            except (ValueError, AssertionError):
                                 raise CroniterBadCronError(
-                                    "[{0}] is not acceptable".format(expr_format))
-                            nth = int(nth)
-                        del sep
+                                    "[{0}] is not acceptable.  Invalid day_of_week "
+                                    "value: '{1}'".format(expr_format, orig_e))
+                        elif last:
+                            nth = "l"
+                            e = last
+                        del last, orig_e
+                    else:
+                        nth = None
 
                 # Before matching step_search_re, normalize "*" to "{min}-{max}".
                 # Example: in the minute field, "*/5" normalizes to "0-59/5"
