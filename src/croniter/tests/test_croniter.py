@@ -1101,6 +1101,48 @@ class CroniterTest(base.TestCase):
             '2020-03-29T02:01:00+02:00',
             '2020-03-29T03:01:00+02:00'])
 
+    def test_last_wdom_simple(self):
+        f = croniter.find_day_of_last_dow
+        sun, mon, tue, wed, thu, fri, sat = range(7)
+        self.assertEqual(f(datetime(2021, 3, 6), sun), 28)
+        self.assertEqual(f(datetime(2035, 12, 31), sat), 29)
+        self.assertEqual(f(datetime(2000, 1, 1), fri), 28)
+        self.assertEqual(f(datetime(2014, 8, 15), mon), 25)
+        self.assertEqual(f(datetime(2022, 2, 19), tue), 22)
+        self.assertEqual(f(datetime(1999, 10, 10), wed), 27)
+        self.assertEqual(f(datetime(2005, 7, 19), thu), 28)
+
+    def test_last_wdom_leap_year(self):
+        f = croniter.find_day_of_last_dow
+        sun, mon, tue, wed, thu, fri, sat = range(7)
+        self.assertEqual(f(datetime(2000, 2, 1), tue), 29)
+        self.assertEqual(f(datetime(2000, 2, 10), tue), 29) # day doesn't matter
+        self.assertEqual(f(datetime(2000, 2, 1), sun), 27)
+        self.assertEqual(f(datetime(2000, 2, 1), mon), 28)
+        self.assertEqual(f(datetime(2000, 2, 1), wed), 23)
+        self.assertEqual(f(datetime(2000, 2, 1), thu), 24)
+        self.assertEqual(f(datetime(2000, 2, 1), fri), 25)
+        self.assertEqual(f(datetime(2000, 2, 1), sat), 26)
+
+    def test_croniter_last_friday(self):
+        it = croniter("0 0 * * L5", datetime(1987, 1, 15), ret_type=datetime)
+        items = [next(it) for i in range(12)]
+        self.maxDiff = 100000
+        self.assertListEqual(items, [
+            datetime(1987, 1, 30),
+            datetime(1987, 2, 27),
+            datetime(1987, 3, 27),
+            datetime(1987, 4, 24),
+            datetime(1987, 5, 29),
+            datetime(1987, 6, 26),
+            datetime(1987, 7, 31),
+            datetime(1987, 8, 28),
+            datetime(1987, 9, 25),
+            datetime(1987, 10, 30),
+            datetime(1987, 11, 27),
+            datetime(1987, 12, 25),
+        ])
+
     def test_issue_142_dow(self):
         ret = []
         for i in range(1, 31):
