@@ -1332,6 +1332,16 @@ class CroniterTest(base.TestCase):
         with self.assertRaises(CroniterBadCronError):
             croniter("0 0 * * L8")
 
+    def test_issue_47(self):
+        base = datetime(2021, 3, 30, 4, 0)
+        itr = croniter('0 6 30 3 *', base)
+        prev1 = itr.get_prev(datetime)
+        self.assertEqual(prev1.year, base.year-1)
+        self.assertEqual(prev1.month, 3)
+        self.assertEqual(prev1.day, 30)
+        self.assertEqual(prev1.hour, 6)
+        self.assertEqual(prev1.minute, 0)
+
     def test_issue_142_dow(self):
         ret = []
         for i in range(1, 31):
@@ -1383,7 +1393,7 @@ class CroniterTest(base.TestCase):
         # New functionality (0.3.35) allowing croniter to find spare matches of cron patterns across multiple years
         it = croniter(cron, start, day_or=False, max_years_between_matches=5)
         self.assertEqual(it.get_next(datetime), datetime(2025, 1, 8, 13))
-    
+
     def test_explicit_year_forward(self):
         start = datetime(2020, 9, 24)
         cron = "0 13 8 1,4,7,10 wed"
