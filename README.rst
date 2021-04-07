@@ -51,9 +51,10 @@ A simple example::
     >>> print(iter.get_next(datetime))   # 2010-12-01 04:02:00
     >>> print(iter.get_next(datetime))   # 2011-06-01 04:02:00
     >>>
-    >>> iter = croniter('0 0 * * sat#1,sun#2', base)
-    >>> print(iter.get_next(datetime))   # datetime.datetime(2010, 2, 6, 0, 0)
-    >>> iter = croniter('0 0 * * 5#3,L5', base) # 3rd and last Fridays of the month
+    >>> iter = croniter('0 0 * * sat#1,sun#2', base)  # 1st Saturday, and 2nd Sunday of the month
+    >>> print(iter.get_next(datetime))   # 2010-02-06 00:00:00
+    >>>
+    >>> iter = croniter('0 0 * * 5#3,L5', base)  # 3rd and last Friday of the month
     >>> print(iter.get_next(datetime))   # 2010-01-29 00:00:00
     >>> print(iter.get_next(datetime))   # 2010-02-19 00:00:00
 
