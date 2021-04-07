@@ -4,6 +4,8 @@ Changelog
 1.0.11 (unreleased)
 -------------------
 
+- fix bug: bad case:``0 6 30 3 *``
+  [zed2015]
 - Add support for ``L`` in the day_of_week component.  This enable expressions like ``* * * * L4``, which means last Thursday of the month.  This resolves #159.
   [Kintyre]
 - Create ``CroniterUnsupportedSyntaxError`` exception for situations where CRON syntax may be valid but some combinations of features is not supported.
