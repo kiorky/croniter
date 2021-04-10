@@ -129,10 +129,10 @@ class CroniterRangeTest(base.TestCase):
         class croniter_nosec(croniter):
             """ Like croniter, but it forbids second-level cron expressions. """
             @classmethod
-            def expand(cls, expr_format):
+            def expand(cls, expr_format, *args, **kwargs):
                 if len(expr_format.split()) == 6:
                     raise CroniterBadCronError("Expected 'min hour day mon dow'")
-                return croniter.expand(expr_format)
+                return croniter.expand(expr_format, *args, **kwargs)
 
         cron = "0 13 8 1,4,7,10 wed"
         matches = list(croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, day_or=False, _croniter=croniter_nosec))
