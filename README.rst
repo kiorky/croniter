@@ -182,6 +182,60 @@ List the first Saturday of every month in 2019::
     >>>     print(dt)
 
 
+Hashed expressions
+==================
+
+croniter supports Jenkins-style hashed expressions, using the "H" definition keyword and the required hash_id keyword argument.
+Hashed expressions remain consistent, given the same hash_id, but different hash_ids will evaluate completely different to each other.
+This allows, for example, for an even distribution of differently-named jobs without needing to manually spread them out.
+
+    >>> itr = croniter("H H * * *", hash_id="hello")
+    >>> itr.get_next(datetime)
+    datetime.datetime(2021, 4, 10, 11, 10)
+    >>> itr.get_next(datetime)
+    datetime.datetime(2021, 4, 11, 11, 10)
+    >>> itr = croniter("H H * * *", hash_id="hello")
+    >>> itr.get_next(datetime)
+    datetime.datetime(2021, 4, 10, 11, 10)
+    >>> itr = croniter("H H * * *", hash_id="bonjour")
+    >>> itr.get_next(datetime)
+    datetime.datetime(2021, 4, 10, 20, 52)
+
+
+Random expressions
+==================
+
+Random "R" definition keywords are supported, and remain consistent only within their croniter() instance.
+
+    >>> itr = croniter("R R * * *")
+    >>> itr.get_next(datetime)
+    datetime.datetime(2021, 4, 10, 22, 56)
+    >>> itr.get_next(datetime)
+    datetime.datetime(2021, 4, 11, 22, 56)
+    >>> itr = croniter("R R * * *")
+    >>> itr.get_next(datetime)
+    datetime.datetime(2021, 4, 11, 4, 19)
+
+
+Keyword expressions
+===================
+
+Vixie cron-style "@" keyword expressions are supported.
+What they evaluate to depends on whether you supply hash_id: no hash_id corresponds to Vixie cron definitions (exact times, minute resolution), while with hash_id corresponds to Jenkins definitions (hashed within the period, second resolution).
+
+    ============ ============ ================
+    Keyword      No hash_id   With hash_id
+    ============ ============ ================
+    @midnight    0 0 * * *    H H(0-2) * * * H
+    @hourly      0 * * * *    H * * * * H
+    @daily       0 0 * * *    H H * * * H
+    @weekly      0 0 * * 0    H H * * H H
+    @monthly     0 0 1 * *    H H H * * H
+    @yearly      0 0 1 1 *    H H H H * H
+    @annually    0 0 1 1 *    H H H H * H
+    ============ ============ ================
+
+
 Develop this package
 ====================
 
@@ -226,4 +280,5 @@ If you have contributed and your name is not listed below please let me know.
     - lowell80 (Kintyre)
     - scop
     - zed2015
+    - Ryan Finnie (rfinnie)
 

@@ -12,12 +12,17 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 import calendar
+import binascii
+import random
 
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
 star_or_int_re = re.compile(r'^(\d+|\*)$')
 special_weekday_re = re.compile(r'^(\w+)#(\d+)|l(\d+)$')
+hash_expression_re = re.compile(
+    r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
+)
 VALID_LEN_EXPRESSION = [5, 6]
 
 
@@ -110,9 +115,17 @@ class croniter(object):
                  'expression.'
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
-                 day_or=True, max_years_between_matches=None, is_prev=False):
+                 day_or=True, max_years_between_matches=None, is_prev=False,
+                 hash_id=None):
         self._ret_type = ret_type
         self._day_or = day_or
+
+        if hash_id is None or isinstance(hash_id, bytes):
+            pass
+        elif isinstance(hash_id, str):
+            hash_id = hash_id.encode('UTF-8')
+        else:
+            raise TypeError('hash_id must be bytes or UTF-8 string')
 
         self._max_years_btw_matches_explicitly_set = (
             max_years_between_matches is not None)
@@ -130,7 +143,7 @@ class croniter(object):
         self.cur = None
         self.set_current(start_time)
 
-        self.expanded, self.nth_weekday_of_month = self.expand(expr_format)
+        self.expanded, self.nth_weekday_of_month = self.expand(expr_format, hash_id=hash_id)
         self._is_prev = is_prev
 
     @classmethod
@@ -563,11 +576,95 @@ class croniter(object):
             return False
 
     @classmethod
-    def _expand(cls, expr_format):
+    def _hash_do(cls, idx, hash_type="h", hash_id=None, range_end=None, range_begin=None):
+        """Return a hashed/random integer given range/hash information"""
+        if range_end is None:
+            range_end = cls.RANGES[idx][1]
+        if range_begin is None:
+            range_begin = cls.RANGES[idx][0]
+        if hash_type == 'r':
+            crc = random.randint(0, 0xFFFFFFFF)
+        else:
+            crc = binascii.crc32(hash_id) & 0xFFFFFFFF
+        return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
+
+    @classmethod
+    def _hash_expand_expr(cls, expr, idx, hash_id=None):
+        """Expand a hashed/random expression to its normal representation"""
+        hash_expression_re_match = hash_expression_re.match(expr)
+        if not hash_expression_re_match:
+            return expr
+        m = hash_expression_re_match.groupdict()
+
+        if m['hash_type'] == 'h' and hash_id is None:
+            raise CroniterBadCronError('Hashed definitions must include hash_id')
+
+        if m['range_begin'] and m['range_end'] and m['divisor']:
+            # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
+            return '{:n}-{:n}/{:n}'.format(
+                cls._hash_do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                    range_end=int(m['divisor']),
+                ) + int(m['range_begin']),
+                int(m['range_end']),
+                int(m['divisor']),
+            )
+        elif m['range_begin'] and m['range_end']:
+            # Example: H(0-29) -> 12
+            return str(
+                cls._hash_do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                    range_end=int(m['range_end']),
+                    range_begin=int(m['range_begin']),
+                )
+            )
+        elif m['divisor']:
+            # Example: H/15 -> 7-59/15 (i.e. 7,22,37,52)
+            return '{:n}-{:n}/{:n}'.format(
+                cls._hash_do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                    range_end=int(m['divisor']),
+                ),
+                cls.RANGES[idx][1],
+                int(m['divisor']),
+            )
+        else:
+            # Example: H -> 32
+            return str(
+                cls._hash_do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                )
+            )
+
+    @classmethod
+    def _expand(cls, expr_format, hash_id=None):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
         # messages.
-        expressions = [e.lower() for e in expr_format.split()]
+        expr_aliases = {
+            '@midnight': ('0 0 * * *', 'h h(0-2) * * * h'),
+            '@hourly': ('0 * * * *', 'h * * * * h'),
+            '@daily': ('0 0 * * *', 'h h * * * h'),
+            '@weekly': ('0 0 * * 0', 'h h * * h h'),
+            '@monthly': ('0 0 1 * *', 'h h h * * h'),
+            '@yearly': ('0 0 1 1 *', 'h h h h * h'),
+            '@annually': ('0 0 1 1 *', 'h h h h * h'),
+        }
+
+        efl = expr_format.lower()
+        hash_id_expr = hash_id is not None and 1 or 0
+        try:
+            expressions = expr_aliases[efl][hash_id_expr].split()
+        except KeyError:
+            expressions = efl.split()
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
             raise CroniterBadCronError(cls.bad_length)
@@ -576,6 +673,7 @@ class croniter(object):
         nth_weekday_of_month = {}
 
         for i, expr in enumerate(expressions):
+            expr = cls._hash_expand_expr(expr, i, hash_id=hash_id)
             e_list = expr.split(',')
             res = []
 
@@ -712,10 +810,10 @@ class croniter(object):
         return expanded, nth_weekday_of_month
 
     @classmethod
-    def expand(cls, expr_format):
+    def expand(cls, expr_format, hash_id=None):
         """Shallow non Croniter ValueError inside a nice CroniterBadCronError"""
         try:
-            return cls._expand(expr_format)
+            return cls._expand(expr_format, hash_id=hash_id)
         except ValueError as exc:
             error_type, error_instance, traceback = sys.exc_info()
             if isinstance(exc, CroniterError):
@@ -727,9 +825,9 @@ class croniter(object):
                 raise CroniterBadCronError("{0}".format(exc))
 
     @classmethod
-    def is_valid(cls, expression):
+    def is_valid(cls, expression, hash_id=None):
         try:
-            cls.expand(expression)
+            cls.expand(expression, hash_id=hash_id)
         except CroniterError:
             return False
         else:
