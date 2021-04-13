@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.12 (unreleased)
+1.0.12 (2021-04-13)
 -------------------
 
 - Add support for hashed/random/keyword expressions
