@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from croniter import croniter, CroniterNotAlphaError
+from croniter import croniter, CroniterNotAlphaError, CroniterBadCronError
 from croniter.tests import base
 
 
@@ -121,6 +121,11 @@ class CroniterHashTest(CroniterHashBase):
         """Test an invalid hash_id type raises TypeError"""
         with self.assertRaises(TypeError):
             croniter('H H * * *', self.epoch, hash_id={1: 2})
+
+    def test_invalid_divisor(self):
+        """Test an invalid divisor type raises CroniterBadCronError"""
+        with self.assertRaises(CroniterBadCronError):
+            croniter('* * H/0 * *', self.epoch, hash_id=self.hash_id)
 
 
 class CroniterWordAliasTest(CroniterHashBase):

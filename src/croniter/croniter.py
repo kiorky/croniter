@@ -851,7 +851,12 @@ class HashExpander:
             crc = random.randint(0, 0xFFFFFFFF)
         else:
             crc = binascii.crc32(hash_id) & 0xFFFFFFFF
-        return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
+
+        rng = range_end - range_begin + 1
+        if rng == 0:
+            raise CroniterBadCronError("Bad range")
+
+        return ((crc >> idx) % rng) + range_begin
 
     def match(self, efl, idx, expr, hash_id=None, **kw):
         return hash_expression_re.match(expr)
