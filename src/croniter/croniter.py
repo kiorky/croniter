@@ -870,7 +870,7 @@ class HashExpander:
         if m['range_begin'] and m['range_end'] and m['divisor']:
             # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
             if int(m["divisor"]) == 0:
-                raise CroniterBadCronError("Bad expression: %s" % expr)
+                raise CroniterBadCronError("Bad expression: {0}".format(expr))
 
             return '{0}-{1}/{2}'.format(
                 self.do(
@@ -896,7 +896,7 @@ class HashExpander:
         elif m['divisor']:
             # Example: H/15 -> 7-59/15 (i.e. 7,22,37,52)
             if int(m["divisor"]) == 0:
-                raise CroniterBadCronError("Bad expression: %s" % expr)
+                raise CroniterBadCronError("Bad expression: {0}".format(expr))
 
             return '{0}-{1}/{2}'.format(
                 self.do(
