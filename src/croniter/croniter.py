@@ -851,12 +851,7 @@ class HashExpander:
             crc = random.randint(0, 0xFFFFFFFF)
         else:
             crc = binascii.crc32(hash_id) & 0xFFFFFFFF
-
-        rng = range_end - range_begin + 1
-        if rng == 0:
-            raise CroniterBadCronError("Bad range")
-
-        return ((crc >> idx) % rng) + range_begin
+        return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
 
     def match(self, efl, idx, expr, hash_id=None, **kw):
         return hash_expression_re.match(expr)
@@ -874,6 +869,9 @@ class HashExpander:
 
         if m['range_begin'] and m['range_end'] and m['divisor']:
             # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
+            if int(m["divisor"]) == 0:
+                raise CroniterBadCronError("Bad expression: %s" % expr)
+
             return '{0}-{1}/{2}'.format(
                 self.do(
                     idx,
@@ -897,6 +895,9 @@ class HashExpander:
             )
         elif m['divisor']:
             # Example: H/15 -> 7-59/15 (i.e. 7,22,37,52)
+            if int(m["divisor"]) == 0:
+                raise CroniterBadCronError("Bad expression: %s" % expr)
+
             return '{0}-{1}/{2}'.format(
                 self.do(
                     idx,
