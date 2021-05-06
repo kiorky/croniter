@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.13 (unreleased)
+1.0.13 (2021-05-06)
 -------------------
 
 - Fix ZeroDivisionError with ``* * R/0 * *``
