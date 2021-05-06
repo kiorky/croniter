@@ -4,8 +4,8 @@ Changelog
 1.0.13 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Fix ZeroDivisionError with ``* * R/0 * *``
+  [cuu508]
 
 1.0.12 (2021-04-13)
 -------------------
