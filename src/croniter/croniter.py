@@ -637,7 +637,9 @@ class croniter(object):
     def match(cls, cron_expression, testdate, day_or=True):
         cron = cls(cron_expression, testdate, ret_type=datetime.datetime, day_or=day_or)
         td, ms1 = cron.get_current(datetime.datetime), relativedelta(microseconds=1)
-        cron.set_current(td + ms1)
+        if not td.microsecond:
+            td = td + ms1
+        cron.set_current(td)
         tdp, tdt = cron.get_current(), cron.get_prev()
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
 
