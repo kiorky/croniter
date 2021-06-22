@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 def read(*rnames):
     return open(
-        os.path.join('.', *rnames)
+        os.path.join('.', *rnames), encoding="utf-8"
     ).read()
 
 install_requires = [
