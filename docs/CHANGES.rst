@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.0.14 (unreleased)
+1.0.14 (2021-06-25)
 -------------------
 
 - better type checks [kiorky]
