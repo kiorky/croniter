@@ -1295,6 +1295,14 @@ class CroniterRangeTest(base.TestCase):
         """."""
         self.assertRaises(CroniterBadCronError, croniter , "0-10000000 * * * *", datetime.now())
 
+    def test_issue156(self):
+        """."""
+        dt = croniter("* * * * *,0", datetime(2019, 1, 14, 11, 0, 59, 999999)).get_next()
+        self.assertEqual(1547463660.0, dt)
+        self.assertRaises(CroniterBadCronError, croniter, "* * * * *,b")
+        dt = croniter("0 0 * * *,sat#3", datetime(2019, 1, 14, 11, 0, 59, 999999)).get_next()
+        self.assertEqual(1547856000.0, dt)
+
 
 if __name__ == '__main__':
     unittest.main()

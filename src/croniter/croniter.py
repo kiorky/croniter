@@ -95,6 +95,7 @@ class croniter(object):
                  day_or=True, max_years_between_matches=None, is_prev=False):
         self._ret_type = ret_type
         self._day_or = day_or
+        self._expr_format = expr_format
 
         self._max_years_btw_matches_explicitly_set = (
             max_years_between_matches is not None)
@@ -297,7 +298,9 @@ class croniter(object):
         DAYS = self.DAYS
 
         def proc_month(d):
-            if expanded[3][0] != '*':
+            try:
+                expanded[3].index('*')
+            except ValueError:
                 diff_month = nearest_diff_method(
                     d.month, expanded[3], self.MONTHS_IN_YEAR)
                 days = DAYS[month - 1]
@@ -319,7 +322,9 @@ class croniter(object):
             return False, d
 
         def proc_day_of_month(d):
-            if expanded[2][0] != '*':
+            try:
+                expanded[2].index('*')
+            except ValueError:
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
@@ -345,7 +350,9 @@ class croniter(object):
             return False, d
 
         def proc_day_of_week(d):
-            if expanded[4][0] != '*':
+            try:
+                expanded[4].index('*')
+            except ValueError:
                 diff_day_of_week = nearest_diff_method(
                     d.isoweekday() % 7, expanded[4], 7)
                 if diff_day_of_week is not None and diff_day_of_week != 0:
@@ -409,7 +416,9 @@ class croniter(object):
             return False, d
 
         def proc_hour(d):
-            if expanded[1][0] != '*':
+            try:
+                expanded[1].index('*')
+            except ValueError:
                 diff_hour = nearest_diff_method(d.hour, expanded[1], 24)
                 if diff_hour is not None and diff_hour != 0:
                     if is_prev:
@@ -421,7 +430,9 @@ class croniter(object):
             return False, d
 
         def proc_minute(d):
-            if expanded[0][0] != '*':
+            try:
+                expanded[0].index('*')
+            except ValueError:
                 diff_min = nearest_diff_method(d.minute, expanded[0], 60)
                 if diff_min is not None and diff_min != 0:
                     if is_prev:
@@ -433,7 +444,9 @@ class croniter(object):
 
         def proc_second(d):
             if len(expanded) == 6:
-                if expanded[5][0] != '*':
+                try:
+                    expanded[5].index('*')
+                except ValueError:
                     diff_sec = nearest_diff_method(d.second, expanded[5], 60)
                     if diff_sec is not None and diff_sec != 0:
                         d += relativedelta(seconds=diff_sec)

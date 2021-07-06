@@ -4,7 +4,8 @@ Changelog
 1.0.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix combination of star and invalid expression bugs
+  [kiorky]
 
 
 1.0.5 (2021-01-29)
