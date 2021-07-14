@@ -1285,7 +1285,7 @@ class CroniterRangeTest(base.TestCase):
         with self.assertRaises(StopIteration):
             next(iterable)
 
-    def test_isssue151(self):
+    def test_issue151(self):
         """."""
         self.assertTrue(
             croniter.match("* * * * *", datetime(2019, 1, 14, 11, 0, 59, 999999)))
