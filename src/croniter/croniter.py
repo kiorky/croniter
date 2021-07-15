@@ -5,12 +5,15 @@ from __future__ import absolute_import, print_function, division
 
 import math
 import re
+import sys
 from time import time
 import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 import calendar
 import natsort
+from future.utils import raise_from
+
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
 search_re = re.compile(r'^([^-]+)-([^-/]+)(/(.*))?$')
@@ -516,7 +519,7 @@ class croniter(object):
             return False
 
     @classmethod
-    def expand(cls, expr_format):
+    def _expand(cls, expr_format):
         expressions = expr_format.split()
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
@@ -623,6 +626,18 @@ class croniter(object):
                             else res)
 
         return expanded, nth_weekday_of_month
+
+    @classmethod
+    def expand(cls, expr_format):
+        """Shallow non Croniter ValueError inside a nice CroniterBadCronError"""
+        try:
+            return cls._expand(expr_format)
+        except ValueError as exc:
+            error_type, error_instance, traceback = sys.exc_info()
+            aaa =exc
+            if isinstance(exc, CroniterError):
+                raise
+            raise_from(CroniterBadCronError, exc)
 
     @classmethod
     def is_valid(cls, expression):

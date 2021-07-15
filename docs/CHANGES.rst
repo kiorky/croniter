@@ -1,10 +1,17 @@
 Changelog
 ==============
 
-1.0.3 (unreleased)
+1.0.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Spelling fix release
+
+
+1.0.3 (2021-01-29)
+------------------
+
+- Fix #155: raise CroniterBadCronError when error syntax
+  [kiorky]
 
 
 1.0.2 (2021-01-19)
