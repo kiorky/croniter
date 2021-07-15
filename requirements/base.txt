@@ -1,3 +1,4 @@
 python_dateutil
+future
 natsort
 -e .

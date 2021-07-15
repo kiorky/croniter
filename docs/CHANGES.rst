@@ -4,7 +4,8 @@ Changelog
 1.0.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix #155: raise CroniterBadCronError when error syntax
+  [kiorky]
 
 
 1.0.2 (2021-01-19)
