@@ -4,8 +4,8 @@ Changelog
 1.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Security fix: fix overflow when using cron ranges
+  [kiorky]
 
 1.0.4 (2021-01-29)
 ------------------

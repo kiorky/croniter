@@ -50,7 +50,7 @@ class croniter(object):
         (0, 23),
         (1, 31),
         (1, 12),
-        (0, 6),
+        (0, 7),
         (0, 59)
     )
     DAYS = (
@@ -554,6 +554,8 @@ class croniter(object):
                     m = step_search_re.search(t)
 
                 if m:
+                    # early abort if low/high are out of bounds
+
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
                     if i == 2 and high == 'l':
                         high = '31'
@@ -576,6 +578,11 @@ class croniter(object):
                                 "[{0}] is not acceptable".format(expr_format))
 
                     low, high, step = map(int, [low, high, step])
+                    if (
+                        max(low, high) > max(cls.RANGES[i][0], cls.RANGES[i][1])
+                    ):
+                        raise CroniterBadCronError(
+                            "{0} is out of bands".format(expr_format))
                     try:
                         rng = range(low, high + 1, step)
                     except ValueError as exc:

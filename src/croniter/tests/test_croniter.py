@@ -1291,6 +1291,10 @@ class CroniterRangeTest(base.TestCase):
         self.assertTrue(
             croniter.match("* * * * *", datetime(2019, 1, 14, 11, 0, 59, 999999)))
 
+    def test_overflow(self):
+        """."""
+        self.assertRaises(CroniterBadCronError, croniter , "0-10000000 * * * *", datetime.now())
+
 
 if __name__ == '__main__':
     unittest.main()
