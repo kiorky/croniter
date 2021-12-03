@@ -712,7 +712,13 @@ class croniter(object):
                     except ValueError:
                         pass
 
-                    if t in cls.LOWMAP[i]:
+                    if t in cls.LOWMAP[i] and not (
+                        # do not support 0 as a month either for classical 5 fields cron
+                        # or 6fields second repeat form
+                        # but still let conversion happen if day field is shifted
+                        (i == 3 and len(expressions) == 5) or
+                        (i == 4 and len(expressions) == 6)
+                    ):
                         t = cls.LOWMAP[i][t]
 
                     if (
