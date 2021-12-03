@@ -1,11 +1,11 @@
 Changelog
 ==============
 
-1.0.16 (unreleased)
+1.1.0 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Enforce validation for month=1. Before this release we used to support month=0 and it was silently glided to month=1 to support having both day in month in 4th field when it came to have 6fields cron forms (second repeat). It will now raises a CroniterBadDateError. See https://github.com/kiorky/croniter/issues/6
+  [kiorky]
 
 1.0.15 (2021-06-25)
 -------------------

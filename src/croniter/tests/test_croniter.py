@@ -317,14 +317,14 @@ class CroniterTest(base.TestCase):
         wildcard = ['*']
         m, h, d, mon, dow, s = range(6)
         # Test each field individually
-        self.assertEqual(croniter('0-59 0 0 0 0').expanded[m], wildcard)
-        self.assertEqual(croniter('0 0-23 0 0 0').expanded[h], wildcard)
-        self.assertEqual(croniter('0 0 0-31 0 0').expanded[d], wildcard)
+        self.assertEqual(croniter('0-59 0 0 1 0').expanded[m], wildcard)
+        self.assertEqual(croniter('0 0-23 0 1 0').expanded[h], wildcard)
+        self.assertEqual(croniter('0 0 0-31 1 0').expanded[d], wildcard)
         self.assertEqual(croniter('0 0 0 1-12 0').expanded[mon], wildcard)
-        self.assertEqual(croniter('0 0 0 0 0-6').expanded[dow], wildcard)
-        self.assertEqual(croniter('0 0 0 0 1-7').expanded[dow], wildcard)
-        self.assertEqual(croniter('0 0 0 0 1-7,sat#3').expanded[dow], wildcard)
-        self.assertEqual(croniter('0 0 0 0 0 0-59').expanded[s], wildcard)
+        self.assertEqual(croniter('0 0 0 1 0-6').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 0 1 1-7').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 0 1 1-7,sat#3').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 0 1 0 0-59').expanded[s], wildcard)
         # Real life examples
         self.assertEqual(croniter('30 1-12,0,10-23 15-21 * fri').expanded[h], wildcard)
         self.assertEqual(croniter('30 1-23,0 15-21 * fri').expanded[h], wildcard)
@@ -993,12 +993,12 @@ class CroniterTest(base.TestCase):
              '2019-01-17 00:00:01',
              '2019-01-18 00:00:02',
              '2019-01-19 00:00:03',
-             '2019-01-20 00:00:04',
              '2019-01-23 00:00:00',
              '2019-01-24 00:00:01',
              '2019-01-25 00:00:02',
              '2019-01-26 00:00:03',
-             '2019-01-27 00:00:04'])
+             '2019-01-30 00:00:00',
+             '2019-01-31 00:00:01'])
 
     def test_mixdow(self):
         base = datetime(2018, 10, 1, 0, 0)
@@ -1433,10 +1433,13 @@ class CroniterTest(base.TestCase):
 
     def test_confirm_sort(self):
         m, h, d, mon, dow, s = range(6)
-        self.assertListEqual(croniter('0 8,22,10,23 0 0 0').expanded[h], [8, 10, 22, 23])
-        self.assertListEqual(croniter('0 0 25-L 0 0').expanded[d], [25, 26, 27, 28, 29, 30, 31])
+        self.assertListEqual(croniter('0 8,22,10,23 0 1 0').expanded[h], [8, 10, 22, 23])
+        self.assertListEqual(croniter('0 0 25-L 1 0').expanded[d], [25, 26, 27, 28, 29, 30, 31])
         self.assertListEqual(croniter("1 1 7,14,21,L * *").expanded[d], [7, 14, 21, "l"])
         self.assertListEqual(croniter("0 0 * * *,sat#3").expanded[dow], ["*", 6])
+
+    def test_issue_k6(self):
+        self.assertRaises(CroniterBadCronError, croniter, '0 0 0 0 0')
 
 
 if __name__ == '__main__':
