@@ -113,7 +113,7 @@ class CroniterHashTest(CroniterHashBase):
         self._test_iter('H H * * *', 1577877000.0, (60 * 60 * 24), next_type=float)
 
     def test_invalid_definition(self):
-        """Test an invalid defition raises CroniterNotAlphaError"""
+        """Test an invalid definition raises CroniterNotAlphaError"""
         with self.assertRaises(CroniterNotAlphaError):
             croniter('X X * * *', self.epoch, hash_id=self.hash_id)
 

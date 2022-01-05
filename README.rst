@@ -71,7 +71,7 @@ switch is used to control how croniter handles **day** and **day_of_week**
 entries. Default option is the cron behaviour, which connects those
 values using **OR**. If the switch is set to False, the values are connected
 using **AND**. This behaves like fcron and enables you to e.g. define a job that
-executes each 2nd friday of a month by setting the days of month and the
+executes each 2nd Friday of a month by setting the days of month and the
 weekday.
 ::
 
@@ -115,7 +115,7 @@ Example using python_dateutil::
 
 About second repeats
 =====================
-Croniter is able to do second repeatition crontabs form::
+Croniter is able to do second repetition crontabs form::
 
     >>> croniter('* * * * * 1', local_date).get_next(datetime)
     >>> base = datetime(2012, 4, 6, 13, 26, 10)
