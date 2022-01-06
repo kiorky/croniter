@@ -112,6 +112,11 @@ Example using python_dateutil::
     >>> local_date = datetime(2017, 3, 26, tzinfo=tz)
     >>> val = croniter('0 0 * * *', local_date).get_next(datetime)
 
+Example using python built in module::
+
+    >>> from datetime import datetime, timezone
+    >>> local_date = datetime(2017, 3, 26, tzinfo=timezone.utc)
+    >>> val = croniter('0 0 * * *', local_date).get_next(datetime)
 
 About second repeats
 =====================
