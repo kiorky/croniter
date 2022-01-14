@@ -18,7 +18,7 @@ import random
 try:
     from collections import OrderedDict
 except ImportError:
-    OrderedDict = dict  # py26 degraded mode, expanders order wont be immutable
+    OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
@@ -247,7 +247,7 @@ class croniter(object):
             result = self._calc(self.cur, expanded,
                                 nth_weekday_of_month, is_prev)
 
-        # DST Handling for cron job spanning accross days
+        # DST Handling for cron job spanning across days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
         dtstarttime_utcoffset = (
             dtstarttime.utcoffset() or datetime.timedelta(0))
@@ -287,7 +287,7 @@ class croniter(object):
         implicit call to __iter__, whenever non-default
         'ret_type' has to be specified.
         '''
-        # In a Python 3.7+ world:  contextlib.supress and contextlib.nullcontext could be used instead
+        # In a Python 3.7+ world:  contextlib.suppress and contextlib.nullcontext could be used instead
         try:
             while True:
                 self._is_prev = False
