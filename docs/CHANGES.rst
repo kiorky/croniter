@@ -4,7 +4,9 @@ Changelog
 1.0.8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Update `_expand` to lowercase each component of the expression.
+  This is in relation to #157. With this change, croniter accepts and correctly handles `* * 10-L * *`.
+  [cuu508]
 
 
 1.0.7 (2021-03-02)
