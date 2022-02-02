@@ -4,8 +4,10 @@ Changelog
 1.0.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix _expand to reject int literals with underscores
+  [cuu508]
+- Remove a debug statement to make flake8 happy
+  [cuu508]
 
 1.0.6 (2021-02-01)
 ------------------
