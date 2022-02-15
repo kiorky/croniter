@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.1 (unreleased)
+1.3.1 (2022-02-15)
 ------------------
 
 - Restore compat with python2
