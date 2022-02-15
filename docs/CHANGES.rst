@@ -1,10 +1,11 @@
 Changelog
 ==============
 
-1.2.1 (unreleased)
+1.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add a way to make next() easier to use. This fixes #11
+  [kiorky]
 
 
 1.2.0 (2022-01-14)

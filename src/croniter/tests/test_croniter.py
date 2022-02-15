@@ -1443,6 +1443,14 @@ class CroniterTest(base.TestCase):
         self.assertRaises(CroniterBadCronError, croniter, '0 0 0 0 0')
         self.assertRaises(CroniterBadCronError, croniter, '0 0 0 1 0')
 
+    def test_issue_k11(self):
+        now = pytz.timezone('America/New_York').localize(datetime(2019, 1, 14, 11, 0, 59))
+        nextnow = croniter('* * * * * ').next(datetime, start_time=now)
+        nextnow2 = croniter('* * * * * ', now).next(datetime)
+        for nt in nextnow, nextnow2:
+            self.assertEqual(nt.tzinfo.zone, 'America/New_York')
+            self.assertEqual(int(nt.timestamp()), 1547481660)
+
 
 if __name__ == '__main__':
     unittest.main()
