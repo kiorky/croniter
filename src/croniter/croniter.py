@@ -163,8 +163,7 @@ class croniter(object):
                 "[{0}] is not acceptable".format(" ".join(expressions)))
 
     def get_next(self, ret_type=None, start_time=None):
-        if start_time is not None:
-            self.set_current(start_time)
+        self.set_current(start_time)
         return self._get_next(ret_type or self._ret_type, is_prev=False)
 
     def get_prev(self, ret_type=None):
@@ -176,14 +175,15 @@ class croniter(object):
             return self._timestamp_to_datetime(self.cur)
         return self.cur
 
-    def set_current(self, start_time):
-        if isinstance(start_time, datetime.datetime):
-            self.tzinfo = start_time.tzinfo
-            start_time = self._datetime_to_timestamp(start_time)
+    def set_current(self, start_time, force=False):
+        if (force or (self.cur is None)) and start_time is not None:
+            if isinstance(start_time, datetime.datetime):
+                self.tzinfo = start_time.tzinfo
+                start_time = self._datetime_to_timestamp(start_time)
 
-        self.start_time = start_time
-        self.dst_start_time = start_time
-        self.cur = start_time
+            self.start_time = start_time
+            self.dst_start_time = start_time
+            self.cur = start_time
         return self.cur
 
     @classmethod
@@ -217,7 +217,8 @@ class croniter(object):
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
             / 10**6
 
-    def _get_next(self, ret_type=None, is_prev=None):
+    def _get_next(self, ret_type=None, start_time=None, is_prev=None):
+        self.set_current(start_time, force=True)
         if is_prev is None:
             is_prev = self._is_prev
         self._is_prev = is_prev
@@ -788,7 +789,7 @@ class croniter(object):
         td, ms1 = cron.get_current(datetime.datetime), relativedelta(microseconds=1)
         if not td.microsecond:
             td = td + ms1
-        cron.set_current(td)
+        cron.set_current(td, force=True)
         tdp, tdt = cron.get_current(), cron.get_prev()
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
 
