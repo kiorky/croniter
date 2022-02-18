@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.3 (unreleased)
+1.3.3 (2022-02-18)
 ------------------
 
 - Fix compat for tests under py27
