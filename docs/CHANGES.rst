@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.2 (unreleased)
+1.3.2 (2022-02-18)
 ------------------
 
 - Fix #12: regressions with set_current
