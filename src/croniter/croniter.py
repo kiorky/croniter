@@ -175,7 +175,7 @@ class croniter(object):
             return self._timestamp_to_datetime(self.cur)
         return self.cur
 
-    def set_current(self, start_time, force=False):
+    def set_current(self, start_time, force=True):
         if (force or (self.cur is None)) and start_time is not None:
             if isinstance(start_time, datetime.datetime):
                 self.tzinfo = start_time.tzinfo
