@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import partial
 from time import sleep
 import pytz
@@ -1451,6 +1451,13 @@ class CroniterTest(base.TestCase):
             self.assertEqual(nt.tzinfo.zone, 'America/New_York')
             self.assertEqual(int(croniter._datetime_to_timestamp(nt)), 1547481660)
 
+    def test_issue_12(self):
+        base = datetime(2010, 1, 23, 12, 18, tzinfo=timezone.utc)
+        itr = croniter('* * * * *')
+        itr.set_current(start_time=base)
+        n1 = itr.get_next()   # 19
+
+        self.assertEqual(n1, base.timestamp() + 60)
 
 if __name__ == '__main__':
     unittest.main()
