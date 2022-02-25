@@ -120,12 +120,11 @@ class croniter(object):
         self._ret_type = ret_type
         self._day_or = day_or
 
-        if hash_id is None or isinstance(hash_id, bytes):
-            pass
-        elif isinstance(hash_id, str):
-            hash_id = hash_id.encode('UTF-8')
-        else:
-            raise TypeError('hash_id must be bytes or UTF-8 string')
+        if hash_id:
+            if not isinstance(hash_id, (bytes, str)):
+                raise TypeError('hash_id must be bytes or UTF-8 string')
+            if not isinstance(hash_id, bytes):
+                hash_id = hash_id.encode('UTF-8')
 
         self._max_years_btw_matches_explicitly_set = (
             max_years_between_matches is not None)
@@ -589,7 +588,7 @@ class croniter(object):
         return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
 
     @classmethod
-    def _hash_expand_expr(cls, expr, idx, hash_id=None):
+    def _hash_expand_expr(cls, efl, idx, expr, hash_id=None):
         """Expand a hashed/random expression to its normal representation"""
         hash_expression_re_match = hash_expression_re.match(expr)
         if not hash_expression_re_match:
@@ -601,7 +600,7 @@ class croniter(object):
 
         if m['range_begin'] and m['range_end'] and m['divisor']:
             # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
-            return '{:n}-{:n}/{:n}'.format(
+            return '{0}-{1}/{2}'.format(
                 cls._hash_do(
                     idx,
                     hash_type=m['hash_type'],
@@ -624,7 +623,7 @@ class croniter(object):
             )
         elif m['divisor']:
             # Example: H/15 -> 7-59/15 (i.e. 7,22,37,52)
-            return '{:n}-{:n}/{:n}'.format(
+            return '{0}-{1}/{2}'.format(
                 cls._hash_do(
                     idx,
                     hash_type=m['hash_type'],
@@ -662,9 +661,11 @@ class croniter(object):
         efl = expr_format.lower()
         hash_id_expr = hash_id is not None and 1 or 0
         try:
-            expressions = expr_aliases[efl][hash_id_expr].split()
+            efl = expr_aliases[efl][hash_id_expr]
         except KeyError:
-            expressions = efl.split()
+            pass
+
+        expressions = efl.split()
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
             raise CroniterBadCronError(cls.bad_length)
@@ -673,7 +674,8 @@ class croniter(object):
         nth_weekday_of_month = {}
 
         for i, expr in enumerate(expressions):
-            expr = cls._hash_expand_expr(expr, i, hash_id=hash_id)
+            expr = cls._hash_expand_expr(efl, i, expr, hash_id=hash_id)
+
             e_list = expr.split(',')
             res = []
 

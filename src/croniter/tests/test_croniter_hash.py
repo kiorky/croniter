@@ -25,6 +25,7 @@ class CroniterHashBase(base.TestCase):
         if delta is not None:
             self.assertEqual(obj.get_next(next_type), testval + delta)
 
+
 class CroniterHashTest(CroniterHashBase):
     def test_hash_hourly(self):
         """Test manually-defined hourly"""
@@ -120,6 +121,7 @@ class CroniterHashTest(CroniterHashBase):
         """Test an invalid hash_id type raises TypeError"""
         with self.assertRaises(TypeError):
             croniter('H H * * *', self.epoch, hash_id={1: 2})
+
 
 class CroniterWordAliasTest(CroniterHashBase):
     def test_hash_word_midnight(self):
