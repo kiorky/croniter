@@ -15,6 +15,11 @@ import calendar
 import binascii
 import random
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    OrderedDict = dict  # py26 degraded mode, expanders order wont be immutable
+
 
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
@@ -575,75 +580,6 @@ class croniter(object):
             return False
 
     @classmethod
-    def _hash_do(cls, idx, hash_type="h", hash_id=None, range_end=None, range_begin=None):
-        """Return a hashed/random integer given range/hash information"""
-        if range_end is None:
-            range_end = cls.RANGES[idx][1]
-        if range_begin is None:
-            range_begin = cls.RANGES[idx][0]
-        if hash_type == 'r':
-            crc = random.randint(0, 0xFFFFFFFF)
-        else:
-            crc = binascii.crc32(hash_id) & 0xFFFFFFFF
-        return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
-
-    @classmethod
-    def _hash_expand_expr(cls, efl, idx, expr, hash_id=None):
-        """Expand a hashed/random expression to its normal representation"""
-        hash_expression_re_match = hash_expression_re.match(expr)
-        if not hash_expression_re_match:
-            return expr
-        m = hash_expression_re_match.groupdict()
-
-        if m['hash_type'] == 'h' and hash_id is None:
-            raise CroniterBadCronError('Hashed definitions must include hash_id')
-
-        if m['range_begin'] and m['range_end'] and m['divisor']:
-            # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
-            return '{0}-{1}/{2}'.format(
-                cls._hash_do(
-                    idx,
-                    hash_type=m['hash_type'],
-                    hash_id=hash_id,
-                    range_end=int(m['divisor']),
-                ) + int(m['range_begin']),
-                int(m['range_end']),
-                int(m['divisor']),
-            )
-        elif m['range_begin'] and m['range_end']:
-            # Example: H(0-29) -> 12
-            return str(
-                cls._hash_do(
-                    idx,
-                    hash_type=m['hash_type'],
-                    hash_id=hash_id,
-                    range_end=int(m['range_end']),
-                    range_begin=int(m['range_begin']),
-                )
-            )
-        elif m['divisor']:
-            # Example: H/15 -> 7-59/15 (i.e. 7,22,37,52)
-            return '{0}-{1}/{2}'.format(
-                cls._hash_do(
-                    idx,
-                    hash_type=m['hash_type'],
-                    hash_id=hash_id,
-                    range_end=int(m['divisor']),
-                ),
-                cls.RANGES[idx][1],
-                int(m['divisor']),
-            )
-        else:
-            # Example: H -> 32
-            return str(
-                cls._hash_do(
-                    idx,
-                    hash_type=m['hash_type'],
-                    hash_id=hash_id,
-                )
-            )
-
-    @classmethod
     def _expand(cls, expr_format, hash_id=None):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
@@ -674,7 +610,8 @@ class croniter(object):
         nth_weekday_of_month = {}
 
         for i, expr in enumerate(expressions):
-            expr = cls._hash_expand_expr(efl, i, expr, hash_id=hash_id)
+            for expanderid, expander in EXPANDERS.items():
+                expr = expander(cls).expand(efl, i, expr, hash_id=hash_id)
 
             e_list = expr.split(',')
             res = []
@@ -897,3 +834,85 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     except CroniterBadDateError:
         # Stop iteration when this exception is raised; no match found within the given year range
         return
+
+
+class HashExpander:
+
+    def __init__(self, cronit):
+        self.cron = cronit
+
+    def do(self, idx, hash_type="h", hash_id=None, range_end=None, range_begin=None):
+        """Return a hashed/random integer given range/hash information"""
+        if range_end is None:
+            range_end = self.cron.RANGES[idx][1]
+        if range_begin is None:
+            range_begin = self.cron.RANGES[idx][0]
+        if hash_type == 'r':
+            crc = random.randint(0, 0xFFFFFFFF)
+        else:
+            crc = binascii.crc32(hash_id) & 0xFFFFFFFF
+        return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
+
+    def match(self, efl, idx, expr, hash_id=None, **kw):
+        return hash_expression_re.match(expr)
+
+    def expand(self, efl, idx, expr, hash_id=None, match='', **kw):
+        """Expand a hashed/random expression to its normal representation"""
+        if match == '':
+            match = self.match(efl, idx, expr, hash_id, **kw)
+        if not match:
+            return expr
+        m = match.groupdict()
+
+        if m['hash_type'] == 'h' and hash_id is None:
+            raise CroniterBadCronError('Hashed definitions must include hash_id')
+
+        if m['range_begin'] and m['range_end'] and m['divisor']:
+            # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
+            return '{0}-{1}/{2}'.format(
+                self.do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                    range_end=int(m['divisor']),
+                ) + int(m['range_begin']),
+                int(m['range_end']),
+                int(m['divisor']),
+            )
+        elif m['range_begin'] and m['range_end']:
+            # Example: H(0-29) -> 12
+            return str(
+                self.do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                    range_end=int(m['range_end']),
+                    range_begin=int(m['range_begin']),
+                )
+            )
+        elif m['divisor']:
+            # Example: H/15 -> 7-59/15 (i.e. 7,22,37,52)
+            return '{0}-{1}/{2}'.format(
+                self.do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                    range_end=int(m['divisor']),
+                ),
+                self.cron.RANGES[idx][1],
+                int(m['divisor']),
+            )
+        else:
+            # Example: H -> 32
+            return str(
+                self.do(
+                    idx,
+                    hash_type=m['hash_type'],
+                    hash_id=hash_id,
+                )
+            )
+
+
+EXPANDERS = OrderedDict([
+    ('hash', HashExpander),
+])
