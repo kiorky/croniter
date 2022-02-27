@@ -4,7 +4,10 @@ Changelog
 1.0.12 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add support for hashed/random/keyword expressions
+  Ryan Finnie (rfinnie)
+- Review support support for hashed/random/keyword expression and add expanders reactor
+  [ kiorky ]
 
 
 1.0.11 (2021-04-07)
