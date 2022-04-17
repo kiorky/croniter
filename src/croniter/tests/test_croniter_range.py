@@ -4,8 +4,12 @@
 import unittest
 from datetime import datetime, timedelta
 import pytz
-from croniter import croniter, croniter_range, CroniterBadDateError, CroniterBadCronError
+from croniter import croniter, croniter_range, CroniterBadDateError, CroniterBadCronError, CroniterBadTypeRangeError
 from croniter.tests import base
+
+
+class mydatetime(datetime):
+    """."""
 
 
 class CroniterRangeTest(base.TestCase):
@@ -147,6 +151,14 @@ class CroniterRangeTest(base.TestCase):
             # Should similarly fail because the custom class rejects seconds expr
             i = croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, _croniter=croniter_nosec)
             next(i)
+
+    def test_dt_types(self):
+        start = mydatetime(2020, 9, 24)
+        stop = datetime(2020, 9, 28)
+        try:
+            list(croniter_range(start, stop, '0 0 * * *'))
+        except CroniterBadTypeRangeError:
+            self.fail('should not be triggered')
 
 
 if __name__ == '__main__':

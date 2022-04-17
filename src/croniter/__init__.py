@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from .croniter import (
     croniter,
     croniter_range,
+    CroniterBadTypeRangeError,  # noqa
     CroniterBadDateError,  # noqa
     CroniterBadCronError,  # noqa
     CroniterNotAlphaError, # noqa
