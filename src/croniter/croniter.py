@@ -48,6 +48,10 @@ class CroniterError(ValueError):
     pass
 
 
+class CroniterBadTypeRangeError(TypeError):
+    """."""
+
+
 class CroniterBadCronError(CroniterError):
     """ Syntax, unknown value, or range error within a cron expression """
     pass
@@ -795,9 +799,15 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     """
     _croniter = _croniter or croniter
     auto_rt = datetime.datetime
-    if type(start) != type(stop):
-        raise TypeError("The start and stop must be same type.  {0} != {1}".
-                        format(type(start), type(stop)))
+    # type is used in first if branch for perfs reasons
+    if (
+        type(start) != type(stop) and not (
+            isinstance(start, type(stop)) or
+            isinstance(stop, type(start)))
+    ):
+        raise CroniterBadTypeRangeError(
+            "The start and stop must be same type.  {0} != {1}".
+            format(type(start), type(stop)))
     if isinstance(start, (float, int)):
         start, stop = (datetime.datetime.utcfromtimestamp(t) for t in (start, stop))
         auto_rt = float
