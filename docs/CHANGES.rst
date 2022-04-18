@@ -4,7 +4,7 @@ Changelog
 1.0.15 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- restore py2 [kiorky]
 
 
 1.0.14 (2021-06-25)
