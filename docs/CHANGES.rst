@@ -5,6 +5,7 @@ Changelog
 ------------------
 
 - Nothing changed yet.
+- Add Python 3.10 support [eelkevdbos]
 
 
 1.3.4 (2022-02-18)
