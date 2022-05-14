@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.5 (unreleased)
+1.3.5 (2022-05-14)
 ------------------
 
 - Add Python 3.10 support [eelkevdbos]
