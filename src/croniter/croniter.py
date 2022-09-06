@@ -279,8 +279,12 @@ class croniter(object):
                 or (lag < 0 and
                     ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600))
             ):
-                dtresult = dtresult - datetime.timedelta(seconds=lag)
-                result = self._datetime_to_timestamp(dtresult)
+                dtresult_adjusted = dtresult - datetime.timedelta(seconds=lag)
+                result_adjusted = self._datetime_to_timestamp(dtresult_adjusted)
+                # Do the actual adjust only if the result time actually exists
+                if self._timestamp_to_datetime(result_adjusted).tzinfo == dtresult_adjusted.tzinfo:
+                    dtresult = dtresult_adjusted
+                    result = result_adjusted
                 self.dst_start_time = result
         self.cur = result
         if issubclass(ret_type, datetime.datetime):

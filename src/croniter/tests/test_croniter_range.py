@@ -160,6 +160,20 @@ class CroniterRangeTest(base.TestCase):
         except CroniterBadTypeRangeError:
             self.fail('should not be triggered')
 
+    def test_dst_iter(self):
+        tz = pytz.timezone('Asia/Hebron')
+        now = datetime(2022, 3, 26, 0, 0, 0, tzinfo=tz)
+        it = croniter('0 0 * * *', now)
+        ret = [
+            it.get_next(datetime).isoformat(),
+            it.get_next(datetime).isoformat(),
+            it.get_next(datetime).isoformat(),
+        ]
+        self.assertEqual(ret, [
+            '2022-03-26T00:00:00+02:00',
+            '2022-03-27T01:00:00+03:00',
+            '2022-03-28T00:00:00+03:00'])
+
 
 if __name__ == '__main__':
     unittest.main()
