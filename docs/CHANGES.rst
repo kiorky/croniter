@@ -1,15 +1,10 @@
 Changelog
 ==============
 
-1.3.7 (unreleased)
+1.3.7 (2022-09-06)
 ------------------
 
-- Nothing changed yet.
-
-
-1.3.6 (2022-09-06)
-------------------
-
+- fix tests
 - Fix croniter_range infinite loop  [Shachar Snapiri <ssnapiri@paloaltonetworks.com>]
 
 
