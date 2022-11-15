@@ -18,7 +18,7 @@ install_requires = [
 long_description = "\n\n".join(
     [
         read('README.rst'),
-        read('docs', 'CHANGES.rst'),
+        read('CHANGELOG.rst'),
     ]
 )
 
@@ -55,6 +55,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Libraries :: Python Modules"],
     packages=find_packages('src', exclude=['tests*', '*.tests*']),
     package_dir={'': 'src'},
