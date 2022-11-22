@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.8 (unreleased)
+1.3.8 (2022-11-22)
 ------------------
 
 - Add Python 3.11 support and move docs files to main folder [rafsaf]
