@@ -17,10 +17,10 @@ croniter provides iteration for the datetime object with a cron like format.
 
 Website: https://github.com/kiorky/croniter
 
-Travis badge
-=============
-.. image:: https://travis-ci.org/kiorky/croniter.svg?branch=master
-    :target: https://travis-ci.org/kiorky/croniter
+Build Badge
+===========
+.. image:: https://github.com/kiorky/croniter/actions/workflows/cicd.yml/badge.svg
+    :target: https://github.com/kiorky/croniter/actions/workflows/cicd.yml
 
 
 Usage
