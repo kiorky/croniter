@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.10 (unreleased)
+1.3.10 (2023-04-07)
 -------------------
 
 - Fix DOW hash parsing [kiorky]
