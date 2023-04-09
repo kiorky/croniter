@@ -29,6 +29,7 @@ DOW_ALPHAS = {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat':
 ALPHAS = {}
 for i in M_ALPHAS, DOW_ALPHAS:
     ALPHAS.update(i)
+del i
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
 
