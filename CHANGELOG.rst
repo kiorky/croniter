@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.12 (unreleased)
+1.3.12 (2023-04-12)
 -------------------
 
 - restore py2 compat
