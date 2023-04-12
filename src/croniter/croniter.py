@@ -909,6 +909,10 @@ class HashExpander:
 
         if m['hash_type'] == 'h' and hash_id is None:
             raise CroniterBadCronError('Hashed definitions must include hash_id')
+        
+        if m['range_begin'] and m['range_end']:
+            if int(m['range_begin']) >=  int(m['range_end']):
+                raise CroniterBadCronError('Range end must be greater than range begin')
 
         if m['range_begin'] and m['range_end'] and m['divisor']:
             # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
