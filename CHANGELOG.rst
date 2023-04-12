@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.13 (unreleased)
+1.3.13 (2023-04-12)
 -------------------
 
 - Add check for range begin/end
