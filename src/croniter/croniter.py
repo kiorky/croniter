@@ -887,15 +887,20 @@ class HashExpander:
 
     def do(self, idx, hash_type="h", hash_id=None, range_end=None, range_begin=None):
         """Return a hashed/random integer given range/hash information"""
+        hours_or_minutes = idx in {0, 1}
         if range_end is None:
-            range_end = self.cron.RANGES[idx][1]
+            range_end = croniter.RANGES[idx][1]
+            if hours_or_minutes:
+                range_end += 1
         if range_begin is None:
             range_begin = self.cron.RANGES[idx][0]
         if hash_type == 'r':
             crc = random.randint(0, 0xFFFFFFFF)
         else:
             crc = binascii.crc32(hash_id) & 0xFFFFFFFF
-        return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
+        if not hours_or_minutes:
+            return ((crc >> idx) % (range_end - range_begin + 1)) + range_begin
+        return ((crc >> idx) % (range_end - range_begin)) + range_begin
 
     def match(self, efl, idx, expr, hash_id=None, **kw):
         return hash_expression_re.match(expr)
