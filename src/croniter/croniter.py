@@ -889,7 +889,7 @@ class HashExpander:
         """Return a hashed/random integer given range/hash information"""
         hours_or_minutes = idx in {0, 1}
         if range_end is None:
-            range_end = croniter.RANGES[idx][1]
+            range_end = self.cron.RANGES[idx][1]
             if hours_or_minutes:
                 range_end += 1
         if range_begin is None:
