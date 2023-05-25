@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.3.15 (unreleased)
+1.3.15 (2023-05-25)
 -------------------
 
 - Fix hashed expressions omitting some entries
