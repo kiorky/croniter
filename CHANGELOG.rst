@@ -4,8 +4,10 @@ Changelog
 1.3.15 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Fix hashed expressions omitting some entries
+  [@waltervos/Walter Vos <walter.vos@ns.nl>]
+- Enhance .match() precision for 6 position expressions
+  [@szpol/szymon <szymon.polinkiewicz@gmail.com>]
 
 1.3.14 (2023-04-12)
 -------------------
