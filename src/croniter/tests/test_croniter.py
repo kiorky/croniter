@@ -1015,6 +1015,14 @@ class CroniterTest(base.TestCase):
             datetime(2019, 1, 14, 0, 1, 0, 0)
         ))
         self.assertTrue(croniter.match(
+            "0 0 * * * 1",
+            datetime(2023, 5, 25, 0, 0, 1, 0)
+        ))
+        self.assertFalse(croniter.match(
+            "0 0 * * * 1",
+            datetime(2023, 5, 25, 0, 0, 2, 0)
+        ))
+        self.assertTrue(croniter.match(
             "31 * * * *",
             datetime(2019, 1, 14, 1, 31, 0, 0)
         ))
