@@ -817,7 +817,8 @@ class croniter(object):
             td = td + ms1
         cron.set_current(td, force=True)
         tdp, tdt = cron.get_current(), cron.get_prev()
-        return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
+        precision_in_seconds = 1 if len(cron.expanded) == 6 else 60
+        return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < precision_in_seconds
 
 
 def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,
