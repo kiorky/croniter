@@ -202,6 +202,23 @@ class CroniterTest(base.TestCase):
         self.assertEqual(n3.day, 1)
         self.assertEqual(n3.year, 2010)
 
+    def testDomDowVixieCronBug(self):
+        expr = '0 16 */2 * sat'
+
+        # UNION OF "every odd-numbered day" and "every Saturday"
+        itr = croniter(expr, start_time=datetime(2023, 5, 2), ret_type=datetime)
+        self.assertEqual(itr.get_next(), datetime(2023, 5, 3, 16, 0, 0))    # Wed May 3 2023
+        self.assertEqual(itr.get_next(), datetime(2023, 5, 5, 16, 0, 0))    # Fri May 5 2023
+        self.assertEqual(itr.get_next(), datetime(2023, 5, 6, 16, 0, 0))    # Sat May 6 2023
+        self.assertEqual(itr.get_next(), datetime(2023, 5, 7, 16, 0, 0))    # Sun May 7 2023
+
+        # INTERSECTION OF "every odd-numbered day" and "every Saturday"
+        itr = croniter(expr, start_time=datetime(2023, 5, 2), ret_type=datetime, implement_cron_bug=True)
+        self.assertEqual(itr.get_next(), datetime(2023, 5, 13, 16, 0, 0))    # Sat May  13 2023
+        self.assertEqual(itr.get_next(), datetime(2023, 5, 27, 16, 0, 0))    # Sat May  27 2023
+        self.assertEqual(itr.get_next(), datetime(2023, 6, 3, 16, 0, 0))     # Sat June  3 2023
+        self.assertEqual(itr.get_next(), datetime(2023, 6, 17, 16, 0, 0))    # Sun June 17 2023
+
     def testMonth(self):
         base = datetime(2010, 1, 25)
         itr = croniter('0 0 1 * *', base)
