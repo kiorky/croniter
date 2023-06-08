@@ -151,9 +151,10 @@ class croniter(object):
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
                  day_or=True, max_years_between_matches=None, is_prev=False,
-                 hash_id=None):
+                 hash_id=None, implement_cron_bug=False):
         self._ret_type = ret_type
         self._day_or = day_or
+        self._implement_cron_bug = implement_cron_bug
 
         if hash_id:
             if not isinstance(hash_id, (bytes, str)):
@@ -177,7 +178,7 @@ class croniter(object):
         self.cur = None
         self.set_current(start_time, force=False)
 
-        self.expanded, self.nth_weekday_of_month = self.expand(expr_format, hash_id=hash_id)
+        self.expanded, self.nth_weekday_of_month, self.expressions = self.expand(expr_format, hash_id=hash_id)
         self._is_prev = is_prev
 
     @classmethod
@@ -254,19 +255,30 @@ class croniter(object):
                             "is acceptable.")
 
         # exception to support day of month and day of week as defined in cron
+        dom_dow_exception_processed = False
         if (expanded[2][0] != '*' and expanded[4][0] != '*') and self._day_or:
-            bak = expanded[4]
-            expanded[4] = ['*']
-            t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
-            expanded[4] = bak
-            expanded[2] = ['*']
-
-            t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
-            if not is_prev:
-                result = t1 if t1 < t2 else t2
+            # If requested, handle a bug in vixie cron/ISC cron where day_of_month and day_of_week form
+            # an intersection (AND) instead of a union (OR) if either field is an asterisk or starts with an asterisk
+            # (https://crontab.guru/cron-bug.html)
+            if self._implement_cron_bug and (re.match('\*', self.expressions[2]) or  re.match('\*', self.expressions[4])):
+                # To produce a schedule identical to the cron bug, we'll bypass the code that
+                # makes a union of DOM and DOW, and instead skip to the code that does an intersect instead
+                pass
             else:
-                result = t1 if t1 > t2 else t2
-        else:
+                bak = expanded[4]
+                expanded[4] = ['*']
+                t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
+                expanded[4] = bak
+                expanded[2] = ['*']
+
+                t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
+                if not is_prev:
+                    result = t1 if t1 < t2 else t2
+                else:
+                    result = t1 if t1 > t2 else t2
+                dom_dow_exception_processed = True
+
+        if not dom_dow_exception_processed:
             result = self._calc(self.cur, expanded,
                                 nth_weekday_of_month, is_prev)
 
@@ -782,7 +794,7 @@ class croniter(object):
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
                     "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
 
-        return expanded, nth_weekday_of_month
+        return expanded, nth_weekday_of_month, expressions
 
     @classmethod
     def expand(cls, expr_format, hash_id=None):
