@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.4.1 (unreleased)
+1.4.1 (2023-06-15)
 ------------------
 
 - Make a retrocompatible version of 1.4.0 change about supporting VIXIECRON bug. (fix #47)
