@@ -1,10 +1,18 @@
 Changelog
 ==============
 
-1.3.16 (unreleased)
--------------------
+1.4.1 (unreleased)
+------------------
 
 - Nothing changed yet.
+
+
+1.4.0 (2023-06-15)
+------------------
+
+- Added "implement_cron_bug" flag to make the cron parser compatible with a bug in Vixie/ISC Cron
+  [kiorky, David White <dwhite2@cisco.com>]
+  *WARNING*: EXPAND METHOD CHANGES RETURN VALUE
 
 
 1.3.15 (2023-05-25)
