@@ -40,6 +40,7 @@ special_dow_re = re.compile(
     (r'^(?P<pre>((?P<he>(({WEEKDAYS})(-({WEEKDAYS}))?)').format(WEEKDAYS=WEEKDAYS) +
     (r'|(({MONTHS})(-({MONTHS}))?)|\w+)#)|l)(?P<last>\d+)$').format(MONTHS=MONTHS)
 )
+re_star = re.compile('[*]')
 hash_expression_re = re.compile(
     r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
 )
@@ -260,7 +261,7 @@ class croniter(object):
             # If requested, handle a bug in vixie cron/ISC cron where day_of_month and day_of_week form
             # an intersection (AND) instead of a union (OR) if either field is an asterisk or starts with an asterisk
             # (https://crontab.guru/cron-bug.html)
-            if self._implement_cron_bug and (re.match('\*', self.expressions[2]) or  re.match('\*', self.expressions[4])):
+            if self._implement_cron_bug and (re_star.match(self.expressions[2]) or re_star.match(self.expressions[4])):
                 # To produce a schedule identical to the cron bug, we'll bypass the code that
                 # makes a union of DOM and DOW, and instead skip to the code that does an intersect instead
                 pass
