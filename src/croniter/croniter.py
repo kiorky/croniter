@@ -716,8 +716,8 @@ class croniter(object):
                         # do not support 0 as a month either for classical 5 fields cron
                         # or 6fields second repeat form
                         # but still let conversion happen if day field is shifted
-                        (i == 3 and len(expressions) == 5) or
-                        (i == 4 and len(expressions) == 6)
+                        (i in [2, 3] and len(expressions) == 5) or
+                        (i in [3, 4] and len(expressions) == 6)
                     ):
                         t = cls.LOWMAP[i][t]
 
