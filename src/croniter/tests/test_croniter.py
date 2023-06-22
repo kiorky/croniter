@@ -317,14 +317,14 @@ class CroniterTest(base.TestCase):
         wildcard = ['*']
         m, h, d, mon, dow, s = range(6)
         # Test each field individually
-        self.assertEqual(croniter('0-59 0 0 1 0').expanded[m], wildcard)
-        self.assertEqual(croniter('0 0-23 0 1 0').expanded[h], wildcard)
-        self.assertEqual(croniter('0 0 0-31 1 0').expanded[d], wildcard)
-        self.assertEqual(croniter('0 0 0 1-12 0').expanded[mon], wildcard)
-        self.assertEqual(croniter('0 0 0 1 0-6').expanded[dow], wildcard)
-        self.assertEqual(croniter('0 0 0 1 1-7').expanded[dow], wildcard)
-        self.assertEqual(croniter('0 0 0 1 1-7,sat#3').expanded[dow], wildcard)
-        self.assertEqual(croniter('0 0 0 1 0 0-59').expanded[s], wildcard)
+        self.assertEqual(croniter('0-59 0 1 1 0').expanded[m], wildcard)
+        self.assertEqual(croniter('0 0-23 1 1 0').expanded[h], wildcard)
+        self.assertEqual(croniter('0 0 1-31 1 0').expanded[d], wildcard)
+        self.assertEqual(croniter('0 0 1 1-12 0').expanded[mon], wildcard)
+        self.assertEqual(croniter('0 0 1 1 0-6').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 1 1 1-7').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 1 1 1-7,sat#3').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 1 1 0 0-59').expanded[s], wildcard)
         # Real life examples
         self.assertEqual(croniter('30 1-12,0,10-23 15-21 * fri').expanded[h], wildcard)
         self.assertEqual(croniter('30 1-23,0 15-21 * fri').expanded[h], wildcard)
@@ -1342,41 +1342,42 @@ class CroniterTest(base.TestCase):
         self.assertEqual(prev1.hour, 6)
         self.assertEqual(prev1.minute, 0)
 
+    maxDiff = None
     def test_issue_142_dow(self):
         ret = []
         for i in range(1, 31):
             ret.append((i,
-                croniter('35 * 0-l/8 * *', datetime(2020, 1, i),
+                croniter('35 * 1-l/8 * *', datetime(2020, 1, i),
                          ret_type=datetime).get_next())
             )
             i += 1
         self.assertEqual(
             ret,
             [(1, datetime(2020, 1, 1, 0, 35)),
-             (2, datetime(2020, 1, 8, 0, 35)),
-             (3, datetime(2020, 1, 8, 0, 35)),
-             (4, datetime(2020, 1, 8, 0, 35)),
-             (5, datetime(2020, 1, 8, 0, 35)),
-             (6, datetime(2020, 1, 8, 0, 35)),
-             (7, datetime(2020, 1, 8, 0, 35)),
-             (8, datetime(2020, 1, 8, 0, 35)),
-             (9, datetime(2020, 1, 16, 0, 35)),
-             (10, datetime(2020, 1, 16, 0, 35)),
-             (11, datetime(2020, 1, 16, 0, 35)),
-             (12, datetime(2020, 1, 16, 0, 35)),
-             (13, datetime(2020, 1, 16, 0, 35)),
-             (14, datetime(2020, 1, 16, 0, 35)),
-             (15, datetime(2020, 1, 16, 0, 35)),
-             (16, datetime(2020, 1, 16, 0, 35)),
-             (17, datetime(2020, 1, 24, 0, 35)),
-             (18, datetime(2020, 1, 24, 0, 35)),
-             (19, datetime(2020, 1, 24, 0, 35)),
-             (20, datetime(2020, 1, 24, 0, 35)),
-             (21, datetime(2020, 1, 24, 0, 35)),
-             (22, datetime(2020, 1, 24, 0, 35)),
-             (23, datetime(2020, 1, 24, 0, 35)),
-             (24, datetime(2020, 1, 24, 0, 35)),
-             (25, datetime(2020, 2, 1, 0, 35)),
+             (2, datetime(2020, 1, 9, 0, 35)),
+             (3, datetime(2020, 1, 9, 0, 35)),
+             (4, datetime(2020, 1, 9, 0, 35)),
+             (5, datetime(2020, 1, 9, 0, 35)),
+             (6, datetime(2020, 1, 9, 0, 35)),
+             (7, datetime(2020, 1, 9, 0, 35)),
+             (8, datetime(2020, 1, 9, 0, 35)),
+             (9, datetime(2020, 1, 9, 0, 35)),
+             (10, datetime(2020, 1, 17, 0, 35)),
+             (11, datetime(2020, 1, 17, 0, 35)),
+             (12, datetime(2020, 1, 17, 0, 35)),
+             (13, datetime(2020, 1, 17, 0, 35)),
+             (14, datetime(2020, 1, 17, 0, 35)),
+             (15, datetime(2020, 1, 17, 0, 35)),
+             (16, datetime(2020, 1, 17, 0, 35)),
+             (17, datetime(2020, 1, 17, 0, 35)),
+             (18, datetime(2020, 1, 25, 0, 35)),
+             (19, datetime(2020, 1, 25, 0, 35)),
+             (20, datetime(2020, 1, 25, 0, 35)),
+             (21, datetime(2020, 1, 25, 0, 35)),
+             (22, datetime(2020, 1, 25, 0, 35)),
+             (23, datetime(2020, 1, 25, 0, 35)),
+             (24, datetime(2020, 1, 25, 0, 35)),
+             (25, datetime(2020, 1, 25, 0, 35)),
              (26, datetime(2020, 2, 1, 0, 35)),
              (27, datetime(2020, 2, 1, 0, 35)),
              (28, datetime(2020, 2, 1, 0, 35)),
@@ -1433,13 +1434,14 @@ class CroniterTest(base.TestCase):
 
     def test_confirm_sort(self):
         m, h, d, mon, dow, s = range(6)
-        self.assertListEqual(croniter('0 8,22,10,23 0 1 0').expanded[h], [8, 10, 22, 23])
+        self.assertListEqual(croniter('0 8,22,10,23 1 1 0').expanded[h], [8, 10, 22, 23])
         self.assertListEqual(croniter('0 0 25-L 1 0').expanded[d], [25, 26, 27, 28, 29, 30, 31])
         self.assertListEqual(croniter("1 1 7,14,21,L * *").expanded[d], [7, 14, 21, "l"])
         self.assertListEqual(croniter("0 0 * * *,sat#3").expanded[dow], ["*", 6])
 
     def test_issue_k6(self):
         self.assertRaises(CroniterBadCronError, croniter, '0 0 0 0 0')
+        self.assertRaises(CroniterBadCronError, croniter, '0 0 0 1 0')
 
 
 if __name__ == '__main__':
