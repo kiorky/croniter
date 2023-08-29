@@ -1449,7 +1449,7 @@ class CroniterTest(base.TestCase):
         nextnow2 = croniter('* * * * * ', now).next(datetime)
         for nt in nextnow, nextnow2:
             self.assertEqual(nt.tzinfo.zone, 'America/New_York')
-            self.assertEqual(int(nt.timestamp()), 1547481660)
+            self.assertEqual(int(croniter._datetime_to_timestamp(nt)), 1547481660)
 
 
 if __name__ == '__main__':
