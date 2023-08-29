@@ -4,7 +4,8 @@ Changelog
 1.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Restore compat with python2
+  [kiorky]
 
 
 1.3.0 (2022-02-15)
