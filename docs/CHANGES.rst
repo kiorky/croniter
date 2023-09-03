@@ -4,7 +4,8 @@ Changelog
 1.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix #12: regressions with set_current
+  [kiorky, agateblue]
 
 
 1.3.1 (2022-02-15)
