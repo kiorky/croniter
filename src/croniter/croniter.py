@@ -149,7 +149,7 @@ class croniter(object):
         self.start_time = None
         self.dst_start_time = None
         self.cur = None
-        self.set_current(start_time)
+        self.set_current(start_time, force=False)
 
         self.expanded, self.nth_weekday_of_month = self.expand(expr_format, hash_id=hash_id)
         self._is_prev = is_prev
@@ -163,7 +163,7 @@ class croniter(object):
                 "[{0}] is not acceptable".format(" ".join(expressions)))
 
     def get_next(self, ret_type=None, start_time=None):
-        self.set_current(start_time)
+        self.set_current(start_time, force=True)
         return self._get_next(ret_type or self._ret_type, is_prev=False)
 
     def get_prev(self, ret_type=None):

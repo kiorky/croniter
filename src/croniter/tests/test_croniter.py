@@ -1451,7 +1451,7 @@ class CroniterTest(base.TestCase):
             self.assertEqual(nt.tzinfo.zone, 'America/New_York')
             self.assertEqual(int(croniter._datetime_to_timestamp(nt)), 1547481660)
 
-    def test_issue_12(self):
+    def test_issue_k12(self):
         base = datetime(2010, 1, 23, 12, 18, tzinfo=timezone.utc)
         itr = croniter('* * * * *')
         itr.set_current(start_time=base)
