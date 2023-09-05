@@ -4,7 +4,8 @@ Changelog
 1.3.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Really fix compat for tests under py27
+  [kiorky]
 
 
 1.3.3 (2022-02-18)

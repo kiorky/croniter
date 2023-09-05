@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
 import pytz
-from croniter import (croniter, CroniterBadDateError,  CroniterBadCronError,
+from croniter import (croniter, CroniterBadDateError,  CroniterBadCronError, datetime_to_timestamp,
                       CroniterNotAlphaError, CroniterUnsupportedSyntaxError)
 from croniter.tests import base
 import dateutil.tz
@@ -1458,7 +1458,8 @@ class CroniterTest(base.TestCase):
         itr.set_current(start_time=base)
         n1 = itr.get_next()   # 19
 
-        self.assertEqual(n1, base.timestamp() + 60)
+        self.assertEqual(n1, datetime_to_timestamp(base) + 60)
+
 
 if __name__ == '__main__':
     unittest.main()
