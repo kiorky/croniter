@@ -31,6 +31,18 @@ hash_expression_re = re.compile(
 VALID_LEN_EXPRESSION = [5, 6]
 
 
+def timedelta_to_seconds(td):
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
+        / 10**6
+
+
+def datetime_to_timestamp(d):
+    if d.tzinfo is not None:
+        d = d.replace(tzinfo=None) - d.utcoffset()
+
+    return timedelta_to_seconds(d - datetime.datetime(1970, 1, 1))
+
+
 def _get_caller_globals_and_locals():
     """
     Returns the globals and locals of the calling frame.
@@ -191,10 +203,7 @@ class croniter(object):
         """
         Converts a `datetime` object `d` into a UNIX timestamp.
         """
-        if d.tzinfo is not None:
-            d = d.replace(tzinfo=None) - d.utcoffset()
-
-        return cls._timedelta_to_seconds(d - datetime.datetime(1970, 1, 1))
+        return datetime_to_timestamp(d)
 
     def _timestamp_to_datetime(self, timestamp):
         """
@@ -214,8 +223,7 @@ class croniter(object):
         Note: We cannot use `timedelta.total_seconds()` because this is not
         supported by Python 2.6.
         """
-        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
-            / 10**6
+        return timedelta_to_seconds(td)
 
     def _get_next(self, ret_type=None, start_time=None, is_prev=None):
         self.set_current(start_time, force=True)
