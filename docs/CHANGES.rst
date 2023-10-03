@@ -4,7 +4,6 @@ Changelog
 1.3.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
 - Add Python 3.10 support [eelkevdbos]
 
 
