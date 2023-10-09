@@ -4,7 +4,7 @@ Changelog
 1.4.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add Python 3.12 support [rafsaf]
 
 
 1.4.1 (2023-06-15)

@@ -227,7 +227,7 @@ class croniter(object):
         """
         Converts a UNIX timestamp `timestamp` into a `datetime` object.
         """
-        result = datetime.datetime.utcfromtimestamp(timestamp)
+        result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
         if self.tzinfo:
             result = result.replace(tzinfo=tzutc()).astimezone(self.tzinfo)
 
@@ -851,7 +851,7 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     auto_rt = datetime.datetime
     # type is used in first if branch for perfs reasons
     if (
-        type(start) != type(stop) and not (
+        type(start) is not type(stop) and not (
             isinstance(start, type(stop)) or
             isinstance(stop, type(start)))
     ):
@@ -859,7 +859,7 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
             "The start and stop must be same type.  {0} != {1}".
             format(type(start), type(stop)))
     if isinstance(start, (float, int)):
-        start, stop = (datetime.datetime.utcfromtimestamp(t) for t in (start, stop))
+        start, stop = (datetime.datetime.fromtimestamp(t, tzutc()).replace(tzinfo=None) for t in (start, stop))
         auto_rt = float
     if ret_type is None:
         ret_type = auto_rt

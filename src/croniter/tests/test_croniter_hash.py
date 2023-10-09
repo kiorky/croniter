@@ -191,7 +191,7 @@ class CroniterWordAliasTest(CroniterHashBase):
 
 
 class CroniterHashExpanderBase(base.TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
         _rd = random.Random()
         _rd.seed(100)
         self.HASH_IDS = [
