@@ -957,7 +957,7 @@ class CroniterTest(base.TestCase):
         dt = datetime(2019, 1, 14, 0, 0, 0, 0)
         for i in range(10):
             c = croniter("0 0 * * 2-4 *", start_time=dt)
-            dt = datetime.utcfromtimestamp(c.get_next())
+            dt = datetime.fromtimestamp(c.get_next(), dateutil.tz.tzutc()).replace(tzinfo=None)
             ret.append(dt)
             dt += timedelta(days=1)
         sret = ["{0}".format(r) for r in ret]
@@ -977,7 +977,7 @@ class CroniterTest(base.TestCase):
         dt = datetime(2019, 1, 14, 0, 0, 0, 0)
         for i in range(10):
             c = croniter("0 0 * * 1-7 *", start_time=dt)
-            dt = datetime.utcfromtimestamp(c.get_next())
+            dt = datetime.fromtimestamp(c.get_next(), dateutil.tz.tzutc()).replace(tzinfo=None)
             ret.append(dt)
             dt += timedelta(days=1)
         sret = ["{0}".format(r) for r in ret]
@@ -1000,7 +1000,7 @@ class CroniterTest(base.TestCase):
         for i in range(10):
             # c = croniter("0 0 * * Mon-Sun *", start_time=dt)
             c = croniter("0 0 * * Wed-Sun *", start_time=dt)
-            dt = datetime.utcfromtimestamp(c.get_next())
+            dt = datetime.fromtimestamp(c.get_next(), tz=dateutil.tz.tzutc()).replace(tzinfo=None)
             ret.append(dt)
             dt += timedelta(days=1)
         sret = ["{0}".format(r) for r in ret]
