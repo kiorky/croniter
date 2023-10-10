@@ -1,4 +1,4 @@
-include *.txt *.cfg *.rst *.ini
+include *.txt *.cfg *.rst *.ini LICENSE
 
 recursive-include docs *
 recursive-include requirements *
