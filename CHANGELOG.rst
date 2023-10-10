@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-1.4.2 (unreleased)
+2.0.0 (2023-10-10)
 ------------------
 
 - Add Python 3.12 support [rafsaf]
