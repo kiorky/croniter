@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-2.0.1 (unreleased)
+2.0.1 (2023-10-11)
 ------------------
 
 - Fix release issue [kiorky]
