@@ -4,7 +4,7 @@ Changelog
 1.3.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix croniter_range infinite loop  [Shachar Snapiri <ssnapiri@paloaltonetworks.com>]
 
 
 1.3.5 (2022-05-14)
