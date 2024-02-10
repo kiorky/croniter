@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  app:
+    build: {context: .}
+    volumes:
+    - ./src:/app/src
+    - ./setup.py:/app/setup.py
+    - ./docker-entry.sh:/app/docker-entry.sh
