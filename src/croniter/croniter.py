@@ -396,7 +396,7 @@ class croniter(object):
                 if diff_month is not None and diff_month != 0:
                     if is_prev:
                         d += relativedelta(months=diff_month)
-                        reset_day = DAYS[d.month - 1]
+                        reset_day = days
                         d += relativedelta(
                             day=reset_day, hour=23, minute=59, second=59)
                     else:
