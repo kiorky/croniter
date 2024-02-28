@@ -132,6 +132,14 @@ class CroniterTest(base.TestCase):
         n4 = itr2.get_next(datetime)
         self.assertEqual(n4.day, 29)
         self.assertEqual(n4.month, 2)
+      
+    def testDay2(self):
+        base3 = datetime(2024, 2, 28)
+        itr2 = croniter('* * 29 2 *', base3)
+        n3 = itr2.get_prev(datetime)
+        self.assertEqual(n3.year, 2020)
+        self.assertEqual(n3.month, 2)
+        self.assertEqual(n3.day, 29)
 
     def testWeekDay(self):
         base = datetime(2010, 2, 25)
