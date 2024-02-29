@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-2.0.2 (unreleased)
+2.0.2 (2024-02-29)
 ------------------
 
 - fix leap year (29 days in February) [zed2015]
