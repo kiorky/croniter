@@ -4,7 +4,7 @@ Changelog
 2.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- fix leap year (29 days in February) [zed2015]
 
 
 2.0.1 (2023-10-11)
