@@ -1573,5 +1573,10 @@ class CroniterTest(base.TestCase):
         self.assertEqual(ret, rets)
         croniter.expand("30 6 1-7 MAY MON#1")
 
+    def test_bug_62_leap(self):
+        ret = croniter("15 22 29 2 *", datetime(2024, 2, 29)).get_prev(datetime)
+        self.assertEqual(ret, datetime(2020, 2, 29, 22, 15))
+
+
 if __name__ == '__main__':
     unittest.main()
