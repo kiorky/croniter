@@ -1082,6 +1082,79 @@ class CroniterTest(base.TestCase):
             day_or=False
         ))
 
+    def test_match_range(self):
+        self.assertTrue(croniter.match_range(
+            "0 0 * * *",
+            datetime(2019, 1, 13, 0, 59, 0, 0),
+            datetime(2019, 1, 14, 0, 1, 0, 0)
+        ))
+        self.assertFalse(croniter.match_range(
+            "0 0 * * *",
+            datetime(2019, 1, 13, 0, 1, 0, 0),
+            datetime(2019, 1, 13, 0, 59, 0, 0)
+        ))
+        self.assertTrue(croniter.match_range(
+            "0 0 * * * 1",
+            datetime(2023, 5, 25, 0, 0, 0, 0),
+            datetime(2023, 5, 25, 0, 0, 2, 0)
+        ))
+        self.assertFalse(croniter.match_range(
+            "0 0 * * * 1",
+            datetime(2023, 5, 25, 0, 0, 2, 0),
+            datetime(2023, 5, 25, 0, 0, 4, 0)
+        ))
+        self.assertTrue(croniter.match_range(
+            "0 0 * * * 1",
+            datetime(2023, 5, 25, 0, 0, 1, 0),
+            datetime(2023, 5, 25, 0, 0, 4, 0)
+        ))
+        self.assertTrue(croniter.match_range(
+            "31 * * * *",
+            datetime(2019, 1, 14, 1, 30, 0, 0),
+            datetime(2019, 1, 14, 1, 31, 0, 0)
+        ))
+        self.assertTrue(croniter.match_range(
+            "0 0 10 * wed",
+            datetime(2020, 6, 9, 0, 0, 0, 0),
+            datetime(2020, 6, 11, 0, 0, 0, 0),
+            day_or=True
+        ))
+        self.assertTrue(croniter.match_range(
+            "0 0 10 * fri",
+            datetime(2020, 6, 10, 0, 0, 0, 0),
+            datetime(2020, 6, 11, 0, 0, 0, 0),
+            day_or=True
+        ))
+        self.assertTrue(croniter.match_range(
+            "0 0 10 * fri",
+            datetime(2020, 6, 11, 0, 0, 0, 0),
+            datetime(2020, 6, 12, 0, 0, 0, 0),
+            day_or=True
+        ))
+        self.assertTrue(croniter.match_range(
+            "0 0 10 * wed",
+            datetime(2020, 6, 9, 0, 0, 0, 0),
+            datetime(2020, 6, 12, 0, 0, 0, 0),
+            day_or=False
+        ))
+        self.assertFalse(croniter.match_range(
+            "0 0 10 * fri",
+            datetime(2020, 6, 8, 0, 0, 0, 0),
+            datetime(2020, 6, 9, 0, 0, 0, 0),
+            day_or=False
+        ))
+        self.assertFalse(croniter.match_range(
+            "0 0 10 * fri",
+            datetime(2020, 6, 7, 0, 0, 0, 0),
+            datetime(2020, 6, 11, 0, 0, 0, 0),
+            day_or=False
+        ))
+        self.assertFalse(croniter.match_range(
+            "2 4 1 * wed",
+            datetime(2019, 1, 1, 3, 2, 0, 0),
+            datetime(2019, 1, 1, 5, 2, 0, 0),
+            day_or=False
+        ))
 
     def test_dst_issue90_st31ny(self):
         tz = pytz.timezone("Europe/Paris")
