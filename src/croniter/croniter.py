@@ -833,14 +833,19 @@ class croniter(object):
 
     @classmethod
     def match(cls, cron_expression, testdate, day_or=True):
-        cron = cls(cron_expression, testdate, ret_type=datetime.datetime, day_or=day_or)
+        return cls.match_range(cron_expression, testdate, testdate, day_or)
+
+    @classmethod
+    def match_range(cls, cron_expression, from_datetime, to_datetime, day_or=True):
+        cron = cls(cron_expression, to_datetime, ret_type=datetime.datetime, day_or=day_or)
         td, ms1 = cron.get_current(datetime.datetime), relativedelta(microseconds=1)
         if not td.microsecond:
             td = td + ms1
         cron.set_current(td, force=True)
         tdp, tdt = cron.get_current(), cron.get_prev()
         precision_in_seconds = 1 if len(cron.expanded) == 6 else 60
-        return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < precision_in_seconds
+        duration_in_second = (to_datetime - from_datetime).total_seconds() + precision_in_seconds
+        return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < duration_in_second
 
 
 def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,

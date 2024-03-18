@@ -1,10 +1,10 @@
 Changelog
 ==============
 
-2.0.3 (unreleased)
+2.0.3 (2024-03-19)
 ------------------
 
-- Nothing changed yet.
+- Add match_range function [salitaba]
 
 
 2.0.2 (2024-02-29)

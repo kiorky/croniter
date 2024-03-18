@@ -147,6 +147,21 @@ Test for a match with (>=0.3.32)::
     >>> croniter.match("2 4 1 * wed", datetime(2019, 1, 1, 4, 2, 0, 0), day_or=False) # 04:02 on every 1st day of the month if it is a Wednesday
     False
 
+Testing if a crontab matches in datetime range
+==============================================
+Test for a match_range with (>=2.0.3)::
+
+    >>> croniter.match_range("0 0 * * *", datetime(2019, 1, 13, 0, 59, 0, 0), datetime(2019, 1, 14, 0, 1, 0, 0))
+    True
+    >>> croniter.match_range("0 0 * * *", datetime(2019, 1, 13, 0, 1, 0, 0), datetime(2019, 1, 13, 0, 59, 0, 0))
+    False
+    >>> croniter.match_range("2 4 1 * wed", datetime(2019, 1, 1, 3, 2, 0, 0), datetime(2019, 1, 1, 5, 1, 0, 0))
+    # 04:02 on every Wednesday OR on 1st day of month
+    True
+    >>> croniter.match_range("2 4 1 * wed", datetime(2019, 1, 1, 3, 2, 0, 0), datetime(2019, 1, 1, 5, 2, 0, 0), day_or=False)
+    # 04:02 on every 1st day of the month if it is a Wednesday
+    False
+
 Gaps between date matches
 =========================
 For performance reasons, croniter limits the amount of CPU cycles spent attempting to find the next match.
@@ -294,4 +309,5 @@ If you have contributed and your name is not listed below please let me know.
     - scop
     - zed2015
     - Ryan Finnie (rfinnie)
+    - salitaba
 
