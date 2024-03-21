@@ -787,7 +787,12 @@ class croniter(object):
             res = set(res)
             res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
             if len(res) == cls.LEN_MEANS_ALL[i]:
-                res = ['*']
+                # Make sure the wildcard is used in the correct way (avoid over-optimization)
+                if ((i == 2 and '*' not in expressions[4]) or
+                    (i == 4 and '*' not in expressions[2])):
+                    pass
+                else:
+                    res = ['*']
 
             expanded.append(['*'] if (len(res) == 1
                                       and res[0] == '*')
@@ -798,7 +803,8 @@ class croniter(object):
             dow_expanded_set = set(expanded[4])
             dow_expanded_set = dow_expanded_set.difference(nth_weekday_of_month.keys())
             dow_expanded_set.discard("*")
-            if dow_expanded_set:
+            # Skip: if it's all weeks instead of wildcard
+            if dow_expanded_set and len(set(expanded[4])) != cls.LEN_MEANS_ALL[4]:
                 raise CroniterUnsupportedSyntaxError(
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
                     "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
