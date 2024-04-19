@@ -824,6 +824,11 @@ class croniter(object):
 
     @classmethod
     def is_valid(cls, expression, hash_id=None):
+        if hash_id:
+            if not isinstance(hash_id, (bytes, str)):
+                raise TypeError('hash_id must be bytes or UTF-8 string')
+            if not isinstance(hash_id, bytes):
+                hash_id = hash_id.encode('UTF-8')
         try:
             cls.expand(expression, hash_id=hash_id)
         except CroniterError:
