@@ -4,7 +4,7 @@ Changelog
 2.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- No changes, fix lint [kiorky]
 
 
 2.0.4 (2024-04-20)
