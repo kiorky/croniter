@@ -5,6 +5,8 @@ Changelog
 ------------------
 
 - Support hashid strings in is_valid [george-kuanli-peng, kiorky]
+- Avoid over-optimization in crontab expansions [Cherie0125, liqirui <liqirui@baidu.com>, kiorky]
+
 
 2.0.3 (2024-03-19)
 ------------------
