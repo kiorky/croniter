@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-2.0.5 (unreleased)
+2.0.5 (2024-04-20)
 ------------------
 
 - No changes, fix lint [kiorky]
