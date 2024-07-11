@@ -157,11 +157,13 @@ class croniter(object):
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
                  day_or=True, max_years_between_matches=None, is_prev=False,
-                 hash_id=None, implement_cron_bug=False, second_at_beginning=None):
+                 hash_id=None, implement_cron_bug=False, second_at_beginning=None,
+                 expand_from_start_time=False):
         self._ret_type = ret_type
         self._day_or = day_or
         self._implement_cron_bug = implement_cron_bug
         self.second_at_beginning = bool(second_at_beginning)
+        self._expand_from_start_time = expand_from_start_time
 
         if hash_id:
             if not isinstance(hash_id, (bytes, str)):
@@ -185,8 +187,11 @@ class croniter(object):
         self.cur = None
         self.set_current(start_time, force=False)
 
-        self.expanded, self.nth_weekday_of_month = (
-            self.expand(expr_format, hash_id=hash_id, second_at_beginning=second_at_beginning)
+        self.expanded, self.nth_weekday_of_month = self.expand(
+            expr_format,
+            hash_id=hash_id,
+            from_timestamp=self.dst_start_time if self._expand_from_start_time else None,
+            second_at_beginning=second_at_beginning
         )
         self.expressions = EXPRESSIONS[(expr_format, hash_id, second_at_beginning)]
         self._is_prev = is_prev
@@ -200,6 +205,8 @@ class croniter(object):
                 "[{0}] is not acceptable".format(" ".join(expressions)))
 
     def get_next(self, ret_type=None, start_time=None):
+        if start_time and self._expand_from_start_time:
+            raise ValueError("start_time is not supported when using expand_from_start_time = True.")
         self.set_current(start_time, force=True)
         return self._get_next(ret_type or self._ret_type, is_prev=False)
 
@@ -635,7 +642,7 @@ class croniter(object):
             return False
 
     @classmethod
-    def _expand(cls, expr_format, hash_id=None, second_at_beginning=False):
+    def _expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp: int = None):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
         # messages.
@@ -670,7 +677,7 @@ class croniter(object):
 
         for i, expr in enumerate(expressions):
             for expanderid, expander in EXPANDERS.items():
-                expr = expander(cls).expand(efl, i, expr, hash_id=hash_id)
+                expr = expander(cls).expand(efl, i, expr, hash_id=hash_id, from_timestamp=from_timestamp)
 
             if "?" in expr:
                 if expr != "?":
@@ -757,6 +764,10 @@ class croniter(object):
                     ):
                         raise CroniterBadCronError(
                             "{0} is out of bands".format(expr_format))
+
+                    if from_timestamp:
+                        low = cls._get_low_from_current_date_number(i, step, from_timestamp)
+
                     try:
                         rng = range(low, high + 1, step)
                     except ValueError as exc:
@@ -834,11 +845,12 @@ class croniter(object):
         return expanded, nth_weekday_of_month
 
     @classmethod
-    def expand(cls, expr_format, hash_id=None, second_at_beginning=False):
+    def expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp: int = None):
         """Shallow non Croniter ValueError inside a nice CroniterBadCronError"""
         try:
             return cls._expand(expr_format, hash_id=hash_id,
-                               second_at_beginning=second_at_beginning)
+                               second_at_beginning=second_at_beginning,
+                               from_timestamp=from_timestamp)
         except (ValueError,) as exc:
             error_type, error_instance, traceback = sys.exc_info()
             if isinstance(exc, CroniterError):
@@ -849,6 +861,22 @@ class croniter(object):
                 raise CroniterBadCronError(trace)
             else:
                 raise CroniterBadCronError("{0}".format(exc))
+
+    @classmethod
+    def _get_low_from_current_date_number(cls, i: int, step: int, from_timestamp: int) -> int:
+        dt = datetime.datetime.fromtimestamp(from_timestamp, tz=datetime.timezone.utc)
+        if i == 0:
+            return dt.minute % step
+        if i == 1:
+            return dt.hour % step
+        if i == 2:
+            return ((dt.day - 1) % step) + 1
+        if i == 3:
+            return dt.month % step
+        if i == 4:
+            return (dt.weekday() + 1) % step
+
+        raise ValueError("Can't get current date number for index larger than 4")
 
     @classmethod
     def is_valid(cls, expression, hash_id=None, encoding='UTF-8',
@@ -886,7 +914,9 @@ class croniter(object):
 
 
 def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,
-                   _croniter=None, second_at_beginning=False):
+                   _croniter=None,
+                   second_at_beginning=False,
+                   expand_from_start_time=False):
     """
     Generator that provides all times from start to stop matching the given cron expression.
     If the cron expression matches either 'start' and/or 'stop', those times will be returned as
@@ -921,7 +951,9 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
             stop -= ms1
     year_span = math.floor(abs(stop.year - start.year)) + 1
     ic = _croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
-                   max_years_between_matches=year_span, second_at_beginning=second_at_beginning)
+                   max_years_between_matches=year_span,
+                   second_at_beginning=second_at_beginning,
+                   expand_from_start_time=expand_from_start_time)
     # define a continue (cont) condition function and step function for the main while loop
     if start < stop:        # Forward
         def cont(v):

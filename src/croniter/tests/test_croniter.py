@@ -1681,6 +1681,80 @@ class CroniterTest(base.TestCase):
         ret = croniter("15 22 29 2 *", datetime(2024, 2, 29)).get_prev(datetime)
         self.assertEqual(ret, datetime(2020, 2, 29, 22, 15))
 
+    def test_expand_from_start_time_minute(self):
+        seven_seconds_interval_pattern = "*/7 * * * *"
+        ret1 = croniter(seven_seconds_interval_pattern, start_time=datetime(2024, 7, 11, 10, 11), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret1, datetime(2024, 7, 11, 10, 18))
+
+        ret2 = croniter(seven_seconds_interval_pattern, start_time=datetime(2024, 7, 11, 10, 12), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret2, datetime(2024, 7, 11, 10, 19))
+
+        ret3 = croniter(seven_seconds_interval_pattern, start_time=datetime(2024, 7, 11, 10, 11), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret3, datetime(2024, 7, 11, 10, 4))
+
+        ret4 = croniter(seven_seconds_interval_pattern, start_time=datetime(2024, 7, 11, 10, 12), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret4, datetime(2024, 7, 11, 10, 5))
+
+    def test_expand_from_start_time_hour(self):
+        seven_hours_interval_pattern = "0 */7 * * *"
+        ret1 = croniter(seven_hours_interval_pattern, start_time=datetime(2024, 7, 11, 15, 0), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret1, datetime(2024, 7, 11, 22, 0))
+
+        ret2 = croniter(seven_hours_interval_pattern, start_time=datetime(2024, 7, 11, 16, 0), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret2, datetime(2024, 7, 11, 23, 0))
+
+        ret3 = croniter(seven_hours_interval_pattern, start_time=datetime(2024, 7, 11, 15, 0), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret3, datetime(2024, 7, 11, 8, 0))
+
+        ret4 = croniter(seven_hours_interval_pattern, start_time=datetime(2024, 7, 11, 16, 0), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret4, datetime(2024, 7, 11, 9, 0))
+
+    def test_expand_from_start_time_date(self):
+        five_days_interval_pattern = "0 0 */5 * *"
+        ret1 = croniter(five_days_interval_pattern, start_time=datetime(2024, 7, 12), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret1, datetime(2024, 7, 17))
+
+        ret2 = croniter(five_days_interval_pattern, start_time=datetime(2024, 7, 13), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret2, datetime(2024, 7, 18))
+
+        ret3 = croniter(five_days_interval_pattern, start_time=datetime(2024, 7, 12), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret3, datetime(2024, 7, 7))
+
+        ret4 = croniter(five_days_interval_pattern, start_time=datetime(2024, 7, 13), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret4, datetime(2024, 7, 8))
+
+    def test_expand_from_start_time_month(self):
+        three_monts_interval_pattern = "0 0 1 */3 *"
+        ret1 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 7, 1), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret1, datetime(2024, 10, 1))
+
+        ret2 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 8, 1), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret2, datetime(2024, 11, 1))
+
+        ret3 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 7, 1), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret3, datetime(2024, 4, 1))
+
+        ret4 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 8, 1), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret4, datetime(2024, 5, 1))
+
+    def test_expand_from_start_time_day_of_week(self):
+        three_monts_interval_pattern = "0 0 * * */2"
+        ret1 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 7, 10), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret1, datetime(2024, 7, 12))
+
+        ret2 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 7, 11), expand_from_start_time=True).get_next(datetime)
+        self.assertEqual(ret2, datetime(2024, 7, 13))
+
+        ret3 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 7, 10), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret3, datetime(2024, 7, 8))
+
+        ret4 = croniter(three_monts_interval_pattern, start_time=datetime(2024, 7, 11), expand_from_start_time=True).get_prev(datetime)
+        self.assertEqual(ret4, datetime(2024, 7, 9))
+
+    def test_get_next_fails_with_expand_from_start_time_true(self):
+        expanded_croniter = croniter("0 0 */5 * *", expand_from_start_time=True)
+        self.assertRaises(ValueError, expanded_croniter.get_next, datetime, start_time=datetime(2024, 7, 12))
+
 
 if __name__ == '__main__':
     unittest.main()
