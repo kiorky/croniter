@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-2.0.6 (unreleased)
+2.0.6 (2024-07-16)
 ------------------
 
 - Implement second_at_beginning [zhouyizhen, kiorky]
