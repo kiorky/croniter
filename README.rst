@@ -133,9 +133,41 @@ You can also note that this expression will repeat every second from the start d
 
     >>> croniter('* * * * * *', local_date).get_next(datetime)
 
-You can also use seconds as first slot:
+You can also use seconds as first slot::
 
     >>> croniter('* * * * * *', local_date, second_at_beginning=True).get_next(datetime)
+
+
+Support for start_time shifts
+==============================
+See https://github.com/kiorky/croniter/pull/76,
+You can set start_time=, then expand_from_start_time=True for your generations to be computed from start_time instead of calendar days::
+
+    >>> from pprint import pprint
+    >>> iter = croniter('0 0 */7 * *', start_time=datetime(2024, 7, 11), expand_from_start_time=True);pprint([iter.get_next(datetime) for a in range(10)])
+    [datetime.datetime(2024, 7, 18, 0, 0),
+     datetime.datetime(2024, 7, 25, 0, 0),
+     datetime.datetime(2024, 8, 4, 0, 0),
+     datetime.datetime(2024, 8, 11, 0, 0),
+     datetime.datetime(2024, 8, 18, 0, 0),
+     datetime.datetime(2024, 8, 25, 0, 0),
+     datetime.datetime(2024, 9, 4, 0, 0),
+     datetime.datetime(2024, 9, 11, 0, 0),
+     datetime.datetime(2024, 9, 18, 0, 0),
+     datetime.datetime(2024, 9, 25, 0, 0)]
+	>>> # INSTEAD OF THE DEFAULT BEHAVIOR:
+    >>> iter = croniter('0 0 */7 * *', start_time=datetime(2024, 7, 11), expand_from_start_time=False);pprint([iter.get_next(datetime) for a in range(10)])
+    [datetime.datetime(2024, 7, 15, 0, 0),
+     datetime.datetime(2024, 7, 22, 0, 0),
+     datetime.datetime(2024, 7, 29, 0, 0),
+     datetime.datetime(2024, 8, 1, 0, 0),
+     datetime.datetime(2024, 8, 8, 0, 0),
+     datetime.datetime(2024, 8, 15, 0, 0),
+     datetime.datetime(2024, 8, 22, 0, 0),
+     datetime.datetime(2024, 8, 29, 0, 0),
+     datetime.datetime(2024, 9, 1, 0, 0),
+     datetime.datetime(2024, 9, 8, 0, 0)]
+
 
 Testing if a date matches a crontab
 ===================================
