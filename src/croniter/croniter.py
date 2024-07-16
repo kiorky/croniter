@@ -157,11 +157,11 @@ class croniter(object):
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
                  day_or=True, max_years_between_matches=None, is_prev=False,
-                 hash_id=None, implement_cron_bug=False, second_at_beginning=False):
+                 hash_id=None, implement_cron_bug=False, second_at_beginning=None):
         self._ret_type = ret_type
         self._day_or = day_or
         self._implement_cron_bug = implement_cron_bug
-        self.second_at_beginning = second_at_beginning
+        self.second_at_beginning = bool(second_at_beginning)
 
         if hash_id:
             if not isinstance(hash_id, (bytes, str)):
@@ -663,8 +663,7 @@ class croniter(object):
 
         if len(expressions) == 6 and second_at_beginning:
             # move second to last to process by same logical
-            second = expressions.pop(0)
-            expressions.append(second)
+            expressions.append(expressions.pop(0))
 
         expanded = []
         nth_weekday_of_month = {}

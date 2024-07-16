@@ -1446,13 +1446,13 @@ class CroniterTest(base.TestCase):
 
     def test_configure_second_location(self):
         base = datetime(2010, 8, 25, 0)
-        itr = croniter('59 59 1 * * *', base, second_at_beginning=True)
+        itr = croniter('59 58 1 * * *', base, second_at_beginning=True)
         n = itr.get_next(datetime)
         self.assertEqual(n.year, base.year)
         self.assertEqual(n.month, base.month)
         self.assertEqual(n.day, base.day)
         self.assertEqual(n.hour, 1)
-        self.assertEqual(n.minute, 59)
+        self.assertEqual(n.minute, 58)
         self.assertEqual(n.second, 59)
 
     def test_nth_out_of_range(self):
