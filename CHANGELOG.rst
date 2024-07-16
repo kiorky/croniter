@@ -4,7 +4,9 @@ Changelog
 2.0.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Implement second_at_beginning [zhouyizhen, kiorky]
+- Support question mark as wildcard [kiorky]
+- Support to start a cron from a reference start time [mghextreme, kiorky]
 
 
 2.0.5 (2024-04-20)
