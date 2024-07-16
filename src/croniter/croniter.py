@@ -157,10 +157,11 @@ class croniter(object):
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
                  day_or=True, max_years_between_matches=None, is_prev=False,
-                 hash_id=None, implement_cron_bug=False):
+                 hash_id=None, implement_cron_bug=False, second_at_beginning=False):
         self._ret_type = ret_type
         self._day_or = day_or
         self._implement_cron_bug = implement_cron_bug
+        self.second_at_beginning = second_at_beginning
 
         if hash_id:
             if not isinstance(hash_id, (bytes, str)):
@@ -184,8 +185,10 @@ class croniter(object):
         self.cur = None
         self.set_current(start_time, force=False)
 
-        self.expanded, self.nth_weekday_of_month = self.expand(expr_format, hash_id=hash_id)
-        self.expressions = EXPRESSIONS[(expr_format, hash_id)]
+        self.expanded, self.nth_weekday_of_month = (
+            self.expand(expr_format, hash_id=hash_id, second_at_beginning=second_at_beginning)
+        )
+        self.expressions = EXPRESSIONS[(expr_format, hash_id, second_at_beginning)]
         self._is_prev = is_prev
 
     @classmethod
@@ -632,7 +635,7 @@ class croniter(object):
             return False
 
     @classmethod
-    def _expand(cls, expr_format, hash_id=None):
+    def _expand(cls, expr_format, hash_id=None, second_at_beginning=False):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
         # messages.
@@ -657,6 +660,11 @@ class croniter(object):
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
             raise CroniterBadCronError(cls.bad_length)
+
+        if len(expressions) == 6 and second_at_beginning:
+            # move second to last to process by same logical
+            second = expressions.pop(0)
+            expressions.append(second)
 
         expanded = []
         nth_weekday_of_month = {}
@@ -823,14 +831,15 @@ class croniter(object):
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
                     "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
 
-        EXPRESSIONS[(expr_format, hash_id)] = expressions
+        EXPRESSIONS[(expr_format, hash_id, second_at_beginning)] = expressions
         return expanded, nth_weekday_of_month
 
     @classmethod
-    def expand(cls, expr_format, hash_id=None):
+    def expand(cls, expr_format, hash_id=None, second_at_beginning=False):
         """Shallow non Croniter ValueError inside a nice CroniterBadCronError"""
         try:
-            return cls._expand(expr_format, hash_id=hash_id)
+            return cls._expand(expr_format, hash_id=hash_id,
+                               second_at_beginning=second_at_beginning)
         except (ValueError,) as exc:
             error_type, error_instance, traceback = sys.exc_info()
             if isinstance(exc, CroniterError):
@@ -843,26 +852,30 @@ class croniter(object):
                 raise CroniterBadCronError("{0}".format(exc))
 
     @classmethod
-    def is_valid(cls, expression, hash_id=None, encoding='UTF-8'):
+    def is_valid(cls, expression, hash_id=None, encoding='UTF-8',
+                 second_at_beginning=False):
         if hash_id:
             if not isinstance(hash_id, (bytes, str)):
                 raise TypeError('hash_id must be bytes or UTF-8 string')
             if not isinstance(hash_id, bytes):
                 hash_id = hash_id.encode(encoding)
         try:
-            cls.expand(expression, hash_id=hash_id)
+            cls.expand(expression, hash_id=hash_id,
+                       second_at_beginning=second_at_beginning)
         except CroniterError:
             return False
         else:
             return True
 
     @classmethod
-    def match(cls, cron_expression, testdate, day_or=True):
-        return cls.match_range(cron_expression, testdate, testdate, day_or)
+    def match(cls, cron_expression, testdate, day_or=True, second_at_beginning=False):
+        return cls.match_range(cron_expression, testdate, testdate, day_or, second_at_beginning)
 
     @classmethod
-    def match_range(cls, cron_expression, from_datetime, to_datetime, day_or=True):
-        cron = cls(cron_expression, to_datetime, ret_type=datetime.datetime, day_or=day_or)
+    def match_range(cls, cron_expression, from_datetime, to_datetime,
+                    day_or=True, second_at_beginning=False):
+        cron = cls(cron_expression, to_datetime, ret_type=datetime.datetime,
+                   day_or=day_or, second_at_beginning=second_at_beginning)
         td, ms1 = cron.get_current(datetime.datetime), relativedelta(microseconds=1)
         if not td.microsecond:
             td = td + ms1
@@ -874,7 +887,7 @@ class croniter(object):
 
 
 def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,
-                   _croniter=None):
+                   _croniter=None, second_at_beginning=False):
     """
     Generator that provides all times from start to stop matching the given cron expression.
     If the cron expression matches either 'start' and/or 'stop', those times will be returned as
@@ -909,7 +922,7 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
             stop -= ms1
     year_span = math.floor(abs(stop.year - start.year)) + 1
     ic = _croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
-                   max_years_between_matches=year_span)
+                   max_years_between_matches=year_span, second_at_beginning=second_at_beginning)
     # define a continue (cont) condition function and step function for the main while loop
     if start < stop:        # Forward
         def cont(v):
