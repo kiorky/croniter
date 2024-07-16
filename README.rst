@@ -133,6 +133,10 @@ You can also note that this expression will repeat every second from the start d
 
     >>> croniter('* * * * * *', local_date).get_next(datetime)
 
+You can also use seconds as first slot:
+
+    >>> croniter('* * * * * *', local_date, second_at_beginning=True).get_next(datetime)
+
 Testing if a date matches a crontab
 ===================================
 Test for a match with (>=0.3.32)::
