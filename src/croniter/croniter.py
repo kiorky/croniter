@@ -665,6 +665,18 @@ class croniter(object):
             for expanderid, expander in EXPANDERS.items():
                 expr = expander(cls).expand(efl, i, expr, hash_id=hash_id)
 
+            if "?" in expr:
+                if expr != "?":
+                    raise CroniterBadCronError(
+                        "[{0}] is not acceptable.  Question mark can not "
+                        "used with other characters".format(expr_format))
+                if i not in [2, 4]:
+                    raise CroniterBadCronError(
+                        "[{0}] is not acceptable.  Question mark can only used "
+                        "in day_of_month or day_of_week".format(expr_format))
+                # currently just trade `?` as `*`
+                expr = "*"
+
             e_list = expr.split(',')
             res = []
 
