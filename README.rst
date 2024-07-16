@@ -155,7 +155,7 @@ You can set start_time=, then expand_from_start_time=True for your generations t
      datetime.datetime(2024, 9, 11, 0, 0),
      datetime.datetime(2024, 9, 18, 0, 0),
      datetime.datetime(2024, 9, 25, 0, 0)]
-	>>> # INSTEAD OF THE DEFAULT BEHAVIOR:
+    >>> # INSTEAD OF THE DEFAULT BEHAVIOR:
     >>> iter = croniter('0 0 */7 * *', start_time=datetime(2024, 7, 11), expand_from_start_time=False);pprint([iter.get_next(datetime) for a in range(10)])
     [datetime.datetime(2024, 7, 15, 0, 0),
      datetime.datetime(2024, 7, 22, 0, 0),

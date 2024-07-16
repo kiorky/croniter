@@ -4,7 +4,7 @@ Changelog
 2.0.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- fix doc
 
 
 2.0.6 (2024-07-16)
