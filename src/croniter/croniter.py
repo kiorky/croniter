@@ -642,7 +642,7 @@ class croniter(object):
             return False
 
     @classmethod
-    def _expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp: int = None):
+    def _expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp=None):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
         # messages.
@@ -766,7 +766,7 @@ class croniter(object):
                             "{0} is out of bands".format(expr_format))
 
                     if from_timestamp:
-                        low = cls._get_low_from_current_date_number(i, step, from_timestamp)
+                        low = cls._get_low_from_current_date_number(i, int(step), int(from_timestamp))
 
                     try:
                         rng = range(low, high + 1, step)
@@ -845,7 +845,7 @@ class croniter(object):
         return expanded, nth_weekday_of_month
 
     @classmethod
-    def expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp: int = None):
+    def expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp=None):
         """Shallow non Croniter ValueError inside a nice CroniterBadCronError"""
         try:
             return cls._expand(expr_format, hash_id=hash_id,
@@ -863,7 +863,7 @@ class croniter(object):
                 raise CroniterBadCronError("{0}".format(exc))
 
     @classmethod
-    def _get_low_from_current_date_number(cls, i: int, step: int, from_timestamp: int) -> int:
+    def _get_low_from_current_date_number(cls, i, step, from_timestamp):
         dt = datetime.datetime.fromtimestamp(from_timestamp, tz=datetime.timezone.utc)
         if i == 0:
             return dt.minute % step
