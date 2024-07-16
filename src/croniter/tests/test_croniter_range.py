@@ -160,6 +160,14 @@ class CroniterRangeTest(base.TestCase):
         except CroniterBadTypeRangeError:
             self.fail('should not be triggered')
 
+    def test_configure_second_location(self):
+        start = datetime(2016, 12, 2, 0, 0, 0)
+        stop = datetime(2016, 12, 2, 0, 1, 0)
+        fwd = list(croniter_range(start, stop, '*/20 * * * * *', second_at_beginning=True))
+        self.assertEqual(len(fwd), 4)
+        self.assertEqual(fwd[0], start)
+        self.assertEqual(fwd[-1], stop)
+
 
 if __name__ == '__main__':
     unittest.main()
