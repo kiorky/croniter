@@ -17,7 +17,7 @@ Changelog
 ------------------
 
 - Implement second_at_beginning [zhouyizhen, kiorky]
-- Support question mark as wildcard [kiorky]
+- Support question mark as wildcard [zhouyizhen, kiorky]
 - Support to start a cron from a reference start time [mghextreme, kiorky]
 
 
