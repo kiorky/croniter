@@ -1456,6 +1456,21 @@ class CroniterTest(base.TestCase):
         with self.assertRaises(CroniterBadCronError):
             croniter("0 0 * * L8")
 
+    def test_question_mark(self):
+        base = datetime(2010, 8, 25, 15, 56)
+        itr = croniter('0 0 1 * ?', base)
+        n = itr.get_next(datetime)
+        self.assertEqual(n.year, base.year)
+        self.assertEqual(n.month, 9)
+        self.assertEqual(n.day, 1)
+        self.assertEqual(n.hour, 0)
+        self.assertEqual(n.minute, 0)
+
+    def test_invalid_question_mark(self):
+        self.assertRaises(CroniterBadCronError, croniter, "? * * * *")
+        self.assertRaises(CroniterBadCronError, croniter, "* ? * * *")
+        self.assertRaises(CroniterBadCronError, croniter, "* * ?,* * *")
+
     def test_issue_47(self):
         base = datetime(2021, 3, 30, 4, 0)
         itr = croniter('0 6 30 3 *', base)
