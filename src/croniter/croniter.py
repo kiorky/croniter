@@ -66,10 +66,11 @@ CRON_FIELDS = {
     len(SECOND_FIELDS): SECOND_FIELDS,
     len(YEAR_FIELDS): UNIX_FIELDS,
 }
-UNIX_CRON_LEN = 5
-SECOND_CRON_LEN = 6
-YEAR_CRON_LEN = 7
-VALID_LEN_EXPRESSION = set([UNIX_CRON_LEN, SECOND_CRON_LEN])
+UNIX_CRON_LEN = len(UNIX_FIELDS)
+SECOND_CRON_LEN = len(SECOND_FIELDS)
+YEAR_CRON_LEN = len(YEAR_FIELDS)
+# retrocompat
+VALID_LEN_EXPRESSION = set([a for a in CRON_FIELDS if isinstance(a, int)])
 EXPRESSIONS = {}
 
 
@@ -295,20 +296,23 @@ class croniter(object):
 
         # exception to support day of month and day of week as defined in cron
         dom_dow_exception_processed = False
-        if (expanded[2][0] != '*' and expanded[4][0] != '*') and self._day_or:
+        if (expanded[DAY_FIELD][0] != '*' and expanded[DOW_FIELD][0] != '*') and self._day_or:
             # If requested, handle a bug in vixie cron/ISC cron where day_of_month and day_of_week form
             # an intersection (AND) instead of a union (OR) if either field is an asterisk or starts with an asterisk
             # (https://crontab.guru/cron-bug.html)
-            if self._implement_cron_bug and (re_star.match(self.expressions[2]) or re_star.match(self.expressions[4])):
+            if (
+                self._implement_cron_bug and
+                (re_star.match(self.expressions[DAY_FIELD]) or re_star.match(self.expressions[DOW_FIELD]))
+            ):
                 # To produce a schedule identical to the cron bug, we'll bypass the code that
                 # makes a union of DOM and DOW, and instead skip to the code that does an intersect instead
                 pass
             else:
-                bak = expanded[4]
-                expanded[4] = ['*']
+                bak = expanded[DOW_FIELD]
+                expanded[DOW_FIELD] = ['*']
                 t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
-                expanded[4] = bak
-                expanded[2] = ['*']
+                expanded[DOW_FIELD] = bak
+                expanded[DAY_FIELD] = ['*']
 
                 t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
                 if not is_prev:
@@ -400,12 +404,12 @@ class croniter(object):
             now = math.ceil(now)
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
-            offset = (len(expanded) == 6 or now % 60 > 0) and 1 or 60
+            offset = (len(expanded) > UNIX_CRON_LEN or now % 60 > 0) and 1 or 60
         else:
             now = math.floor(now)
             nearest_diff_method = self._get_next_nearest_diff
             sign = 1
-            offset = (len(expanded) == 6) and 1 or 60
+            offset = (len(expanded) > UNIX_CRON_LEN) and 1 or 60
 
         dst = now = self._timestamp_to_datetime(now + sign * offset)
 
@@ -415,10 +419,10 @@ class croniter(object):
 
         def proc_month(d):
             try:
-                expanded[3].index('*')
+                expanded[MONTH_FIELD].index('*')
             except ValueError:
                 diff_month = nearest_diff_method(
-                    d.month, expanded[3], self.MONTHS_IN_YEAR)
+                    d.month, expanded[MONTH_FIELD], self.MONTHS_IN_YEAR)
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
@@ -441,21 +445,21 @@ class croniter(object):
 
         def proc_day_of_month(d):
             try:
-                expanded[2].index('*')
+                expanded[DAY_FIELD].index('*')
             except ValueError:
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
-                if 'l' in expanded[2] and days == d.day:
+                if 'l' in expanded[DAY_FIELD] and days == d.day:
                     return False, d
 
                 if is_prev:
                     days_in_prev_month = DAYS[
                         (month - 2) % self.MONTHS_IN_YEAR]
                     diff_day = nearest_diff_method(
-                        d.day, expanded[2], days_in_prev_month)
+                        d.day, expanded[DAY_FIELD], days_in_prev_month)
                 else:
-                    diff_day = nearest_diff_method(d.day, expanded[2], days)
+                    diff_day = nearest_diff_method(d.day, expanded[DAY_FIELD], days)
 
                 if diff_day is not None and diff_day != 0:
                     if is_prev:
@@ -469,10 +473,10 @@ class croniter(object):
 
         def proc_day_of_week(d):
             try:
-                expanded[4].index('*')
+                expanded[DOW_FIELD].index('*')
             except ValueError:
                 diff_day_of_week = nearest_diff_method(
-                    d.isoweekday() % 7, expanded[4], 7)
+                    d.isoweekday() % 7, expanded[DOW_FIELD], 7)
                 if diff_day_of_week is not None and diff_day_of_week != 0:
                     if is_prev:
                         d += relativedelta(days=diff_day_of_week,
@@ -535,9 +539,9 @@ class croniter(object):
 
         def proc_hour(d):
             try:
-                expanded[1].index('*')
+                expanded[HOUR_FIELD].index('*')
             except ValueError:
-                diff_hour = nearest_diff_method(d.hour, expanded[1], 24)
+                diff_hour = nearest_diff_method(d.hour, expanded[HOUR_FIELD], 24)
                 if diff_hour is not None and diff_hour != 0:
                     if is_prev:
                         d += relativedelta(
@@ -549,9 +553,9 @@ class croniter(object):
 
         def proc_minute(d):
             try:
-                expanded[0].index('*')
+                expanded[MINUTE_FIELD].index('*')
             except ValueError:
-                diff_min = nearest_diff_method(d.minute, expanded[0], 60)
+                diff_min = nearest_diff_method(d.minute, expanded[MINUTE_FIELD], 60)
                 if diff_min is not None and diff_min != 0:
                     if is_prev:
                         d += relativedelta(minutes=diff_min, second=59)
@@ -561,11 +565,11 @@ class croniter(object):
             return False, d
 
         def proc_second(d):
-            if len(expanded) == 6:
+            if len(expanded) > UNIX_CRON_LEN:
                 try:
-                    expanded[5].index('*')
+                    expanded[SECOND_FIELD].index('*')
                 except ValueError:
-                    diff_sec = nearest_diff_method(d.second, expanded[5], 60)
+                    diff_sec = nearest_diff_method(d.second, expanded[SECOND_FIELD], 60)
                     if diff_sec is not None and diff_sec != 0:
                         d += relativedelta(seconds=diff_sec)
                         return True, d
@@ -706,7 +710,7 @@ class croniter(object):
                     raise CroniterBadCronError(
                         "[{0}] is not acceptable.  Question mark can not "
                         "used with other characters".format(expr_format))
-                if i not in [2, 4]:
+                if i not in [DAY_FIELD, DOW_FIELD]:
                     raise CroniterBadCronError(
                         "[{0}] is not acceptable.  Question mark can only used "
                         "in day_of_month or day_of_week".format(expr_format))
@@ -720,7 +724,7 @@ class croniter(object):
                 e = e_list.pop()
                 nth = None
 
-                if i == 4:
+                if i == DOW_FIELD:
                     # Handle special case in the dow expression: 2#3, l3
                     special_dow_rem = special_dow_re.match(str(e))
                     if special_dow_rem:
@@ -760,7 +764,7 @@ class croniter(object):
                     # early abort if low/high are out of bounds
 
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
-                    if i == 2 and high == 'l':
+                    if i == DAY_FIELD and high == 'l':
                         high = '31'
 
                     if not only_int_re.search(low):
@@ -773,7 +777,7 @@ class croniter(object):
                         not low or not high or int(low) > int(high)
                         or not only_int_re.search(str(step))
                     ):
-                        if i == 4 and high == '0':
+                        if i == DOW_FIELD and high == '0':
                             # handle -Sun notation -> 7
                             high = '7'
                         else:
@@ -796,7 +800,7 @@ class croniter(object):
                         raise CroniterBadCronError(
                             'invalid range: {0}'.format(exc))
                     e_list += (["{0}#{1}".format(item, nth) for item in rng]
-                               if i == 4 and nth and nth != "l" else rng)
+                               if i == DOW_FIELD and nth and nth != "l" else rng)
                 else:
                     if t.startswith('-'):
                         raise CroniterBadCronError((
@@ -831,7 +835,7 @@ class croniter(object):
 
                     res.append(t)
 
-                    if i == 4 and nth:
+                    if i == DOW_FIELD and nth:
                         if t not in nth_weekday_of_month:
                             nth_weekday_of_month[t] = set()
                         nth_weekday_of_month[t].add(nth)
@@ -841,8 +845,8 @@ class croniter(object):
             if len(res) == cls.LEN_MEANS_ALL[i]:
                 # Make sure the wildcard is used in the correct way (avoid over-optimization)
                 if (
-                    (i == 2 and '*' not in expressions[4]) or
-                    (i == 4 and '*' not in expressions[2])
+                    (i == DAY_FIELD and '*' not in expressions[DOW_FIELD]) or
+                    (i == DOW_FIELD and '*' not in expressions[DAY_FIELD])
                 ):
                     pass
                 else:
@@ -854,11 +858,11 @@ class croniter(object):
 
         # Check to make sure the dow combo in use is supported
         if nth_weekday_of_month:
-            dow_expanded_set = set(expanded[4])
+            dow_expanded_set = set(expanded[DOW_FIELD])
             dow_expanded_set = dow_expanded_set.difference(nth_weekday_of_month.keys())
             dow_expanded_set.discard("*")
             # Skip: if it's all weeks instead of wildcard
-            if dow_expanded_set and len(set(expanded[4])) != cls.LEN_MEANS_ALL[4]:
+            if dow_expanded_set and len(set(expanded[DOW_FIELD])) != cls.LEN_MEANS_ALL[DOW_FIELD]:
                 raise CroniterUnsupportedSyntaxError(
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
                     "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
@@ -887,15 +891,15 @@ class croniter(object):
     @classmethod
     def _get_low_from_current_date_number(cls, i, step, from_timestamp):
         dt = datetime.datetime.fromtimestamp(from_timestamp, tz=datetime.timezone.utc)
-        if i == 0:
+        if i == MINUTE_FIELD:
             return dt.minute % step
-        if i == 1:
+        if i == HOUR_FIELD:
             return dt.hour % step
-        if i == 2:
+        if i == DAY_FIELD:
             return ((dt.day - 1) % step) + 1
-        if i == 3:
+        if i == MONTH_FIELD:
             return dt.month % step
-        if i == 4:
+        if i == DOW_FIELD:
             return (dt.weekday() + 1) % step
 
         raise ValueError("Can't get current date number for index larger than 4")
