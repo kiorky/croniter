@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
 import pytz
-from croniter import (croniter, CroniterBadDateError,  CroniterBadCronError, datetime_to_timestamp,
+from croniter.croniter import VALID_LEN_EXPRESSION
+from croniter import (croniter, CroniterBadDateError, CroniterBadCronError, datetime_to_timestamp,
                       CroniterNotAlphaError, CroniterUnsupportedSyntaxError)
 from croniter.tests import base
 import dateutil.tz
@@ -894,7 +895,7 @@ class CroniterTest(base.TestCase):
         self.assertRaises(CroniterBadCronError, croniter.expand,
                           '* * * *')
         self.assertRaises(CroniterBadCronError, croniter.expand,
-                          '* * * * * * *')
+                          ('* ' * (max(VALID_LEN_EXPRESSION) + 1)).strip())
 
     def test_is_valid(self):
         self.assertTrue(croniter.is_valid('0 * * * *'))
