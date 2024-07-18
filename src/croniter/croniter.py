@@ -929,12 +929,15 @@ class croniter(object):
                     day_or=True, second_at_beginning=False):
         cron = cls(cron_expression, to_datetime, ret_type=datetime.datetime,
                    day_or=day_or, second_at_beginning=second_at_beginning)
-        td, ms1 = cron.get_current(datetime.datetime), relativedelta(microseconds=1)
-        if not td.microsecond:
-            td = td + ms1
-        cron.set_current(td, force=True)
-        tdp, tdt = cron.get_current(), cron.get_prev()
-        precision_in_seconds = 1 if len(cron.expanded) == 6 else 60
+        tdp = cron.get_current(datetime.datetime)
+        if not tdp.microsecond:
+            tdp += relativedelta(microseconds=1)
+        cron.set_current(tdp, force=True)
+        try:
+            tdt = cron.get_prev()
+        except CroniterBadDateError:
+            return False
+        precision_in_seconds = 1 if len(cron.expanded) > UNIX_CRON_LEN else 60
         duration_in_second = (to_datetime - from_datetime).total_seconds() + precision_in_seconds
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < duration_in_second
 
