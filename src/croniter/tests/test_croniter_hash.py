@@ -146,7 +146,7 @@ class CroniterWordAliasTest(CroniterHashBase):
 
         @midnight is actually up to 3 hours after midnight, not exactly midnight
         """
-        self._test_iter('@midnight', datetime(2020, 1, 1, 1, 10, 32), timedelta(days=1))
+        self._test_iter('@midnight', datetime(2020, 1, 1, 2, 10, 32), timedelta(days=1))
 
     def test_hash_word_hourly(self):
         """Test built-in @hourly"""
@@ -250,6 +250,16 @@ class CroniterHashExpanderExpandMinutesTest(CroniterHashExpanderBase):
         assert min(minutes) == self.MIN_VALUE
         assert max(minutes) == self.MAX_VALUE
 
+    def test_expand_minutes_with_full_range(self):
+        minutes = set()
+        expression = 'H(0-59) * * * *'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            minutes.add(expanded[0][0][0])
+        assert len(minutes) == self.TOTAL
+        assert min(minutes) == self.MIN_VALUE
+        assert max(minutes) == self.MAX_VALUE
+
 
 class CroniterHashExpanderExpandHoursTest(CroniterHashExpanderBase):
     MIN_VALUE = 0
@@ -326,7 +336,15 @@ class CroniterHashExpanderExpandHoursTest(CroniterHashExpanderBase):
         assert min(hours) == self.MIN_VALUE
         assert max(hours) == self.MAX_VALUE
 
-
+    def test_expand_hours_with_full_range(self):
+        minutes = set()
+        expression = '* H(0-23) * * *'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            minutes.add(expanded[0][1][0])
+        assert len(minutes) == self.TOTAL
+        assert min(minutes) == self.MIN_VALUE
+        assert max(minutes) == self.MAX_VALUE
 
 
 class CroniterHashExpanderExpandMonthDaysTest(CroniterHashExpanderBase):
@@ -376,6 +394,16 @@ class CroniterHashExpanderExpandMonthDaysTest(CroniterHashExpanderBase):
             _days = expanded[0][2]
             assert len(_days) in {2, 3}
             month_days.update(_days)
+        assert len(month_days) == self.TOTAL
+        assert min(month_days) == self.MIN_VALUE
+        assert max(month_days) == self.MAX_VALUE
+
+    def test_expand_month_days_with_full_range(self):
+        month_days = set()
+        expression = '* * H(1-31) * *'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            month_days.add(expanded[0][2][0])
         assert len(month_days) == self.TOTAL
         assert min(month_days) == self.MIN_VALUE
         assert max(month_days) == self.MAX_VALUE
@@ -432,6 +460,16 @@ class CroniterHashExpanderExpandMonthTest(CroniterHashExpanderBase):
         assert min(months) == self.MIN_VALUE
         assert max(months) == self.MAX_VALUE
 
+    def test_expand_months_with_full_range(self):
+        months = set()
+        expression = '* * * H(1-12) *'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            months.add(expanded[0][3][0])
+        assert len(months) == self.TOTAL
+        assert min(months) == self.MIN_VALUE
+        assert max(months) == self.MAX_VALUE
+
 
 class CroniterHashExpanderExpandWeekDays(CroniterHashExpanderBase):
     MIN_VALUE = 0
@@ -468,6 +506,16 @@ class CroniterHashExpanderExpandWeekDays(CroniterHashExpanderBase):
             _days = expanded[0][4]
             assert len(_days) in {1, 2}
             days.update(_days)
+        assert len(days) == self.TOTAL
+        assert min(days) == self.MIN_VALUE
+        assert max(days) == self.MAX_VALUE
+
+    def test_expand_week_days_with_full_range(self):
+        days = set()
+        expression = '* * * * H(0-6)'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            days.add(expanded[0][4][0])
         assert len(days) == self.TOTAL
         assert min(days) == self.MIN_VALUE
         assert max(days) == self.MAX_VALUE
