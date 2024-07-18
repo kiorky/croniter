@@ -138,7 +138,8 @@ class croniter(object):
         (1, 31),
         (1, 12),
         (0, 7),
-        (0, 59)
+        (0, 59),
+        (1970, 2099)
     )
     DAYS = (
         31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
@@ -152,7 +153,9 @@ class croniter(object):
         copy.deepcopy(M_ALPHAS),
         # 4: dow
         copy.deepcopy(DOW_ALPHAS),
-        # command/user
+        # 5: second
+        {},
+        # 6: year
         {}
     )
 
@@ -163,6 +166,7 @@ class croniter(object):
         {0: 1},
         {7: 0},
         {},
+        {}
     )
 
     LEN_MEANS_ALL = (
@@ -171,10 +175,11 @@ class croniter(object):
         31,
         12,
         7,
-        60
+        60,
+        130
     )
 
-    bad_length = 'Exactly 5 or 6 columns has to be specified for iterator ' \
+    bad_length = 'Exactly 5, 6 or 7 columns has to be specified for iterator ' \
                  'expression.'
 
     def __init__(self, expr_format, start_time=None, ret_type=float,
@@ -417,6 +422,25 @@ class croniter(object):
         current_year = now.year
         DAYS = self.DAYS
 
+        def proc_year(d):
+            if len(expanded) == YEAR_CRON_LEN:
+                try:
+                    expanded[YEAR_FIELD].index("*")
+                except ValueError:
+                    # use None as range_val to indicate no loop
+                    diff_year = nearest_diff_method(d.year, expanded[YEAR_FIELD], None)
+                    if diff_year is None:
+                        return None, d
+                    elif diff_year != 0:
+                        if is_prev:
+                            d += relativedelta(years=diff_year, month=12, day=31,
+                                               hour=23, minute=59, second=59)
+                        else:
+                            d += relativedelta(years=diff_year, month=1, day=1,
+                                               hour=0, minute=0, second=0)
+                        return True, d
+            return False, d
+
         def proc_month(d):
             try:
                 expanded[MONTH_FIELD].index('*')
@@ -577,7 +601,8 @@ class croniter(object):
                 d += relativedelta(second=0)
             return False, d
 
-        procs = [proc_month,
+        procs = [proc_year,
+                 proc_month,
                  proc_day_of_month,
                  (proc_day_of_week_nth if nth_weekday_of_month
                      else proc_day_of_week),
@@ -587,12 +612,20 @@ class croniter(object):
 
         while abs(year - current_year) <= self._max_years_between_matches:
             next = False
+            stop = False
             for proc in procs:
                 (changed, dst) = proc(dst)
+                # `None` can be set mostly for year processing
+                # so please see proc_year / _get_prev_nearest_diff / _get_next_nearest_diff
+                if changed is None:
+                    stop = True
+                    break
                 if changed:
                     month, year = dst.month, dst.year
                     next = True
                     break
+            if stop:
+                break
             if next:
                 continue
             return self._datetime_to_timestamp(dst.replace(microsecond=0))
@@ -616,16 +649,32 @@ class croniter(object):
         return small[0]
 
     def _get_next_nearest_diff(self, x, to_check, range_val):
+        """
+        `range_val` is the range of a field.
+        If no available time, we can move to next loop(like next month).
+        `range_val` can also be set to `None` to indicate that there is no loop.
+        ( Currently, should only used for `year` field )
+        """
         for i, d in enumerate(to_check):
-            if d == "l":
+            if d == "l" and range_val is not None:
                 # if 'l' then it is the last day of month
                 # => its value of range_val
                 d = range_val
             if d >= x:
                 return d - x
+        # When range_val is None and x not exists in to_check,
+        # `None` will be returned to suggest no more available time
+        if range_val is None:
+            return None
         return to_check[0] - x + range_val
 
     def _get_prev_nearest_diff(self, x, to_check, range_val):
+        """
+        `range_val` is the range of a field.
+        If no available time, we can move to previous loop(like previous month).
+        Range_val can also be set to `None` to indicate that there is no loop.
+        ( Currently should only used for `year` field )
+        """
         candidates = to_check[:]
         candidates.reverse()
         for d in candidates:
@@ -633,6 +682,10 @@ class croniter(object):
                 return d - x
         if 'l' in candidates:
             return -x
+        # When range_val is None and x not exists in to_check,
+        # `None` will be returned to suggest no more available time
+        if range_val is None:
+            return None
         candidate = candidates[0]
         for c in candidates:
             # fixed: c < range_val
@@ -694,9 +747,9 @@ class croniter(object):
         if len(expressions) not in VALID_LEN_EXPRESSION:
             raise CroniterBadCronError(cls.bad_length)
 
-        if len(expressions) == 6 and second_at_beginning:
-            # move second to last to process by same logical
-            expressions.append(expressions.pop(0))
+        if len(expressions) > UNIX_CRON_LEN and second_at_beginning:
+            # move second to it's own(6th) field to process by same logical
+            expressions.insert(SECOND_FIELD, expressions.pop(0))
 
         expanded = []
         nth_weekday_of_month = {}
@@ -816,11 +869,12 @@ class croniter(object):
                         pass
 
                     if t in cls.LOWMAP[i] and not (
-                        # do not support 0 as a month either for classical 5 fields cron
-                        # or 6fields second repeat form
+                        # do not support 0 as a month either for classical 5 fields cron,
+                        # 6fields second repeat form or 7 fields year form
                         # but still let conversion happen if day field is shifted
-                        (i in [2, 3] and len(expressions) == 5) or
-                        (i in [3, 4] and len(expressions) == 6)
+                        (i in [DAY_FIELD, MONTH_FIELD] and len(expressions) == UNIX_CRON_LEN) or
+                        (i in [MONTH_FIELD, DOW_FIELD] and len(expressions) == SECOND_CRON_LEN) or
+                        (i in [DAY_FIELD, MONTH_FIELD, DOW_FIELD] and len(expressions) == YEAR_CRON_LEN)
                     ):
                         t = cls.LOWMAP[i][t]
 

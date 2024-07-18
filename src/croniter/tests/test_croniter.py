@@ -1095,6 +1095,10 @@ class CroniterTest(base.TestCase):
             datetime(2020, 1, 31),
             day_or=False
         ))
+        self.assertFalse(croniter.match(
+            '0 0 31 1 * 0 2024/2',
+            datetime(2020, 1, 31),
+        ))
 
     def test_match_range(self):
         self.assertTrue(croniter.match_range(
@@ -1490,6 +1494,120 @@ class CroniterTest(base.TestCase):
         self.assertRaises(CroniterBadCronError, croniter, "? * * * *")
         self.assertRaises(CroniterBadCronError, croniter, "* ? * * *")
         self.assertRaises(CroniterBadCronError, croniter, "* * ?,* * *")
+
+    def test_year(self):
+        itr1 = croniter("0 0 11 * * 0 2060", datetime(2050, 1, 1))
+        n1 = itr1.get_next(datetime)
+        self.assertEqual(n1.year, 2060)
+        self.assertEqual(n1.month, 1)
+        self.assertEqual(n1.day, 11)
+        n2 = itr1.get_next(datetime)
+        self.assertEqual(n2.year, 2060)
+        self.assertEqual(n2.month, 2)
+        self.assertEqual(n2.day, 11)
+
+        itr2 = croniter("0 0 11 * * 0 2050-2060", datetime(2055, 1, 30))
+        n3 = itr2.get_next(datetime)
+        self.assertEqual(n3.year, 2055)
+        self.assertEqual(n3.month, 2)
+        self.assertEqual(n3.day, 11)
+
+        itr3 = croniter("0 0 29 2 * 0 2025,2021-2023,2028", datetime(2020, 1, 1))
+        n4 = itr3.get_next(datetime)
+        self.assertEqual(n4.year, 2028)
+        self.assertEqual(n4.month, 2)
+        self.assertEqual(n4.day, 29)
+
+        itr4 = croniter("0 0 29 2 * 0 2025,*", datetime(2020, 1, 1))
+        n5 = itr4.get_next(datetime)
+        self.assertEqual(n5.year, 2020)
+        self.assertEqual(n5.month, 2)
+        self.assertEqual(n5.day, 29)
+
+        itr5 = croniter("0 0 29 2 * 0 2022/3", datetime(2020, 1, 1))
+        n6 = itr5.get_next(datetime)
+        self.assertEqual(n6.year, 2028)
+        self.assertEqual(n6.month, 2)
+        self.assertEqual(n6.day, 29)
+
+        itr6 = croniter("0 0 29 2 * 0 2023-2035/3", datetime(2020, 1, 1))
+        n7 = itr6.get_next(datetime)
+        self.assertEqual(n7.year, 2032)
+        self.assertEqual(n7.month, 2)
+        self.assertEqual(n7.day, 29)
+
+    def test_year_with_other_field(self):
+        itr1 = croniter("0 0 31 11-12 * 0 2023", datetime(2000, 1, 30))
+        n1 = itr1.get_next(datetime)
+        self.assertEqual(n1.year, 2023)
+        self.assertEqual(n1.month, 12)
+        self.assertEqual(n1.day, 31)
+
+        itr2 = croniter("0 0 31 1-2 * 0 2023-2025", datetime(2024, 12, 30))
+        n2 = itr2.get_next(datetime)
+        self.assertEqual(n2.year, 2025)
+        self.assertEqual(n2.month, 1)
+        self.assertEqual(n2.day, 31)
+
+        itr3 = croniter("0 0 1 1 1 0 2020-2030", datetime(2000, 1, 1), day_or=False)
+        n3 = itr3.get_next(datetime)
+        self.assertEqual(n3.year, 2024)
+        self.assertEqual(n3.month, 1)
+        self.assertEqual(n3.day, 1)
+
+    def test_year_get_prev(self):
+        itr1 = croniter("0 0 11 * * 0 2000", datetime(2010, 1, 1))
+        p1 = itr1.get_prev(datetime)
+        self.assertEqual(p1.year, 2000)
+        self.assertEqual(p1.month, 12)
+        self.assertEqual(p1.day, 11)
+
+        itr2 = croniter("0 0 11 * * 0 2000", datetime(2010, 1, 1))
+        p2 = itr2.get_prev(datetime)
+        self.assertEqual(p2.year, 2000)
+        self.assertEqual(p2.month, 12)
+        self.assertEqual(p2.day, 11)
+
+        itr2 = croniter("0 0 29 2 * 0 2010-2030", datetime(2020, 1, 1))
+        p2 = itr2.get_prev(datetime)
+        self.assertEqual(p2.year, 2016)
+        self.assertEqual(p2.month, 2)
+        self.assertEqual(p2.day, 29)
+
+    def test_year_match(self):
+        self.assertTrue(croniter.match("* * * * * * 2024", datetime(2024, 1, 1)))
+        self.assertTrue(croniter.match("59 58 23 31 12 * 2024",
+                                       datetime(2024, 12, 31, 23, 58, 59),
+                                       second_at_beginning=True))
+        self.assertFalse(croniter.match("* * * * * * 2024-2026", datetime(2027, 1, 1)))
+        self.assertFalse(croniter.match("* * * * * * 2024/2", datetime(2025, 1, 1)))
+
+    def test_year_bad_date_error(self):
+        with self.assertRaises(CroniterBadDateError):
+            itr = croniter("* * * * * * 2020", datetime(2030, 1, 1))
+            itr.get_next()
+        with self.assertRaises(CroniterBadDateError):
+            itr = croniter("* * * * * * 2020", datetime(2000, 1, 1))
+            itr.get_prev()
+        with self.assertRaises(CroniterBadDateError):
+            itr = croniter("* * 29 2 * * 2021-2023", datetime(2000, 1, 1))
+            itr.get_next()
+
+    def test_year_with_second_at_beginning(self):
+        base = datetime(2050, 1, 1)
+        itr = croniter("59 58 23 31 12 * 2070", base, second_at_beginning=True)
+        n = itr.get_next(datetime)
+        self.assertEqual(n.year, 2070)
+        self.assertEqual(n.month, 12)
+        self.assertEqual(n.day, 31)
+        self.assertEqual(n.hour, 23)
+        self.assertEqual(n.minute, 58)
+        self.assertEqual(n.second, 59)
+
+    def test_invalid_year(self):
+        self.assertRaises(CroniterBadCronError, croniter, "0 0 1 * * 0 1000")
+        self.assertRaises(CroniterBadCronError, croniter, "0 0 1 * * 0 99999")
+        self.assertRaises(CroniterBadCronError, croniter, "0 0 1 * * 0 2070#3")
 
     def test_issue_47(self):
         base = datetime(2021, 3, 30, 4, 0)

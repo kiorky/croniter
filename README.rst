@@ -137,6 +137,19 @@ You can also use seconds as first field::
     >>> itr = croniter('15,25 * * * * *', base, second_at_beginning=True)
 
 
+About year
+===========
+Croniter also support year field.
+Year presents at the seventh field, which is after second repetition.
+The range of year field is from 1970 to 2099.
+To ignore second repetition, simply set second to ``0`` or any other const::
+
+    >>> base = datetime(2012, 4, 6, 2, 6, 59)
+    >>> itr = croniter('0 0 1 1 * 0 2020/2', base)
+    >>> itr.get_next(datetime) # 2020 1/1 0:0:0
+    >>> itr.get_next(datetime) # 2022 1/1 0:0:0
+    >>> itr.get_next(datetime) # 2024 1/1 0:0:0
+
 Support for start_time shifts
 ==============================
 See https://github.com/kiorky/croniter/pull/76,
