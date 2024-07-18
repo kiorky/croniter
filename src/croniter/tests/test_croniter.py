@@ -1088,6 +1088,14 @@ class CroniterTest(base.TestCase):
             day_or=False
         ))
 
+    def test_match_handle_bad_cron(self):
+        # some cron expression can't get prev value and should not raise exception
+        self.assertFalse(croniter.match(
+            '0 0 31 1 1#1',
+            datetime(2020, 1, 31),
+            day_or=False
+        ))
+
     def test_match_range(self):
         self.assertTrue(croniter.match_range(
             "0 0 * * *",
