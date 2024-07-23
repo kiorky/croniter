@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-2.0.8 (unreleased)
+3.0.0 (2024-07-23)
 ------------------
 
 - Support for year field [zhouyizhen, kiorky]
