@@ -168,6 +168,14 @@ class CroniterRangeTest(base.TestCase):
         self.assertEqual(fwd[0], start)
         self.assertEqual(fwd[-1], stop)
 
+    def test_year_range(self):
+        start = datetime(2010, 1, 1)
+        stop = datetime(2030, 1, 1)
+        fwd = list(croniter_range(start, stop, "0 0 1 1 ? 0 2020-2024,2028"))
+        self.assertEqual(len(fwd), 6)
+        self.assertEqual(fwd[0], datetime(2020, 1, 1))
+        self.assertEqual(fwd[-1], datetime(2028, 1, 1))
+
 
 if __name__ == '__main__':
     unittest.main()

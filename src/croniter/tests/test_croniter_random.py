@@ -36,3 +36,9 @@ class CroniterRandomTest(base.TestCase):
         result_2 = obj.get_next(float)
         self.assertGreaterEqual(result_2, 1577923200.0)
         self.assertLessEqual(result_2, 1577923200.0 + (60 * 60 * 24))
+
+    def test_random_with_year(self):
+        obj = croniter('* * * * * * R(2025-2030)', self.epoch)
+        result = obj.get_next(datetime)
+        self.assertGreaterEqual(result.year, 2025)
+        self.assertLessEqual(result.year, 2030)
