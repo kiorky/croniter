@@ -65,6 +65,15 @@ class CroniterHashTest(CroniterHashBase):
             'H H * * * H', datetime(2020, 1, 1, 11, 10, 32), timedelta(days=1)
         )
 
+    def test_hash_year(self):
+        """Test years
+
+        provide a seventh field as year
+        """
+        self._test_iter(
+            'H H * * * H H', datetime(2066, 1, 1, 11, 10, 32), timedelta(days=1)
+        )
+
     def test_hash_id_change(self):
         """Test a different hash_id returns different results given same definition and epoch"""
         self._test_iter('H H * * *', datetime(2020, 1, 1, 11, 10), timedelta(days=1))
@@ -90,10 +99,14 @@ class CroniterHashTest(CroniterHashBase):
         self._test_iter(
             'H H H(3-5) * *', datetime(2020, 1, 5, 11, 10), timedelta(days=31)
         )
+        self._test_iter(
+            'H H * * * 0 H(2025-2030)', datetime(2029, 1, 1, 11, 10), timedelta(days=1)
+        )
 
     def test_hash_division(self):
         """Test a hashed division definition"""
         self._test_iter('H H/3 * * *', datetime(2020, 1, 1, 2, 10), timedelta(hours=3))
+        self._test_iter('H H H H * H H/2', datetime(2020, 9, 1, 11, 10, 32), timedelta(days=365 * 2))
 
     def test_hash_range_division(self):
         """Test a hashed range + division definition"""
@@ -519,3 +532,37 @@ class CroniterHashExpanderExpandWeekDays(CroniterHashExpanderBase):
         assert len(days) == self.TOTAL
         assert min(days) == self.MIN_VALUE
         assert max(days) == self.MAX_VALUE
+
+
+class CroniterHashExpanderExpandYearsTest(CroniterHashExpanderBase):
+    def test_expand_years_by_division(self):
+        years = set()
+        year_min, year_max = croniter.RANGES[6]
+        expression = '* * * * * * H/10'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            assert len(expanded[0][6]) == 13
+            years.update(expanded[0][6])
+        assert len(years) == year_max - year_min + 1
+        assert min(years) == year_min
+        assert max(years) == year_max
+
+    def test_expand_years_by_range(self):
+        years = set()
+        expression = '* * * * * * H(2020-2030)'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            years.add(expanded[0][6][0])
+        assert len(years) == 11
+        assert min(years) == 2020
+        assert max(years) == 2030
+
+    def test_expand_years_by_range_and_division(self):
+        years = set()
+        expression = '* * * * * * H(2020-2050)/10'
+        for hash_id in self.HASH_IDS:
+            expanded = croniter.expand(expression, hash_id=hash_id)
+            years.update(expanded[0][6])
+        assert len(years) == 31
+        assert min(years) == 2020
+        assert max(years) == 2050
