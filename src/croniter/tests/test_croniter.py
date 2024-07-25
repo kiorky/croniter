@@ -1883,5 +1883,71 @@ class CroniterTest(base.TestCase):
         self.assertRaises(ValueError, expanded_croniter.get_next, datetime, start_time=datetime(2024, 7, 12))
 
 
+    def test_get_next_update_current(self):
+        cron = croniter("* * * * * *")
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        retn = [(cron.get_next(datetime), cron.get_current(datetime))
+                for a in range(3)]
+        self.assertEqual(
+            retn,
+            [(datetime(2024, 7, 12, 0, 0, 1), datetime(2024, 7, 12, 0, 0, 1)),
+             (datetime(2024, 7, 12, 0, 0, 2), datetime(2024, 7, 12, 0, 0, 2)),
+             (datetime(2024, 7, 12, 0, 0, 3), datetime(2024, 7, 12, 0, 0, 3))]
+        )
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        retp = [(cron.get_prev(datetime), cron.get_current(datetime))
+                for a in range(3)]
+        self.assertEqual(
+            retp,
+            [(datetime(2024, 7, 11, 23, 59, 59), datetime(2024, 7, 11, 23, 59, 59)),
+             (datetime(2024, 7, 11, 23, 59, 58), datetime(2024, 7, 11, 23, 59, 58)),
+             (datetime(2024, 7, 11, 23, 59, 57), datetime(2024, 7, 11, 23, 59, 57))]
+        )
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        r = cron.all_next(datetime)
+        retan = [(next(r), cron.get_current(datetime)) for a in range(3)]
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        r = cron.all_prev(datetime)
+        retap = [(next(r), cron.get_current(datetime)) for a in range(3)]
+
+        self.assertEqual(retp, retap)
+        self.assertEqual(retn, retan)
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        uretn = [(cron.get_next(datetime, update_current=False), cron.get_current(datetime))
+                 for a in range(3)]
+        self.assertEqual(
+            uretn,
+            [(datetime(2024, 7, 12, 0, 0, 1), datetime(2024, 7, 12, 0, 0)),
+             (datetime(2024, 7, 12, 0, 0, 1), datetime(2024, 7, 12, 0, 0)),
+             (datetime(2024, 7, 12, 0, 0, 1), datetime(2024, 7, 12, 0, 0))]
+        )
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        uretp = [(cron.get_prev(datetime, update_current=False), cron.get_current(datetime))
+                 for a in range(3)]
+        self.assertEqual(
+            uretp,
+            [(datetime(2024, 7, 11, 23, 59, 59), datetime(2024, 7, 12, 0, 0)),
+             (datetime(2024, 7, 11, 23, 59, 59), datetime(2024, 7, 12, 0, 0)),
+             (datetime(2024, 7, 11, 23, 59, 59), datetime(2024, 7, 12, 0, 0))]
+        )
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        r = cron.all_next(datetime, update_current=False)
+        uretan = [(next(r), cron.get_current(datetime)) for a in range(3)]
+
+        cron.set_current(datetime(2024, 7, 12), force=True)
+        r = cron.all_prev(datetime, update_current=False)
+        uretap = [(next(r), cron.get_current(datetime)) for a in range(3)]
+
+        self.assertEqual(uretp, uretap)
+        self.assertEqual(uretn, uretan)
+
+
 if __name__ == '__main__':
     unittest.main()
