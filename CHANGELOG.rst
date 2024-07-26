@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-3.0.2 (unreleased)
+3.0.2 (2024-07-26)
 ------------------
 
 - Fix start_time not respected in get_next/get_prev/all_next/all_prev (#86) [hesstobi, kiorky]
