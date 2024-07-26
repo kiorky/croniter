@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-3.0.3 (unreleased)
+3.0.3 (2024-07-26)
 ------------------
 
 - fix lint [kiorky]
