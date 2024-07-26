@@ -1896,6 +1896,10 @@ class CroniterTest(base.TestCase):
              (datetime(2024, 7, 12, 0, 0, 3), datetime(2024, 7, 12, 0, 0, 3))]
         )
 
+        retns = [(cron.get_next(datetime, start_time=datetime(2024, 7, 12)), cron.get_current(datetime))
+                 for a in range(3)]
+        self.assertEqual(retn, retns)
+
         cron.set_current(datetime(2024, 7, 12), force=True)
         retp = [(cron.get_prev(datetime), cron.get_current(datetime))
                 for a in range(3)]
@@ -1906,16 +1910,28 @@ class CroniterTest(base.TestCase):
              (datetime(2024, 7, 11, 23, 59, 57), datetime(2024, 7, 11, 23, 59, 57))]
         )
 
+        retps = [(cron.get_prev(datetime, start_time=datetime(2024, 7, 12)), cron.get_current(datetime))
+                 for a in range(3)]
+        self.assertEqual(retp, retps)
+
         cron.set_current(datetime(2024, 7, 12), force=True)
         r = cron.all_next(datetime)
         retan = [(next(r), cron.get_current(datetime)) for a in range(3)]
+
+        r = cron.all_next(datetime, start_time=datetime(2024, 7, 12))
+        retans = [(next(r), cron.get_current(datetime)) for a in range(3)]
 
         cron.set_current(datetime(2024, 7, 12), force=True)
         r = cron.all_prev(datetime)
         retap = [(next(r), cron.get_current(datetime)) for a in range(3)]
 
+        r = cron.all_prev(datetime, start_time=datetime(2024, 7, 12))
+        retaps = [(next(r), cron.get_current(datetime)) for a in range(3)]
+
         self.assertEqual(retp, retap)
+        self.assertEqual(retp, retaps)
         self.assertEqual(retn, retan)
+        self.assertEqual(retn, retans)
 
         cron.set_current(datetime(2024, 7, 12), force=True)
         uretn = [(cron.get_next(datetime, update_current=False), cron.get_current(datetime))
