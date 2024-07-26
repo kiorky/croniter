@@ -4,8 +4,7 @@ Changelog
 3.0.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- fix lint [kiorky]
 
 3.0.2 (2024-07-26)
 ------------------
