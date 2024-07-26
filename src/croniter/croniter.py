@@ -235,10 +235,10 @@ class croniter(object):
     def get_next(self, ret_type=None, start_time=None, update_current=True):
         if start_time and self._expand_from_start_time:
             raise ValueError("start_time is not supported when using expand_from_start_time = True.")
-        return self._get_next(ret_type or self._ret_type, is_prev=False, update_current=update_current)
+        return self._get_next(ret_type or self._ret_type, start_time=start_time, is_prev=False, update_current=update_current)
 
     def get_prev(self, ret_type=None, start_time=None, update_current=True):
-        return self._get_next(ret_type or self._ret_type, is_prev=True, update_current=update_current)
+        return self._get_next(ret_type or self._ret_type, start_time=start_time, is_prev=True, update_current=update_current)
 
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
@@ -382,6 +382,7 @@ class croniter(object):
                 self._is_prev = False
                 yield self._get_next(ret_type or self._ret_type,
                                      start_time=start_time, update_current=update_current)
+                start_time = None
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
                 return
@@ -395,6 +396,7 @@ class croniter(object):
                 self._is_prev = True
                 yield self._get_next(ret_type or self._ret_type,
                                      start_time=start_time, update_current=update_current)
+                start_time = None
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
                 return
