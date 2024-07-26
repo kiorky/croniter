@@ -1,4 +1,5 @@
 /.tox
+.env
 /dist
 \.*.cfg
 *.egg-info

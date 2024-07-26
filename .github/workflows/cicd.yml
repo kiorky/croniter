@@ -24,3 +24,16 @@ jobs:
              2.7) tox -e "py${pyver//\.}-{std,coverage}";;
              *) tox -e "py${pyver//\.}-std";;
            esac
+  build32:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        set -ex
+        cp .env.32 .env
+        docker-compose build
+    - name: Test with pytest
+      run: |
+           docker-compose build
+           docker-compose run --rm --entrypoint tox app --direct -e py312-std

@@ -8,7 +8,7 @@ from time import sleep
 import pytz
 from croniter.croniter import VALID_LEN_EXPRESSION
 from croniter import (croniter, CroniterBadDateError, CroniterBadCronError, datetime_to_timestamp,
-                      CroniterNotAlphaError, CroniterUnsupportedSyntaxError)
+                      CroniterNotAlphaError, CroniterUnsupportedSyntaxError, OVERFLOW32B_MODE)
 from croniter.tests import base
 import dateutil.tz
 
@@ -1961,6 +1961,14 @@ class CroniterTest(base.TestCase):
 
         self.assertEqual(uretp, uretap)
         self.assertEqual(uretn, uretan)
+
+    def test_issue_2038y(self):
+        base = datetime(2040, 1, 1, 0, 0)
+        itr = croniter('* * * * *', base)
+        try:
+            itr.get_next()
+        except OverflowError:
+            raise Exception("overflow not fixed!")
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from .croniter import (
     croniter,
+    OVERFLOW32B_MODE,
     datetime_to_timestamp,
     croniter_range,
     CroniterBadTypeRangeError,  # noqa

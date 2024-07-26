@@ -21,6 +21,14 @@ import random
 # python2, just test that it's well installed
 import pytz  # noqa
 
+EPOCH = datetime.datetime.fromtimestamp(0)
+try:
+    # https://github.com/python/cpython/issues/101069 detection
+    datetime.datetime.fromtimestamp(3999999999)
+    OVERFLOW32B_MODE = False
+except OverflowError:
+    OVERFLOW32B_MODE = True
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -274,7 +282,12 @@ class croniter(object):
         """
         Converts a UNIX timestamp `timestamp` into a `datetime` object.
         """
-        result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
+        if OVERFLOW32B_MODE:
+            # degraded mode to workaround Y2038
+            # see https://github.com/python/cpython/issues/101069
+            result = EPOCH + datetime.timedelta(seconds=timestamp)
+        else:
+            result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
         if self.tzinfo:
             result = result.replace(tzinfo=tzutc()).astimezone(self.tzinfo)
 
