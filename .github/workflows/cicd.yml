@@ -1,26 +1,38 @@
 name: croniter
-on: [workflow_dispatch, push, pull_request]
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        set -ex
-        python -m pip install --upgrade --use-pep517 pip
-        pip install --use-pep517 -r requirements/test.txt
-    - name: Test with pytest
-      run: |
-           pyver=$(python --version 2>&1 | awk '{print substr($2, 0, 4)}' | awk '{ sub(/[ \t]+$/, ""); print }');
-           case $pyver in
-             2.7) tox -e "py${pyver//\.}-{std,coverage}";;
-             *) tox -e "py${pyver//\.}-std";;
-           esac
+        cache: pip
+        cache-dependency-path: requirements/**.txt
+    - name: Install tox
+      run: pip install tox>=4 tox-gh~=1.4
+    - name: Test with tox
+      run: tox
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: pip
+        cache-dependency-path: requirements/**.txt
+    - name: Install tox
+      run: pip install tox>=4
+    - run: tox -e lint
