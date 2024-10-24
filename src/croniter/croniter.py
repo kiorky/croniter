@@ -22,6 +22,11 @@ import random
 import pytz  # noqa
 
 try:
+    UTC = datetime.timezone.utc
+except AttributeError:
+    UTC = pytz.UTC
+
+try:
     from collections import OrderedDict
 except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
@@ -956,7 +961,7 @@ class croniter(object):
 
     @classmethod
     def _get_low_from_current_date_number(cls, i, step, from_timestamp):
-        dt = datetime.datetime.fromtimestamp(from_timestamp, tz=datetime.timezone.utc)
+        dt = datetime.datetime.fromtimestamp(from_timestamp, tz=UTC)
         if i == MINUTE_FIELD:
             return dt.minute % step
         if i == HOUR_FIELD:
