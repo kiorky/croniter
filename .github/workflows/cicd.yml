@@ -29,3 +29,11 @@ jobs:
              2.7) tox -e "py${pyver//\.}-{std,coverage}";;
              *) tox -e "py${pyver//\.}-std";;
            esac
+  build-py27:
+    runs-on: ubuntu-latest
+    container:
+      image: python:2.7.18-slim-buster
+    steps:
+    - uses: actions/checkout@v4
+    - run: pip install tox
+    - run: tox -e py27-std
