@@ -1,5 +1,4 @@
 -r base.txt
-pytz
 pytest>=3.0.3
 tox>=2.4.1
 coverage>=4.2
