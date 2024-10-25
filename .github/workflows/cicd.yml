@@ -1,40 +1,72 @@
-name: croniter
-on: [workflow_dispatch, push, pull_request]
+name: CI/CD
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule: [{cron: '1 0 * * 6'}]
+env:
+  DOCKER_BUILDKIT: "1"
+  COMPOSE_DOCKER_CLI_BUILD: "1"
+  BUILDKIT_PROGRESS: "plain"
+  RELEASABLE_REPOS: "^kiorky/"
+  RELEASABLE_BRANCHES: "^(refs/heads/)?(master|main|new-packaging)$"
 jobs:
-  build-py2:
+  test-py2:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["2.7"]
+    strategy: {fail-fast: false}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Cache tox environments
+      uses: actions/cache@v4
+      with:
+        path: .cache
+        key: ${{ runner.os }}-py27
     - name: install dependencies && test on py27
       run: |
         set -ex
+        export PIP_CACHE_DIR=$(pwd)/.cache/pip;export PIP_DOWNLOAD_CACHE=$PIP_CACHE_DIR
+        mkdir -pv $PIP_CACHE_DIR || true
         sudo apt update && sudo apt install -y python2.7
-        # install py 2 with eg: apt install python2.7
         mkdir venv2 && curl -sSL "https://github.com/pypa/get-virtualenv/blob/20.27.0/public/2.7/virtualenv.pyz?raw=true" > venv2/venv && python2.7 venv2/venv venv2
-        venv2/bin/python2 -m pip install -r ./requirements/test.txt
-        venv2/bin/tox --direct -e "py${pyver//\.}-{std,coverage}"
+        # we need the latest py2 compatible pytest which is not the latest available
+        venv2/bin/python2 -m pip install pytest -r <(grep -v pytest ./requirements/base.txt)
+        venv2/bin/pytest src
 
-  build-py3:
+  test-py3:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Cache tox environments
+      uses: actions/cache@v4
+      with:
+        path: .tox
+        key: ${{ runner.os }}-${{ matrix.python }}-tox
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with: {python-version: "${{ matrix.python-version }}", cache: pip, cache-dependency-path: 'requirements/*.txt'}
+    - name: install tests dependencies
+      run: pip install -r requirements/test.txt -r requirements/lint.txt -r requirements/tox.txt 
+    - name: run lint
+      run: tox --current-env -e lint
+    - name: run tests with coverage
+      run: tox --current-env -e cov
+
+  test-32bits:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - name: Cache tox environments
+      uses: actions/cache@v4
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: install dependencies && test on py3
+        path: .dockertox
+        key: ${{ runner.os }}-${{ matrix.python }}-dockertox
+    - name: Test with pytest
       run: |
-        set -ex
-        python -m pip install --upgrade --use-pep517 pip
-        pip install --use-pep517 -r requirements/test.txt
-        pyver=$(python --version 2>&1 | awk '{print substr($2, 0, 4)}' | awk '{ sub(/[ \t]+$/, ""); print }')
-        tox --direct -e "py${pyver//\.}-{std,coverage}"
+         docker compose build --build-arg BASE=corpusops/croniter:32bits
+         docker compose run --rm app tox --current-env -e test
+      env: {COMPOSE_FILE: "docker-compose.yml:docker-compose-32bits.yml"}
 

@@ -1,2 +1,1 @@
--r base.txt
 zest.releaser[recommended]>=6.7

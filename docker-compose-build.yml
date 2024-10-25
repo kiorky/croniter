@@ -1,0 +1,7 @@
+services:
+  app:
+    build:
+      cache_from: ["${CRONITER_IMAGE:-corpusops/croniter:latest}"]
+      context: .
+      args:
+        BUILDKIT_INLINE_CACHE: "1"

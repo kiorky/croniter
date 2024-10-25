@@ -1,0 +1,6 @@
+services:
+  app:
+    build:
+      cache_from: ["${CRONITER_IMAGE:-corpusops/croniter:32bits}"]
+      args:
+        BASE: "corpusops/debian-32:trixie"

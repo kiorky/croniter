@@ -1,0 +1,2 @@
+tox>=4
+git+https://github.com/fedora-python/tox-current-env.git@0cf2785#egg=tox-current-env
