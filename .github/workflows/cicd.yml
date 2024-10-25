@@ -15,7 +15,7 @@ jobs:
         sudo apt update && sudo apt install -y python2.7
         # install py 2 with eg: apt install python2.7
         mkdir venv2 && curl -sSL "https://github.com/pypa/get-virtualenv/blob/20.27.0/public/2.7/virtualenv.pyz?raw=true" > venv2/venv && python2.7 venv2/venv venv2
-        venv2/bin/python2 -m pip install -r ./requirements/test.txt
+        venv2/bin/python2 -m pip install -r ./requirements/test.txt tox-direct
         venv2/bin/tox --direct -e "py${pyver//\.}-{std,coverage}"
 
   build-py3:

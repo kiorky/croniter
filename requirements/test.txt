@@ -8,5 +8,4 @@ flake8
 tzlocal
 pylint
 pylama
-tox-direct
 setuptools
