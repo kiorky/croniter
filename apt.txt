@@ -1,0 +1,7 @@
+python3
+
+# dev deps
+python3-dev
+libpython3-dev
+cargo
+git-core
