@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-3.0.5 (unreleased)
+4.0.0 (2024-10-28)
 ------------------
 
 - Remove DayOfWeek alias 7 to DayOfWeek 0 to stick to standard cron (#90). [kiorky]
