@@ -298,8 +298,8 @@ class croniter(object):
             self.cur = start_time
         return self.cur
 
-    @classmethod
-    def _datetime_to_timestamp(cls, d):
+    @staticmethod
+    def _datetime_to_timestamp(d):
         """
         Converts a `datetime` object `d` into a UNIX timestamp.
         """
@@ -320,8 +320,8 @@ class croniter(object):
 
         return result
 
-    @classmethod
-    def _timedelta_to_seconds(cls, td):
+    @staticmethod
+    def _timedelta_to_seconds(td):
         """
         Converts a 'datetime.timedelta' object `td` into seconds contained in
         the duration.
@@ -686,13 +686,15 @@ class croniter(object):
             raise CroniterBadDateError("failed to find prev date")
         raise CroniterBadDateError("failed to find next date")
 
-    def _get_next_nearest(self, x, to_check):
+    @staticmethod
+    def _get_next_nearest(x, to_check):
         small = [item for item in to_check if item < x]
         large = [item for item in to_check if item >= x]
         large.extend(small)
         return large[0]
 
-    def _get_prev_nearest(self, x, to_check):
+    @staticmethod
+    def _get_prev_nearest(x, to_check):
         small = [item for item in to_check if item <= x]
         large = [item for item in to_check if item > x]
         small.reverse()
@@ -700,7 +702,8 @@ class croniter(object):
         small.extend(large)
         return small[0]
 
-    def _get_next_nearest_diff(self, x, to_check, range_val):
+    @staticmethod
+    def _get_next_nearest_diff(x, to_check, range_val):
         """
         `range_val` is the range of a field.
         If no available time, we can move to next loop(like next month).
@@ -720,7 +723,8 @@ class croniter(object):
             return None
         return to_check[0] - x + range_val
 
-    def _get_prev_nearest_diff(self, x, to_check, range_val):
+    @staticmethod
+    def _get_prev_nearest_diff(x, to_check, range_val):
         """
         `range_val` is the range of a field.
         If no available time, we can move to previous loop(like previous month).
@@ -766,7 +770,8 @@ class croniter(object):
             c.pop(0)
         return tuple(i[0] for i in c)
 
-    def is_leap(self, year):
+    @staticmethod
+    def is_leap(year):
         if year % 400 == 0 or (year % 4 == 0 and year % 100 != 0):
             return True
         else:
