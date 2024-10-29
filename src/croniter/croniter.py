@@ -233,9 +233,6 @@ class croniter(object):
         130
     )
 
-    bad_length = 'Exactly 5, 6 or 7 columns has to be specified for iterator ' \
-                 'expression.'
-
     def __init__(self, expr_format, start_time=None, ret_type=float,
                  day_or=True, max_years_between_matches=None, is_prev=False,
                  hash_id=None, implement_cron_bug=False, second_at_beginning=None,
@@ -831,7 +828,7 @@ class croniter(object):
         expressions = efl.split()
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
-            raise CroniterBadCronError(cls.bad_length)
+            raise CroniterBadCronError("Exactly 5, 6 or 7 columns has to be specified for iterator expression.")
 
         if len(expressions) > UNIX_CRON_LEN and second_at_beginning:
             # move second to it's own(6th) field to process by same logical
