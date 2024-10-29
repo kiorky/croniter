@@ -170,6 +170,9 @@ class CroniterNotAlphaError(CroniterBadCronError):
 
 class croniter(object):
     MONTHS_IN_YEAR = 12
+
+    # This helps with expanding `*` fields into `lower-upper` ranges. Each item
+    # in this tuple maps to the corresponding field index
     RANGES = (
         (0, 59),
         (0, 23),
