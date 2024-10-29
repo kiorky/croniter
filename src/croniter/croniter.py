@@ -792,18 +792,18 @@ class croniter(object):
             return False
 
     @classmethod
-    def value_alias(cls, val, field, len_expressions=UNIX_CRON_LEN):
+    def value_alias(cls, val, field_index, len_expressions=UNIX_CRON_LEN):
         if isinstance(len_expressions, (list, dict, tuple, set)):
             len_expressions = len(len_expressions)
-        if val in cls.LOWMAP[field] and not (
+        if val in cls.LOWMAP[field_index] and not (
             # do not support 0 as a month either for classical 5 fields cron,
             # 6fields second repeat form or 7 fields year form
             # but still let conversion happen if day field is shifted
-            (field in [DAY_FIELD, MONTH_FIELD] and len_expressions == UNIX_CRON_LEN) or
-            (field in [MONTH_FIELD, DOW_FIELD] and len_expressions == SECOND_CRON_LEN) or
-            (field in [DAY_FIELD, MONTH_FIELD, DOW_FIELD] and len_expressions == YEAR_CRON_LEN)
+            (field_index in [DAY_FIELD, MONTH_FIELD] and len_expressions == UNIX_CRON_LEN) or
+            (field_index in [MONTH_FIELD, DOW_FIELD] and len_expressions == SECOND_CRON_LEN) or
+            (field_index in [DAY_FIELD, MONTH_FIELD, DOW_FIELD] and len_expressions == YEAR_CRON_LEN)
         ):
-            val = cls.LOWMAP[field][val]
+            val = cls.LOWMAP[field_index][val]
         return val
 
     @classmethod
@@ -840,16 +840,16 @@ class croniter(object):
         expanded = []
         nth_weekday_of_month = {}
 
-        for i, expr in enumerate(expressions):
+        for field_index, expr in enumerate(expressions):
             for expanderid, expander in EXPANDERS.items():
-                expr = expander(cls).expand(efl, i, expr, hash_id=hash_id, from_timestamp=from_timestamp)
+                expr = expander(cls).expand(efl, field_index, expr, hash_id=hash_id, from_timestamp=from_timestamp)
 
             if "?" in expr:
                 if expr != "?":
                     raise CroniterBadCronError(
                         "[{0}] is not acceptable.  Question mark can not "
                         "used with other characters".format(expr_format))
-                if i not in [DAY_FIELD, DOW_FIELD]:
+                if field_index not in [DAY_FIELD, DOW_FIELD]:
                     raise CroniterBadCronError(
                         "[{0}] is not acceptable.  Question mark can only used "
                         "in day_of_month or day_of_week".format(expr_format))
@@ -863,7 +863,7 @@ class croniter(object):
                 e = e_list.pop()
                 nth = None
 
-                if i == DOW_FIELD:
+                if field_index == DOW_FIELD:
                     # Handle special case in the dow expression: 2#3, l3
                     special_dow_rem = special_dow_re.match(str(e))
                     if special_dow_rem:
@@ -885,8 +885,8 @@ class croniter(object):
                 # Before matching step_search_re, normalize "*" to "{min}-{max}".
                 # Example: in the minute field, "*/5" normalizes to "0-59/5"
                 t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
-                    cls.RANGES[i][0],
-                    cls.RANGES[i][1]),
+                    cls.RANGES[field_index][0],
+                    cls.RANGES[field_index][1]),
                     str(e))
                 m = step_search_re.search(t)
 
@@ -895,52 +895,52 @@ class croniter(object):
                     # normalize "{start}/{step}" to "{start}-{max}/{step}".
                     # Example: in the minute field, "10/5" normalizes to "10-59/5"
                     t = re.sub(r'^(.+)\/(.+)$', r'\1-%d/\2' % (
-                        cls.RANGES[i][1]),
+                        cls.RANGES[field_index][1]),
                         str(e))
                     m = step_search_re.search(t)
 
                 if m:
                     # early abort if low/high are out of bounds
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
-                    if i == DAY_FIELD and high == 'l':
+                    if field_index == DAY_FIELD and high == 'l':
                         high = '31'
 
                     if not only_int_re.search(low):
-                        low = "{0}".format(cls._alphaconv(i, low, expressions))
+                        low = "{0}".format(cls._alphaconv(field_index, low, expressions))
 
                     if not only_int_re.search(high):
-                        high = "{0}".format(cls._alphaconv(i, high, expressions))
+                        high = "{0}".format(cls._alphaconv(field_index, high, expressions))
 
                     # normally, it's already guarded by the RE that should not accept not-int values.
                     if not only_int_re.search(str(step)):
                         raise CroniterBadCronError(
                             "[{0}] step '{2}' in field {1} is not acceptable".format(
-                                expr_format, i, step))
+                                expr_format, field_index, step))
                     step = int(step)
 
                     for band in low, high:
                         if not only_int_re.search(str(band)):
                             raise CroniterBadCronError(
                                 "[{0}] bands '{2}-{3}' in field {1} are not acceptable".format(
-                                    expr_format, i, low, high))
+                                    expr_format, field_index, low, high))
 
-                    low, high = [cls.value_alias(int(_val), i, expressions) for _val in (low, high)]
+                    low, high = [cls.value_alias(int(_val), field_index, expressions) for _val in (low, high)]
 
                     if (
-                        max(low, high) > max(cls.RANGES[i][0], cls.RANGES[i][1])
+                        max(low, high) > max(cls.RANGES[field_index][0], cls.RANGES[field_index][1])
                     ):
                         raise CroniterBadCronError(
                             "{0} is out of bands".format(expr_format))
 
                     if from_timestamp:
-                        low = cls._get_low_from_current_date_number(i, int(step), int(from_timestamp))
+                        low = cls._get_low_from_current_date_number(field_index, int(step), int(from_timestamp))
 
                     # Handle when the second bound of the range is in backtracking order:
                     # eg: X-Sun or X-7 (Sat-Sun) in DOW, or X-Jan (Apr-Jan) in MONTH
                     if low > high:
-                        whole_field_range = list(range(cls.RANGES[i][0], cls.RANGES[i][1] + 1, 1))
+                        whole_field_range = list(range(cls.RANGES[field_index][0], cls.RANGES[field_index][1] + 1, 1))
                         # Add FirstBound -> ENDRANGE, respecting step
-                        rng = list(range(low, cls.RANGES[i][1] + 1, step))
+                        rng = list(range(low, cls.RANGES[field_index][1] + 1, step))
                         # Then 0 -> SecondBound, but skipping n first occurences according to step
                         # EG to respect such expressions : Apr-Jan/3
                         to_skip = 0
@@ -949,11 +949,11 @@ class croniter(object):
                             curpos = whole_field_range.index(rng[-1])
                             if ((curpos + step) > len(whole_field_range)) and (already_skipped < step):
                                 to_skip = step - already_skipped
-                        rng += list(range(cls.RANGES[i][0] + to_skip, high + 1, step))
+                        rng += list(range(cls.RANGES[field_index][0] + to_skip, high + 1, step))
                     # if we include a range type: Jan-Jan, or Sun-Sun,
                     #  it means the whole cycle (all days of week, # all monthes of year, etc)
                     elif low == high:
-                        rng = list(range(cls.RANGES[i][0], cls.RANGES[i][1] + 1, step))
+                        rng = list(range(cls.RANGES[field_index][0], cls.RANGES[field_index][1] + 1, step))
                     else:
                         try:
                             rng = list(range(low, high + 1, step))
@@ -961,7 +961,7 @@ class croniter(object):
                             raise CroniterBadCronError('invalid range: {0}'.format(exc))
 
                     rng = (["{0}#{1}".format(item, nth) for item in rng]
-                           if i == DOW_FIELD and nth and nth != "l" else rng)
+                           if field_index == DOW_FIELD and nth and nth != "l" else rng)
                     e_list += [a for a in rng if a not in e_list]
                 else:
                     if t.startswith('-'):
@@ -970,19 +970,19 @@ class croniter(object):
                             "negative numbers not allowed"
                         ).format(expr_format))
                     if not star_or_int_re.search(t):
-                        t = cls._alphaconv(i, t, expressions)
+                        t = cls._alphaconv(field_index, t, expressions)
 
                     try:
                         t = int(t)
                     except ValueError:
                         pass
 
-                    t = cls.value_alias(t, i, expressions)
+                    t = cls.value_alias(t, field_index, expressions)
 
                     if (
                         t not in ["*", "l"]
-                        and (int(t) < cls.RANGES[i][0] or
-                             int(t) > cls.RANGES[i][1])
+                        and (int(t) < cls.RANGES[field_index][0] or
+                             int(t) > cls.RANGES[field_index][1])
                     ):
                         raise CroniterBadCronError(
                             "[{0}] is not acceptable, out of range".format(
@@ -990,18 +990,18 @@ class croniter(object):
 
                     res.append(t)
 
-                    if i == DOW_FIELD and nth:
+                    if field_index == DOW_FIELD and nth:
                         if t not in nth_weekday_of_month:
                             nth_weekday_of_month[t] = set()
                         nth_weekday_of_month[t].add(nth)
 
             res = set(res)
             res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
-            if len(res) == cls.LEN_MEANS_ALL[i]:
+            if len(res) == cls.LEN_MEANS_ALL[field_index]:
                 # Make sure the wildcard is used in the correct way (avoid over-optimization)
                 if (
-                    (i == DAY_FIELD and '*' not in expressions[DOW_FIELD]) or
-                    (i == DOW_FIELD and '*' not in expressions[DAY_FIELD])
+                    (field_index == DAY_FIELD and '*' not in expressions[DOW_FIELD]) or
+                    (field_index == DOW_FIELD and '*' not in expressions[DAY_FIELD])
                 ):
                     pass
                 else:
@@ -1044,17 +1044,17 @@ class croniter(object):
                 raise CroniterBadCronError("{0}".format(exc))
 
     @classmethod
-    def _get_low_from_current_date_number(cls, i, step, from_timestamp):
+    def _get_low_from_current_date_number(cls, field_index, step, from_timestamp):
         dt = datetime.datetime.fromtimestamp(from_timestamp, tz=UTC_DT)
-        if i == MINUTE_FIELD:
+        if field_index == MINUTE_FIELD:
             return dt.minute % step
-        if i == HOUR_FIELD:
+        if field_index == HOUR_FIELD:
             return dt.hour % step
-        if i == DAY_FIELD:
+        if field_index == DAY_FIELD:
             return ((dt.day - 1) % step) + 1
-        if i == MONTH_FIELD:
+        if field_index == MONTH_FIELD:
             return dt.month % step
-        if i == DOW_FIELD:
+        if field_index == DOW_FIELD:
             return (dt.weekday() + 1) % step
 
         raise ValueError("Can't get current date number for index larger than 4")
