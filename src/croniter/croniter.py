@@ -518,10 +518,6 @@ class croniter(object):
             except ValueError:
                 diff_month = nearest_diff_method(
                     d.month, expanded[MONTH_FIELD], self.MONTHS_IN_YEAR)
-                days = DAYS[month - 1]
-                if month == 2 and self.is_leap(year) is True:
-                    days += 1
-
                 reset_day = 1
 
                 if diff_month is not None and diff_month != 0:
