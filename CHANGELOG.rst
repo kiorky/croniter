@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-5.0.1 (unreleased)
+5.0.1 (2024-10-29)
 ------------------
 
 - Community wanted: Reintroduce 7 as DayOfWeek in deviation from standard cron (#90). [kiorky]
