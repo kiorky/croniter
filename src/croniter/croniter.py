@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, print_function, division
 
+from collections import namedtuple
 import traceback as _traceback
 import copy
 import math
@@ -75,6 +76,19 @@ except ImportError:
 
 
 EPOCH = datetime.datetime.fromtimestamp(0)
+
+ExpressionAlias = namedtuple("ExpressionAlias", "regular, hashed")
+
+# Non-standard expression aliases
+EXPR_ALIASES = {
+    "@midnight": ExpressionAlias("0 0 * * *", "h h(0-2) * * * h"),
+    "@hourly": ExpressionAlias("0 * * * *", "h * * * * h"),
+    "@daily": ExpressionAlias("0 0 * * *", "h h * * * h"),
+    "@weekly": ExpressionAlias("0 0 * * 0", "h h * * h h"),
+    "@monthly": ExpressionAlias("0 0 1 * *", "h h h * * h"),
+    "@yearly": ExpressionAlias("0 0 1 1 *", "h h h h * h"),
+    "@annually": ExpressionAlias("0 0 1 1 *", "h h h h * h"),
+}
 
 # fmt: off
 M_ALPHAS = {
@@ -823,22 +837,14 @@ class croniter(object):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
         # messages.
-        expr_aliases = {
-            "@midnight": ("0 0 * * *", "h h(0-2) * * * h"),
-            "@hourly": ("0 * * * *", "h * * * * h"),
-            "@daily": ("0 0 * * *", "h h * * * h"),
-            "@weekly": ("0 0 * * 0", "h h * * h h"),
-            "@monthly": ("0 0 1 * *", "h h h * * h"),
-            "@yearly": ("0 0 1 1 *", "h h h h * h"),
-            "@annually": ("0 0 1 1 *", "h h h h * h"),
-        }
-
         efl = expr_format.lower()
-        hash_id_expr = hash_id is not None and 1 or 0
-        try:
-            efl = expr_aliases[efl][hash_id_expr]
-        except KeyError:
-            pass
+
+        # Expand expression aliases like `@midnight`
+        if efl in EXPR_ALIASES:
+            if hash_id is None:
+                efl = EXPR_ALIASES[efl].regular
+            else:
+                efl = EXPR_ALIASES[efl].hashed
 
         expressions = efl.split()
 
