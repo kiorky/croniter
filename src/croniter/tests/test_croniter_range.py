@@ -19,7 +19,6 @@ class mydatetime(datetime):
 
 
 class CroniterRangeTest(base.TestCase):
-
     def test_1day_step(self):
         start = datetime(2016, 12, 2)
         stop = datetime(2016, 12, 10)
@@ -59,7 +58,7 @@ class CroniterRangeTest(base.TestCase):
 
     def test_1minute_step_float(self):
         start = datetime(2000, 1, 1, 0, 0)
-        stop =  datetime(2000, 1, 1, 0, 1)
+        stop = datetime(2000, 1, 1, 0, 1)
         res = list(croniter_range(start, stop, "* * * * *", ret_type=float))
         self.assertEqual(len(res), 2)
         self.assertEqual(res[0], 946684800.0)
@@ -86,19 +85,20 @@ class CroniterRangeTest(base.TestCase):
             list(croniter_range(f_start1, dt_stop1, "0 * * * *"))
 
     def test_timezone_dst(self):
-        """ Test across DST transition, which technically is a timzone change. """
+        """Test across DST transition, which technically is a timzone change."""
         tz = pytz.timezone("US/Eastern")
         start = tz.localize(datetime(2020, 10, 30))
-        stop =  tz.localize(datetime(2020, 11, 10))
+        stop = tz.localize(datetime(2020, 11, 10))
         res = list(croniter_range(start, stop, "0 0 * * *"))
         self.assertNotEqual(res[0].tzinfo, res[-1].tzinfo)
         self.assertEqual(len(res), 12)
 
     def test_extra_hour_day_prio(self):
         def datetime_tz(*args, **kw):
-            """ Defined this in another branch.  single-use-version """
+            """Defined this in another branch.  single-use-version"""
             tzinfo = kw.pop("tzinfo")
             return tzinfo.localize(datetime(*args))
+
         tz = pytz.timezone("US/Eastern")
         cron = "0 3 * * *"
         start = datetime_tz(2020, 3, 7, tzinfo=tz)
@@ -137,7 +137,8 @@ class CroniterRangeTest(base.TestCase):
         # trivial example extending croniter
 
         class croniter_nosec(croniter):
-            """ Like croniter, but it forbids second-level cron expressions. """
+            """Like croniter, but it forbids second-level cron expressions."""
+
             @classmethod
             def expand(cls, expr_format, *args, **kwargs):
                 if len(expr_format.split()) == 6:
