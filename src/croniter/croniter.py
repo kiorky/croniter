@@ -42,10 +42,10 @@ def is_32bit():
     # Method 3: Check maxsize (sys.maxint in Python 2)
     try:
         # Python 2
-        is_small_maxsize = sys.maxint <= 2**32
+        is_small_maxsize = sys.maxint <= 2 ** 32
     except AttributeError:
         # Python 3
-        is_small_maxsize = sys.maxsize <= 2**32
+        is_small_maxsize = sys.maxsize <= 2 ** 32
 
     # Evaluate all available methods
     is_32 = False
@@ -86,8 +86,8 @@ WEEKDAYS = "|".join(DOW_ALPHAS.keys())
 MONTHS = "|".join(M_ALPHAS.keys())
 star_or_int_re = re.compile(r"^(\d+|\*)$")
 special_dow_re = re.compile(
-    (r"^(?P<pre>((?P<he>(({WEEKDAYS})(-({WEEKDAYS}))?)").format(WEEKDAYS=WEEKDAYS) +
-    (r"|(({MONTHS})(-({MONTHS}))?)|\w+)#)|l)(?P<last>\d+)$").format(MONTHS=MONTHS)
+    (r"^(?P<pre>((?P<he>(({WEEKDAYS})(-({WEEKDAYS}))?)").format(WEEKDAYS=WEEKDAYS)
+    + (r"|(({MONTHS})(-({MONTHS}))?)|\w+)#)|l)(?P<last>\d+)$").format(MONTHS=MONTHS)
 )
 re_star = re.compile("[*]")
 hash_expression_re = re.compile(
@@ -125,8 +125,7 @@ except AttributeError:
 
 
 def timedelta_to_seconds(td):
-    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) \
-        / 10**6
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6
 
 
 def datetime_to_timestamp(d):
