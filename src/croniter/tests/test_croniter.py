@@ -7,8 +7,15 @@ from functools import partial
 from time import sleep
 import pytz
 from croniter.croniter import VALID_LEN_EXPRESSION
-from croniter import (croniter, CroniterBadDateError, CroniterBadCronError, datetime_to_timestamp,
-                      CroniterNotAlphaError, CroniterUnsupportedSyntaxError, OVERFLOW32B_MODE)
+from croniter import (
+    croniter,
+    CroniterBadDateError,
+    CroniterBadCronError,
+    datetime_to_timestamp,
+    CroniterNotAlphaError,
+    CroniterUnsupportedSyntaxError,
+    OVERFLOW32B_MODE,
+)
 from croniter.tests import base
 import dateutil.tz
 
