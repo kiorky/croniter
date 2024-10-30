@@ -17,12 +17,12 @@ class CroniterRangeTest(base.TestCase):
     def test_1day_step(self):
         start = datetime(2016, 12, 2)
         stop = datetime(2016, 12, 10)
-        fwd = list(croniter_range(start, stop, '0 0 * * *'))
+        fwd = list(croniter_range(start, stop, "0 0 * * *"))
         self.assertEqual(len(fwd), 9)
         self.assertEqual(fwd[0], start)
         self.assertEqual(fwd[-1], stop)
         # Test the same, but in reverse
-        rev = list(croniter_range(stop, start, '0 0 * * *'))
+        rev = list(croniter_range(stop, start, "0 0 * * *"))
         self.assertEqual(len(rev), 9)
         # Ensure forward/reverse are a mirror image
         rev.reverse()
@@ -32,12 +32,12 @@ class CroniterRangeTest(base.TestCase):
         # Test without ends (exclusive)
         start = datetime(2016, 12, 2)
         stop = datetime(2016, 12, 10)
-        fwd = list(croniter_range(start, stop, '0 0 * * *', exclude_ends=True))
+        fwd = list(croniter_range(start, stop, "0 0 * * *", exclude_ends=True))
         self.assertEqual(len(fwd), 7)
         self.assertNotEqual(fwd[0], start)
         self.assertNotEqual(fwd[-1], stop)
         # Test the same, but in reverse
-        rev = list(croniter_range(stop, start, '0 0 * * *', exclude_ends=True))
+        rev = list(croniter_range(stop, start, "0 0 * * *", exclude_ends=True))
         self.assertEqual(len(rev), 7)
         self.assertNotEqual(fwd[0], stop)
         self.assertNotEqual(fwd[-1], start)
@@ -45,7 +45,7 @@ class CroniterRangeTest(base.TestCase):
     def test_1month_step(self):
         start = datetime(1982, 1, 1)
         stop = datetime(1983, 12, 31)
-        res = list(croniter_range(start, stop, '0 0 1 * *'))
+        res = list(croniter_range(start, stop, "0 0 1 * *"))
         self.assertEqual(len(res), 24)
         self.assertEqual(res[0], start)
         self.assertEqual(res[5].day, 1)
@@ -54,7 +54,7 @@ class CroniterRangeTest(base.TestCase):
     def test_1minute_step_float(self):
         start = datetime(2000, 1, 1, 0, 0)
         stop =  datetime(2000, 1, 1, 0, 1)
-        res = list(croniter_range(start, stop, '* * * * *', ret_type=float))
+        res = list(croniter_range(start, stop, "* * * * *", ret_type=float))
         self.assertEqual(len(res), 2)
         self.assertEqual(res[0], 946684800.0)
         self.assertEqual(res[-1] - res[0], 60)
@@ -84,7 +84,7 @@ class CroniterRangeTest(base.TestCase):
         tz = pytz.timezone("US/Eastern")
         start = tz.localize(datetime(2020, 10, 30))
         stop =  tz.localize(datetime(2020, 11, 10))
-        res = list(croniter_range(start, stop, '0 0 * * *'))
+        res = list(croniter_range(start, stop, "0 0 * * *"))
         self.assertNotEqual(res[0].tzinfo, res[-1].tzinfo)
         self.assertEqual(len(res), 12)
 
@@ -156,14 +156,14 @@ class CroniterRangeTest(base.TestCase):
         start = mydatetime(2020, 9, 24)
         stop = datetime(2020, 9, 28)
         try:
-            list(croniter_range(start, stop, '0 0 * * *'))
+            list(croniter_range(start, stop, "0 0 * * *"))
         except CroniterBadTypeRangeError:
-            self.fail('should not be triggered')
+            self.fail("should not be triggered")
 
     def test_configure_second_location(self):
         start = datetime(2016, 12, 2, 0, 0, 0)
         stop = datetime(2016, 12, 2, 0, 1, 0)
-        fwd = list(croniter_range(start, stop, '*/20 * * * * *', second_at_beginning=True))
+        fwd = list(croniter_range(start, stop, "*/20 * * * * *", second_at_beginning=True))
         self.assertEqual(len(fwd), 4)
         self.assertEqual(fwd[0], start)
         self.assertEqual(fwd[-1], stop)
@@ -177,5 +177,5 @@ class CroniterRangeTest(base.TestCase):
         self.assertEqual(fwd[-1], datetime(2028, 1, 1))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
