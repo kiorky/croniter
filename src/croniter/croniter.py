@@ -1064,7 +1064,6 @@ class croniter(object):
                                second_at_beginning=second_at_beginning,
                                from_timestamp=from_timestamp)
         except (ValueError,) as exc:
-            error_type, error_instance, traceback = sys.exc_info()
             if isinstance(exc, CroniterError):
                 raise
             if int(sys.version[0]) >= 3:
