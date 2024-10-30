@@ -1027,7 +1027,44 @@ class croniter(object):
 
     @classmethod
     def expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp=None):
-        """Shallow non Croniter ValueError inside a nice CroniterBadCronError"""
+        """
+        Expand a cron expression format into a noramlized format of
+        list[list[int | 'l' | '*']]. The first list representing each element
+        of the epxression, and each sub-list representing the allowed values
+        for that expression component.
+
+        A tuple is returned, the first value being the expanded epxression
+        list, and the second being a `nth_weekday_of_month` mapping.
+
+        Examples:
+
+        # Every minute
+        >>> croniter.expand('* * * * *')
+        ([['*'], ['*'], ['*'], ['*'], ['*']], {})
+
+        # On the hour
+        >>> croniter.expand('0 0 * * *')
+        ([[0], [0], ['*'], ['*'], ['*']], {})
+
+        # Hours 0-5 and 10 monday through friday
+        >>> croniter.expand('0-5,10 * * * mon-fri')
+        ([[0, 1, 2, 3, 4, 5, 10], ['*'], ['*'], ['*'], [1, 2, 3, 4, 5]], {})
+
+        Note that some special values such as nth day of week are expanded to a
+        special mapping format for later processing:
+
+        # Every minute on the 3rd tuesday of the month
+        >>> croniter.expand('* * * * 2#3')
+        ([['*'], ['*'], ['*'], ['*'], [2]], {2: {3}})
+
+        # Every hour on the last day of the month
+        >>> croniter.expand('0 * l * *')
+        ([[0], ['*'], ['l'], ['*'], ['*']], {})
+
+        # On the hour every 15 seconds
+        >>> croniter.expand('0 0 * * * */15')
+        ([[0], [0], ['*'], ['*'], ['*'], [0, 15, 30, 45]], {})
+        """
         try:
             return cls._expand(expr_format, hash_id=hash_id,
                                second_at_beginning=second_at_beginning,
