@@ -1,0 +1,17 @@
+[tool.black]
+line-length = 119
+target-version = [
+  # XXX: This project does still support 2.6, but black does not have a 2.6
+  # target. There should be very few (if any) syntax differences between the
+  # two versions however.
+  'py27',
+  'py34',
+  'py35',
+  'py36',
+  'py37',
+  'py38',
+  'py39',
+  'py310',
+  # Because we're using an old version of black to support older python, there
+  # is no explicit python version target past 3.10
+]
