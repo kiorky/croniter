@@ -281,21 +281,28 @@ class croniter(object):
             return cls.ALPHACONV[index][key]
         except KeyError:
             raise CroniterNotAlphaError(
-                "[{0}] is not acceptable".format(" ".join(expressions)))
+                "[{0}] is not acceptable".format(" ".join(expressions))
+            )
 
     def get_next(self, ret_type=None, start_time=None, update_current=True):
         if start_time and self._expand_from_start_time:
-            raise ValueError("start_time is not supported when using expand_from_start_time = True.")
-        return self._get_next(ret_type=ret_type,
-                              start_time=start_time,
-                              is_prev=False,
-                              update_current=update_current)
+            raise ValueError(
+                "start_time is not supported when using expand_from_start_time = True."
+            )
+        return self._get_next(
+            ret_type=ret_type,
+            start_time=start_time,
+            is_prev=False,
+            update_current=update_current,
+        )
 
     def get_prev(self, ret_type=None, start_time=None, update_current=True):
-        return self._get_next(ret_type=ret_type,
-                              start_time=start_time,
-                              is_prev=True,
-                              update_current=update_current)
+        return self._get_next(
+            ret_type=ret_type,
+            start_time=start_time,
+            is_prev=True,
+            update_current=update_current,
+        )
 
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
@@ -450,8 +457,11 @@ class croniter(object):
         try:
             while True:
                 self._is_prev = False
-                yield self._get_next(ret_type=ret_type,
-                                     start_time=start_time, update_current=update_current)
+                yield self._get_next(
+                    ret_type=ret_type,
+                    start_time=start_time,
+                    update_current=update_current,
+                )
                 start_time = None
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
@@ -466,8 +476,11 @@ class croniter(object):
         try:
             while True:
                 self._is_prev = True
-                yield self._get_next(ret_type=ret_type,
-                                     start_time=start_time, update_current=update_current)
+                yield self._get_next(
+                    ret_type=ret_type,
+                    start_time=start_time,
+                    update_current=update_current,
+                )
                 start_time = None
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
@@ -511,11 +524,23 @@ class croniter(object):
                         return None, d
                     elif diff_year != 0:
                         if is_prev:
-                            d += relativedelta(years=diff_year, month=12, day=31,
-                                               hour=23, minute=59, second=59)
+                            d += relativedelta(
+                                years=diff_year,
+                                month=12,
+                                day=31,
+                                hour=23,
+                                minute=59,
+                                second=59,
+                            )
                         else:
-                            d += relativedelta(years=diff_year, month=1, day=1,
-                                               hour=0, minute=0, second=0)
+                            d += relativedelta(
+                                years=diff_year,
+                                month=1,
+                                day=1,
+                                hour=0,
+                                minute=0,
+                                second=0,
+                            )
                         return True, d
             return False, d
 
@@ -524,7 +549,8 @@ class croniter(object):
                 expanded[MONTH_FIELD].index("*")
             except ValueError:
                 diff_month = nearest_diff_method(
-                    d.month, expanded[MONTH_FIELD], self.MONTHS_IN_YEAR)
+                    d.month, expanded[MONTH_FIELD], self.MONTHS_IN_YEAR
+                )
                 reset_day = 1
 
                 if diff_month is not None and diff_month != 0:
@@ -533,11 +559,11 @@ class croniter(object):
                         reset_day = DAYS[d.month - 1]
                         if d.month == 2 and self.is_leap(d.year) is True:
                             reset_day += 1
-                        d += relativedelta(
-                            day=reset_day, hour=23, minute=59, second=59)
+                        d += relativedelta(day=reset_day, hour=23, minute=59, second=59)
                     else:
-                        d += relativedelta(months=diff_month, day=reset_day,
-                                           hour=0, minute=0, second=0)
+                        d += relativedelta(
+                            months=diff_month, day=reset_day, hour=0, minute=0, second=0
+                        )
                     return True, d
             return False, d
 
@@ -552,20 +578,18 @@ class croniter(object):
                     return False, d
 
                 if is_prev:
-                    days_in_prev_month = DAYS[
-                        (month - 2) % self.MONTHS_IN_YEAR]
+                    days_in_prev_month = DAYS[(month - 2) % self.MONTHS_IN_YEAR]
                     diff_day = nearest_diff_method(
-                        d.day, expanded[DAY_FIELD], days_in_prev_month)
+                        d.day, expanded[DAY_FIELD], days_in_prev_month
+                    )
                 else:
                     diff_day = nearest_diff_method(d.day, expanded[DAY_FIELD], days)
 
                 if diff_day is not None and diff_day != 0:
                     if is_prev:
-                        d += relativedelta(
-                            days=diff_day, hour=23, minute=59, second=59)
+                        d += relativedelta(days=diff_day, hour=23, minute=59, second=59)
                     else:
-                        d += relativedelta(
-                            days=diff_day, hour=0, minute=0, second=0)
+                        d += relativedelta(days=diff_day, hour=0, minute=0, second=0)
                     return True, d
             return False, d
 
@@ -574,14 +598,17 @@ class croniter(object):
                 expanded[DOW_FIELD].index("*")
             except ValueError:
                 diff_day_of_week = nearest_diff_method(
-                    d.isoweekday() % 7, expanded[DOW_FIELD], 7)
+                    d.isoweekday() % 7, expanded[DOW_FIELD], 7
+                )
                 if diff_day_of_week is not None and diff_day_of_week != 0:
                     if is_prev:
-                        d += relativedelta(days=diff_day_of_week,
-                                           hour=23, minute=59, second=59)
+                        d += relativedelta(
+                            days=diff_day_of_week, hour=23, minute=59, second=59
+                        )
                     else:
-                        d += relativedelta(days=diff_day_of_week,
-                                           hour=0, minute=0, second=0)
+                        d += relativedelta(
+                            days=diff_day_of_week, hour=0, minute=0, second=0
+                        )
                     return True, d
             return False, d
 
@@ -613,25 +640,23 @@ class croniter(object):
 
             if not candidates:
                 if is_prev:
-                    d += relativedelta(days=-d.day,
-                                       hour=23, minute=59, second=59)
+                    d += relativedelta(days=-d.day, hour=23, minute=59, second=59)
                 else:
                     days = DAYS[month - 1]
                     if month == 2 and self.is_leap(year) is True:
                         days += 1
-                    d += relativedelta(days=(days - d.day + 1),
-                                       hour=0, minute=0, second=0)
+                    d += relativedelta(
+                        days=(days - d.day + 1), hour=0, minute=0, second=0
+                    )
                 return True, d
 
             candidates.sort()
             diff_day = (candidates[-1] if is_prev else candidates[0]) - d.day
             if diff_day != 0:
                 if is_prev:
-                    d += relativedelta(days=diff_day,
-                                       hour=23, minute=59, second=59)
+                    d += relativedelta(days=diff_day, hour=23, minute=59, second=59)
                 else:
-                    d += relativedelta(days=diff_day,
-                                       hour=0, minute=0, second=0)
+                    d += relativedelta(days=diff_day, hour=0, minute=0, second=0)
                 return True, d
             return False, d
 
@@ -642,8 +667,7 @@ class croniter(object):
                 diff_hour = nearest_diff_method(d.hour, expanded[HOUR_FIELD], 24)
                 if diff_hour is not None and diff_hour != 0:
                     if is_prev:
-                        d += relativedelta(
-                            hours=diff_hour, minute=59, second=59)
+                        d += relativedelta(hours=diff_hour, minute=59, second=59)
                     else:
                         d += relativedelta(hours=diff_hour, minute=0, second=0)
                     return True, d
@@ -845,7 +869,9 @@ class croniter(object):
         expressions = efl.split()
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
-            raise CroniterBadCronError("Exactly 5, 6 or 7 columns has to be specified for iterator expression.")
+            raise CroniterBadCronError(
+                "Exactly 5, 6 or 7 columns has to be specified for iterator expression."
+            )
 
         if len(expressions) > UNIX_CRON_LEN and second_at_beginning:
             # move second to it's own(6th) field to process by same logical
@@ -856,17 +882,25 @@ class croniter(object):
 
         for field_index, expr in enumerate(expressions):
             for expanderid, expander in EXPANDERS.items():
-                expr = expander(cls).expand(efl, field_index, expr, hash_id=hash_id, from_timestamp=from_timestamp)
+                expr = expander(cls).expand(
+                    efl,
+                    field_index,
+                    expr,
+                    hash_id=hash_id,
+                    from_timestamp=from_timestamp,
+                )
 
             if "?" in expr:
                 if expr != "?":
                     raise CroniterBadCronError(
                         "[{0}] is not acceptable.  Question mark can not "
-                        "used with other characters".format(expr_format))
+                        "used with other characters".format(expr_format)
+                    )
                 if field_index not in [DAY_FIELD, DOW_FIELD]:
                     raise CroniterBadCronError(
                         "[{0}] is not acceptable.  Question mark can only used "
-                        "in day_of_month or day_of_week".format(expr_format))
+                        "in day_of_month or day_of_week".format(expr_format)
+                    )
                 # currently just trade `?` as `*`
                 expr = "*"
 
@@ -898,19 +932,23 @@ class croniter(object):
 
                 # Before matching step_search_re, normalize "*" to "{min}-{max}".
                 # Example: in the minute field, "*/5" normalizes to "0-59/5"
-                t = re.sub(r"^\*(\/.+)$", r"%d-%d\1" % (
-                    cls.RANGES[field_index][0],
-                    cls.RANGES[field_index][1]),
-                    str(e))
+                t = re.sub(
+                    r"^\*(\/.+)$",
+                    r"%d-%d\1"
+                    % (cls.RANGES[field_index][0], cls.RANGES[field_index][1]),
+                    str(e),
+                )
                 m = step_search_re.search(t)
 
                 if not m:
                     # Before matching step_search_re,
                     # normalize "{start}/{step}" to "{start}-{max}/{step}".
                     # Example: in the minute field, "10/5" normalizes to "10-59/5"
-                    t = re.sub(r"^(.+)\/(.+)$", r"\1-%d/\2" % (
-                        cls.RANGES[field_index][1]),
-                        str(e))
+                    t = re.sub(
+                        r"^(.+)\/(.+)$",
+                        r"\1-%d/\2" % (cls.RANGES[field_index][1]),
+                        str(e),
+                    )
                     m = step_search_re.search(t)
 
                 if m:
@@ -920,23 +958,31 @@ class croniter(object):
                         high = "31"
 
                     if not only_int_re.search(low):
-                        low = "{0}".format(cls._alphaconv(field_index, low, expressions))
+                        low = "{0}".format(
+                            cls._alphaconv(field_index, low, expressions)
+                        )
 
                     if not only_int_re.search(high):
-                        high = "{0}".format(cls._alphaconv(field_index, high, expressions))
+                        high = "{0}".format(
+                            cls._alphaconv(field_index, high, expressions)
+                        )
 
                     # normally, it's already guarded by the RE that should not accept not-int values.
                     if not only_int_re.search(str(step)):
                         raise CroniterBadCronError(
                             "[{0}] step '{2}' in field {1} is not acceptable".format(
-                                expr_format, field_index, step))
+                                expr_format, field_index, step
+                            )
+                        )
                     step = int(step)
 
                     for band in low, high:
                         if not only_int_re.search(str(band)):
                             raise CroniterBadCronError(
                                 "[{0}] bands '{2}-{3}' in field {1} are not acceptable".format(
-                                    expr_format, field_index, low, high))
+                                    expr_format, field_index, low, high
+                                )
+                            )
 
                     low, high = [cls.value_alias(int(_val), field_index, expressions) for _val in (low, high)]
 
@@ -944,15 +990,24 @@ class croniter(object):
                         max(low, high) > max(cls.RANGES[field_index][0], cls.RANGES[field_index][1])
                     ):
                         raise CroniterBadCronError(
-                            "{0} is out of bands".format(expr_format))
+                            "{0} is out of bands".format(expr_format)
+                        )
 
                     if from_timestamp:
-                        low = cls._get_low_from_current_date_number(field_index, int(step), int(from_timestamp))
+                        low = cls._get_low_from_current_date_number(
+                            field_index, int(step), int(from_timestamp)
+                        )
 
                     # Handle when the second bound of the range is in backtracking order:
                     # eg: X-Sun or X-7 (Sat-Sun) in DOW, or X-Jan (Apr-Jan) in MONTH
                     if low > high:
-                        whole_field_range = list(range(cls.RANGES[field_index][0], cls.RANGES[field_index][1] + 1, 1))
+                        whole_field_range = list(
+                            range(
+                                cls.RANGES[field_index][0],
+                                cls.RANGES[field_index][1] + 1,
+                                1,
+                            )
+                        )
                         # Add FirstBound -> ENDRANGE, respecting step
                         rng = list(range(low, cls.RANGES[field_index][1] + 1, step))
                         # Then 0 -> SecondBound, but skipping n first occurences according to step
@@ -963,11 +1018,19 @@ class croniter(object):
                             curpos = whole_field_range.index(rng[-1])
                             if ((curpos + step) > len(whole_field_range)) and (already_skipped < step):
                                 to_skip = step - already_skipped
-                        rng += list(range(cls.RANGES[field_index][0] + to_skip, high + 1, step))
+                        rng += list(
+                            range(cls.RANGES[field_index][0] + to_skip, high + 1, step)
+                        )
                     # if we include a range type: Jan-Jan, or Sun-Sun,
                     #  it means the whole cycle (all days of week, # all monthes of year, etc)
                     elif low == high:
-                        rng = list(range(cls.RANGES[field_index][0], cls.RANGES[field_index][1] + 1, step))
+                        rng = list(
+                            range(
+                                cls.RANGES[field_index][0],
+                                cls.RANGES[field_index][1] + 1,
+                                step,
+                            )
+                        )
                     else:
                         try:
                             rng = list(range(low, high + 1, step))
@@ -999,8 +1062,8 @@ class croniter(object):
                              int(t) > cls.RANGES[field_index][1])
                     ):
                         raise CroniterBadCronError(
-                            "[{0}] is not acceptable, out of range".format(
-                                expr_format))
+                            "[{0}] is not acceptable, out of range".format(expr_format)
+                        )
 
                     res.append(t)
 
@@ -1010,7 +1073,9 @@ class croniter(object):
                         nth_weekday_of_month[t].add(nth)
 
             res = set(res)
-            res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
+            res = sorted(
+                res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i
+            )
             if len(res) == cls.LEN_MEANS_ALL[field_index]:
                 # Make sure the wildcard is used in the correct way (avoid over-optimization)
                 if (
@@ -1021,9 +1086,7 @@ class croniter(object):
                 else:
                     res = ["*"]
 
-            expanded.append(["*"] if (len(res) == 1
-                                      and res[0] == "*")
-                            else res)
+            expanded.append(["*"] if (len(res) == 1 and res[0] == "*") else res)
 
         # Check to make sure the dow combo in use is supported
         if nth_weekday_of_month:
@@ -1086,9 +1149,12 @@ class croniter(object):
         ([[0], [0], ['*'], ['*'], ['*'], [0, 15, 30, 45]], {})
         """
         try:
-            return cls._expand(expr_format, hash_id=hash_id,
-                               second_at_beginning=second_at_beginning,
-                               from_timestamp=from_timestamp)
+            return cls._expand(
+                expr_format,
+                hash_id=hash_id,
+                second_at_beginning=second_at_beginning,
+                from_timestamp=from_timestamp,
+            )
         except (ValueError,) as exc:
             if isinstance(exc, CroniterError):
                 raise
@@ -1128,8 +1194,9 @@ class croniter(object):
             if not isinstance(hash_id, bytes):
                 hash_id = hash_id.encode(encoding)
         try:
-            cls.expand(expression, hash_id=hash_id,
-                       second_at_beginning=second_at_beginning)
+            cls.expand(
+                expression, hash_id=hash_id, second_at_beginning=second_at_beginning
+            )
         except CroniterError:
             return False
         else:
@@ -1137,7 +1204,9 @@ class croniter(object):
 
     @classmethod
     def match(cls, cron_expression, testdate, day_or=True, second_at_beginning=False):
-        return cls.match_range(cron_expression, testdate, testdate, day_or, second_at_beginning)
+        return cls.match_range(
+            cron_expression, testdate, testdate, day_or, second_at_beginning
+        )
 
     @classmethod
     def match_range(
@@ -1148,8 +1217,13 @@ class croniter(object):
         day_or=True,
         second_at_beginning=False,
     ):
-        cron = cls(cron_expression, to_datetime, ret_type=datetime.datetime,
-                   day_or=day_or, second_at_beginning=second_at_beginning)
+        cron = cls(
+            cron_expression,
+            to_datetime,
+            ret_type=datetime.datetime,
+            day_or=day_or,
+            second_at_beginning=second_at_beginning,
+        )
         tdp = cron.get_current(datetime.datetime)
         if not tdp.microsecond:
             tdp += relativedelta(microseconds=1)
