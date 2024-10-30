@@ -288,15 +288,11 @@ class croniter(object):
         try:
             return cls.ALPHACONV[index][key]
         except KeyError:
-            raise CroniterNotAlphaError(
-                "[{0}] is not acceptable".format(" ".join(expressions))
-            )
+            raise CroniterNotAlphaError("[{0}] is not acceptable".format(" ".join(expressions)))
 
     def get_next(self, ret_type=None, start_time=None, update_current=True):
         if start_time and self._expand_from_start_time:
-            raise ValueError(
-                "start_time is not supported when using expand_from_start_time = True."
-            )
+            raise ValueError("start_time is not supported when using expand_from_start_time = True.")
         return self._get_next(
             ret_type=ret_type,
             start_time=start_time,
@@ -380,8 +376,7 @@ class croniter(object):
         ret_type = ret_type or self._ret_type
 
         if not issubclass(ret_type, (float, datetime.datetime)):
-            raise TypeError("Invalid ret_type, only 'float' or 'datetime' "
-                            "is acceptable.")
+            raise TypeError("Invalid ret_type, only 'float' or 'datetime' is acceptable.")
 
         # exception to support day of month and day of week as defined in cron
         dom_dow_exception_processed = False
@@ -854,9 +849,7 @@ class croniter(object):
         expressions = efl.split()
 
         if len(expressions) not in VALID_LEN_EXPRESSION:
-            raise CroniterBadCronError(
-                "Exactly 5, 6 or 7 columns has to be specified for iterator expression."
-            )
+            raise CroniterBadCronError("Exactly 5, 6 or 7 columns has to be specified for iterator expression.")
 
         if len(expressions) > UNIX_CRON_LEN and second_at_beginning:
             # move second to it's own(6th) field to process by same logical
@@ -878,13 +871,13 @@ class croniter(object):
             if "?" in expr:
                 if expr != "?":
                     raise CroniterBadCronError(
-                        "[{0}] is not acceptable.  Question mark can not "
-                        "used with other characters".format(expr_format)
+                        "[{0}] is not acceptable. Question mark can not used with other characters".format(expr_format)
                     )
                 if field_index not in [DAY_FIELD, DOW_FIELD]:
                     raise CroniterBadCronError(
-                        "[{0}] is not acceptable.  Question mark can only used "
-                        "in day_of_month or day_of_week".format(expr_format)
+                        "[{0}] is not acceptable. Question mark can only used in day_of_month or day_of_week".format(
+                            expr_format
+                        )
                     )
                 # currently just trade `?` as `*`
                 expr = "*"
@@ -909,8 +902,10 @@ class croniter(object):
                                 assert nth >= 1 and nth <= 5
                             except (KeyError, ValueError, AssertionError):
                                 raise CroniterBadCronError(
-                                    "[{0}] is not acceptable. Invalid day_of_week "
-                                    "value: '{1}'".format(expr_format, nth))
+                                    "[{0}] is not acceptable. Invalid day_of_week value: '{1}'".format(
+                                        expr_format, nth
+                                    )
+                                )
                         elif last:
                             e = last
                             nth = g["pre"]  # 'l'
@@ -950,9 +945,7 @@ class croniter(object):
                     # normally, it's already guarded by the RE that should not accept not-int values.
                     if not only_int_re.search(str(step)):
                         raise CroniterBadCronError(
-                            "[{0}] step '{2}' in field {1} is not acceptable".format(
-                                expr_format, field_index, step
-                            )
+                            "[{0}] step '{2}' in field {1} is not acceptable".format(expr_format, field_index, step)
                         )
                     step = int(step)
 
@@ -1017,10 +1010,9 @@ class croniter(object):
                     e_list += [a for a in rng if a not in e_list]
                 else:
                     if t.startswith("-"):
-                        raise CroniterBadCronError((
-                            "[{0}] is not acceptable,"
-                            "negative numbers not allowed"
-                        ).format(expr_format))
+                        raise CroniterBadCronError(
+                            "[{0}] is not acceptable," "negative numbers not allowed".format(expr_format)
+                        )
                     if not star_or_int_re.search(t):
                         t = cls._alphaconv(field_index, t, expressions)
 
@@ -1034,9 +1026,7 @@ class croniter(object):
                     if t not in ["*", "l"] and (
                         int(t) < cls.RANGES[field_index][0] or int(t) > cls.RANGES[field_index][1]
                     ):
-                        raise CroniterBadCronError(
-                            "[{0}] is not acceptable, out of range".format(expr_format)
-                        )
+                        raise CroniterBadCronError("[{0}] is not acceptable, out of range".format(expr_format))
 
                     res.append(t)
 
@@ -1067,7 +1057,8 @@ class croniter(object):
             if dow_expanded_set and len(set(expanded[DOW_FIELD])) != cls.LEN_MEANS_ALL[DOW_FIELD]:
                 raise CroniterUnsupportedSyntaxError(
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
-                    "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
+                    "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month)
+                )
 
         EXPRESSIONS[(expr_format, hash_id, second_at_beginning)] = expressions
         return expanded, nth_weekday_of_month
@@ -1227,8 +1218,8 @@ def croniter_range(
     # type is used in first if branch for perfs reasons
     if type(start) is not type(stop) and not (isinstance(start, type(stop)) or isinstance(stop, type(start))):
         raise CroniterBadTypeRangeError(
-            "The start and stop must be same type.  {0} != {1}".
-            format(type(start), type(stop)))
+            "The start and stop must be same type.  {0} != {1}".format(type(start), type(stop))
+        )
     if isinstance(start, (float, int)):
         start, stop = (datetime.datetime.fromtimestamp(t, tzutc()).replace(tzinfo=None) for t in (start, stop))
         auto_rt = float
