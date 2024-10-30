@@ -225,10 +225,19 @@ class croniter(object):
         130
     )
 
-    def __init__(self, expr_format, start_time=None, ret_type=float,
-                 day_or=True, max_years_between_matches=None, is_prev=False,
-                 hash_id=None, implement_cron_bug=False, second_at_beginning=None,
-                 expand_from_start_time=False):
+    def __init__(
+        self,
+        expr_format,
+        start_time=None,
+        ret_type=float,
+        day_or=True,
+        max_years_between_matches=None,
+        is_prev=False,
+        hash_id=None,
+        implement_cron_bug=False,
+        second_at_beginning=None,
+        expand_from_start_time=False,
+    ):
         self._ret_type = ret_type
         self._day_or = day_or
         self._implement_cron_bug = implement_cron_bug
@@ -338,7 +347,13 @@ class croniter(object):
         """
         return timedelta_to_seconds(td)
 
-    def _get_next(self, ret_type=None, start_time=None, is_prev=None, update_current=None):
+    def _get_next(
+        self,
+        ret_type=None,
+        start_time=None,
+        is_prev=None,
+        update_current=None,
+    ):
         if update_current is None:
             update_current = True
         self.set_current(start_time, force=True)
@@ -801,7 +816,13 @@ class croniter(object):
         return val
 
     @classmethod
-    def _expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp=None):
+    def _expand(
+        cls,
+        expr_format,
+        hash_id=None,
+        second_at_beginning=False,
+        from_timestamp=None,
+    ):
         # Split the expression in components, and normalize L -> l, MON -> mon,
         # etc. Keep expr_format untouched so we can use it in the exception
         # messages.
@@ -1020,7 +1041,13 @@ class croniter(object):
         return expanded, nth_weekday_of_month
 
     @classmethod
-    def expand(cls, expr_format, hash_id=None, second_at_beginning=False, from_timestamp=None):
+    def expand(
+        cls,
+        expr_format,
+        hash_id=None,
+        second_at_beginning=False,
+        from_timestamp=None,
+    ):
         """
         Expand a cron expression format into a noramlized format of
         list[list[int | 'l' | '*']]. The first list representing each element
@@ -1089,8 +1116,13 @@ class croniter(object):
         raise ValueError("Can't get current date number for index larger than 4")
 
     @classmethod
-    def is_valid(cls, expression, hash_id=None, encoding="UTF-8",
-                 second_at_beginning=False):
+    def is_valid(
+        cls,
+        expression,
+        hash_id=None,
+        encoding="UTF-8",
+        second_at_beginning=False,
+    ):
         if hash_id:
             if not isinstance(hash_id, (bytes, str)):
                 raise TypeError("hash_id must be bytes or UTF-8 string")
@@ -1109,8 +1141,14 @@ class croniter(object):
         return cls.match_range(cron_expression, testdate, testdate, day_or, second_at_beginning)
 
     @classmethod
-    def match_range(cls, cron_expression, from_datetime, to_datetime,
-                    day_or=True, second_at_beginning=False):
+    def match_range(
+        cls,
+        cron_expression,
+        from_datetime,
+        to_datetime,
+        day_or=True,
+        second_at_beginning=False,
+    ):
         cron = cls(cron_expression, to_datetime, ret_type=datetime.datetime,
                    day_or=day_or, second_at_beginning=second_at_beginning)
         tdp = cron.get_current(datetime.datetime)
@@ -1126,10 +1164,17 @@ class croniter(object):
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < duration_in_second
 
 
-def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,
-                   _croniter=None,
-                   second_at_beginning=False,
-                   expand_from_start_time=False):
+def croniter_range(
+    start,
+    stop,
+    expr_format,
+    ret_type=None,
+    day_or=True,
+    exclude_ends=False,
+    _croniter=None,
+    second_at_beginning=False,
+    expand_from_start_time=False,
+):
     """
     Generator that provides all times from start to stop matching the given cron expression.
     If the cron expression matches either 'start' and/or 'stop', those times will be returned as
