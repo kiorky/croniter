@@ -24,7 +24,7 @@ class CroniterTest(timerTest):
         # minute asterisk
         base = datetime(2010, 1, 23, 12, 18)
         itr = croniter("*/1 * * * *", base)
-        n1 = itr.get_next(datetime)    # 19
+        n1 = itr.get_next(datetime)  # 19
         base.year == n1.year
         base.month == n1.month
         base.day == n1.day
@@ -221,5 +221,6 @@ class TestCase(base.TestCase):
 
 if __name__ == "__main__":
     from timeit import Timer
+
     t = Timer("c=CroniterTest();c.run()", "from __main__ import CroniterTest")
     print(t.timeit(200))
