@@ -75,9 +75,30 @@ except ImportError:
 
 
 EPOCH = datetime.datetime.fromtimestamp(0)
-M_ALPHAS = {"jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
-            "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
-DOW_ALPHAS = {"sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6}
+
+# fmt: off
+M_ALPHAS = {
+    "jan": 1, "feb": 2,  "mar": 3,  "apr": 4,  # noqa: E241
+    "may": 5, "jun": 6,  "jul": 7,  "aug": 8,  # noqa: E241
+    "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+DOW_ALPHAS = {
+    "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4,
+    "fri": 5, "sat": 6
+}
+
+MINUTE_FIELD = 0
+HOUR_FIELD = 1
+DAY_FIELD = 2
+MONTH_FIELD = 3
+DOW_FIELD = 4
+SECOND_FIELD = 5
+YEAR_FIELD = 6
+
+UNIX_FIELDS =   (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD)  # noqa: E222
+SECOND_FIELDS = (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD, SECOND_FIELD)  # noqa: E222
+YEAR_FIELDS =   (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD, SECOND_FIELD, YEAR_FIELD)  # noqa: E222
+# fmt: on
 
 step_search_re = re.compile(r"^([^-]+)-([^-/]+)(/(\d+))?$")
 only_int_re = re.compile(r"^\d+$")
@@ -93,16 +114,7 @@ re_star = re.compile("[*]")
 hash_expression_re = re.compile(
     r"^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$"
 )
-MINUTE_FIELD = 0
-HOUR_FIELD = 1
-DAY_FIELD = 2
-MONTH_FIELD = 3
-DOW_FIELD = 4
-SECOND_FIELD = 5
-YEAR_FIELD = 6
-UNIX_FIELDS = (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD)
-SECOND_FIELDS = (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD, SECOND_FIELD)
-YEAR_FIELDS = (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD, SECOND_FIELD, YEAR_FIELD)
+
 CRON_FIELDS = {
     "unix": UNIX_FIELDS,
     "second": SECOND_FIELDS,
