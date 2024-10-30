@@ -1,0 +1,8 @@
+# We lock to the version just before black 22, as this is when python 2 support
+# is dropped.
+black==21.11b1
+
+# Lock to an older version of click to fix
+# https://github.com/psf/black/issues/2964. This was fixed in a newever version
+# of black that we cannot use.
+click==8.0.2
