@@ -4,7 +4,13 @@
 import unittest
 from datetime import datetime, timedelta
 import pytz
-from croniter import croniter, croniter_range, CroniterBadDateError, CroniterBadCronError, CroniterBadTypeRangeError
+from croniter import (
+    croniter,
+    croniter_range,
+    CroniterBadDateError,
+    CroniterBadCronError,
+    CroniterBadTypeRangeError,
+)
 from croniter.tests import base
 
 
