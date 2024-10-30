@@ -10,9 +10,7 @@ from croniter.tests import base
 
 class timerTest(object):
     def __init__(self):
-        self.tests = tuple(getattr(self, m)
-                           for m in dir(self)
-                           if m.lower().startswith("test"))
+        self.tests = tuple(getattr(self, m) for m in dir(self) if m.lower().startswith("test"))
 
     def run(self):
         for test in self.tests:
