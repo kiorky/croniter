@@ -837,13 +837,18 @@ class croniter(object):
     def value_alias(cls, val, field_index, len_expressions=UNIX_CRON_LEN):
         if isinstance(len_expressions, (list, dict, tuple, set)):
             len_expressions = len(len_expressions)
+
+        is_std_cron = len_expressions == UNIX_CRON_LEN
+        is_sec_cron = len_expressions == SECOND_CRON_LEN
+        is_year_cron = len_expressions == YEAR_CRON_LEN
+
         if val in cls.LOWMAP[field_index] and not (
             # do not support 0 as a month either for classical 5 fields cron,
             # 6fields second repeat form or 7 fields year form
             # but still let conversion happen if day field is shifted
-            (field_index in [DAY_FIELD, MONTH_FIELD] and len_expressions == UNIX_CRON_LEN) or
-            (field_index in [MONTH_FIELD, DOW_FIELD] and len_expressions == SECOND_CRON_LEN) or
-            (field_index in [DAY_FIELD, MONTH_FIELD, DOW_FIELD] and len_expressions == YEAR_CRON_LEN)
+            (field_index in [DAY_FIELD, MONTH_FIELD] and is_std_cron)
+            or (field_index in [MONTH_FIELD, DOW_FIELD] and is_sec_cron)
+            or (field_index in [DAY_FIELD, MONTH_FIELD, DOW_FIELD] and is_year_cron)
         ):
             val = cls.LOWMAP[field_index][val]
         return val
