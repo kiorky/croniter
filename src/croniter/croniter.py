@@ -405,8 +405,7 @@ class croniter(object):
                 dom_dow_exception_processed = True
 
         if not dom_dow_exception_processed:
-            result = self._calc(self.cur, expanded,
-                                nth_weekday_of_month, is_prev)
+            result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning across days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
@@ -1234,10 +1233,15 @@ def croniter_range(
             start += ms1
             stop -= ms1
     year_span = math.floor(abs(stop.year - start.year)) + 1
-    ic = _croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
-                   max_years_between_matches=year_span,
-                   second_at_beginning=second_at_beginning,
-                   expand_from_start_time=expand_from_start_time)
+    ic = _croniter(
+        expr_format,
+        start,
+        ret_type=datetime.datetime,
+        day_or=day_or,
+        max_years_between_matches=year_span,
+        second_at_beginning=second_at_beginning,
+        expand_from_start_time=expand_from_start_time,
+    )
     # define a continue (cont) condition function and step function for the main while loop
     if start < stop:  # Forward
 
