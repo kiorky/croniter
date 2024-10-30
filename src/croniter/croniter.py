@@ -386,13 +386,15 @@ class croniter(object):
 
         # exception to support day of month and day of week as defined in cron
         dom_dow_exception_processed = False
-        if (expanded[DAY_FIELD][0] != "*" and expanded[DOW_FIELD][0] != "*") and self._day_or:
+        if (
+            expanded[DAY_FIELD][0] != "*" and expanded[DOW_FIELD][0] != "*"
+        ) and self._day_or:
             # If requested, handle a bug in vixie cron/ISC cron where day_of_month and day_of_week form
             # an intersection (AND) instead of a union (OR) if either field is an asterisk or starts with an asterisk
             # (https://crontab.guru/cron-bug.html)
-            if (
-                self._implement_cron_bug and
-                (re_star.match(self.expressions[DAY_FIELD]) or re_star.match(self.expressions[DOW_FIELD]))
+            if self._implement_cron_bug and (
+                re_star.match(self.expressions[DAY_FIELD])
+                or re_star.match(self.expressions[DOW_FIELD])
             ):
                 # To produce a schedule identical to the cron bug, we'll bypass the code that
                 # makes a union of DOM and DOW, and instead skip to the code that does an intersect instead
@@ -433,15 +435,17 @@ class croniter(object):
             )
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
-            if (
-                (lag > 0 and abs(lag_hours) >= hours_before_midnight)
-                or (lag < 0 and
-                    ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600))
+            if (lag > 0 and abs(lag_hours) >= hours_before_midnight) or (
+                lag < 0
+                and ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600)
             ):
                 dtresult_adjusted = dtresult - datetime.timedelta(seconds=lag)
                 result_adjusted = self._datetime_to_timestamp(dtresult_adjusted)
                 # Do the actual adjust only if the result time actually exists
-                if self._timestamp_to_datetime(result_adjusted).tzinfo == dtresult_adjusted.tzinfo:
+                if (
+                    self._timestamp_to_datetime(result_adjusted).tzinfo
+                    == dtresult_adjusted.tzinfo
+                ):
                     dtresult = dtresult_adjusted
                     result = result_adjusted
                 self.dst_start_time = result
@@ -642,9 +646,8 @@ class croniter(object):
                         continue
                     else:
                         candidate = c[n - 1]
-                    if (
-                        (is_prev and candidate <= d.day) or
-                        (not is_prev and d.day <= candidate)
+                    if (is_prev and candidate <= d.day) or (
+                        not is_prev and d.day <= candidate
                     ):
                         candidates.append(candidate)
 
@@ -997,8 +1000,8 @@ class croniter(object):
 
                     low, high = [cls.value_alias(int(_val), field_index, expressions) for _val in (low, high)]
 
-                    if (
-                        max(low, high) > max(cls.RANGES[field_index][0], cls.RANGES[field_index][1])
+                    if max(low, high) > max(
+                        cls.RANGES[field_index][0], cls.RANGES[field_index][1]
                     ):
                         raise CroniterBadCronError(
                             "{0} is out of bands".format(expr_format)
@@ -1027,7 +1030,9 @@ class croniter(object):
                         if rng:
                             already_skipped = list(reversed(whole_field_range)).index(rng[-1])
                             curpos = whole_field_range.index(rng[-1])
-                            if ((curpos + step) > len(whole_field_range)) and (already_skipped < step):
+                            if ((curpos + step) > len(whole_field_range)) and (
+                                already_skipped < step
+                            ):
                                 to_skip = step - already_skipped
                         rng += list(
                             range(cls.RANGES[field_index][0] + to_skip, high + 1, step)
@@ -1067,10 +1072,9 @@ class croniter(object):
 
                     t = cls.value_alias(t, field_index, expressions)
 
-                    if (
-                        t not in ["*", "l"]
-                        and (int(t) < cls.RANGES[field_index][0] or
-                             int(t) > cls.RANGES[field_index][1])
+                    if t not in ["*", "l"] and (
+                        int(t) < cls.RANGES[field_index][0]
+                        or int(t) > cls.RANGES[field_index][1]
                     ):
                         raise CroniterBadCronError(
                             "[{0}] is not acceptable, out of range".format(expr_format)
@@ -1089,9 +1093,8 @@ class croniter(object):
             )
             if len(res) == cls.LEN_MEANS_ALL[field_index]:
                 # Make sure the wildcard is used in the correct way (avoid over-optimization)
-                if (
-                    (field_index == DAY_FIELD and "*" not in expressions[DOW_FIELD]) or
-                    (field_index == DOW_FIELD and "*" not in expressions[DAY_FIELD])
+                if (field_index == DAY_FIELD and "*" not in expressions[DOW_FIELD]) or (
+                    field_index == DOW_FIELD and "*" not in expressions[DAY_FIELD]
                 ):
                     pass
                 else:
@@ -1105,7 +1108,10 @@ class croniter(object):
             dow_expanded_set = dow_expanded_set.difference(nth_weekday_of_month.keys())
             dow_expanded_set.discard("*")
             # Skip: if it's all weeks instead of wildcard
-            if dow_expanded_set and len(set(expanded[DOW_FIELD])) != cls.LEN_MEANS_ALL[DOW_FIELD]:
+            if (
+                dow_expanded_set
+                and len(set(expanded[DOW_FIELD])) != cls.LEN_MEANS_ALL[DOW_FIELD]
+            ):
                 raise CroniterUnsupportedSyntaxError(
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
                     "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
@@ -1270,10 +1276,8 @@ def croniter_range(
     _croniter = _croniter or croniter
     auto_rt = datetime.datetime
     # type is used in first if branch for perfs reasons
-    if (
-        type(start) is not type(stop) and not (
-            isinstance(start, type(stop)) or
-            isinstance(stop, type(start)))
+    if type(start) is not type(stop) and not (
+        isinstance(start, type(stop)) or isinstance(stop, type(start))
     ):
         raise CroniterBadTypeRangeError(
             "The start and stop must be same type.  {0} != {1}".
