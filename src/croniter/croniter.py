@@ -137,7 +137,8 @@ def datetime_to_timestamp(d):
 
 
 class CroniterError(ValueError):
-    """ General top-level Croniter base exception """
+    """General top-level Croniter base exception"""
+
     pass
 
 
@@ -146,12 +147,14 @@ class CroniterBadTypeRangeError(TypeError):
 
 
 class CroniterBadCronError(CroniterError):
-    """ Syntax, unknown value, or range error within a cron expression """
+    """Syntax, unknown value, or range error within a cron expression"""
+
     pass
 
 
 class CroniterUnsupportedSyntaxError(CroniterBadCronError):
-    """ Valid cron syntax, but likely to produce inaccurate results """
+    """Valid cron syntax, but likely to produce inaccurate results"""
+
     # Extending CroniterBadCronError, which may be contridatory, but this allows
     # catching both errors with a single exception.  From a user perspective
     # these will likely be handled the same way.
@@ -159,12 +162,14 @@ class CroniterUnsupportedSyntaxError(CroniterBadCronError):
 
 
 class CroniterBadDateError(CroniterError):
-    """ Unable to find next/prev timestamp match """
+    """Unable to find next/prev timestamp match"""
+
     pass
 
 
 class CroniterNotAlphaError(CroniterBadCronError):
-    """ Cron syntax contains an invalid day or month abbreviation """
+    """Cron syntax contains an invalid day or month abbreviation"""
+
     pass
 
 
@@ -761,7 +766,7 @@ class croniter(object):
 
     @staticmethod
     def _get_nth_weekday_of_month(year, month, day_of_week):
-        """ For a given year/month return a list of days in nth-day-of-month order.
+        """For a given year/month return a list of days in nth-day-of-month order.
         The last weekday of the month is always [-1].
         """
         w = (day_of_week + 6) % 7
