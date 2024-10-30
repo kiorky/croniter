@@ -331,7 +331,7 @@ class CroniterHashExpanderExpandHoursTest(CroniterHashExpanderBase):
         for hash_id in self.HASH_IDS:
             expanded = croniter.expand(expression, hash_id=hash_id)
             _hours = expanded[0][1]
-            assert len(_hours) in {2,3}
+            assert len(_hours) in {2, 3}
             hours.update(_hours)
         assert len(hours) == self.TOTAL
         assert min(hours) == self.MIN_VALUE
