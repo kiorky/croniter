@@ -737,7 +737,7 @@ class CroniterTest(base.TestCase):
 
     def testInitNoStartTime(self):
         itr = croniter("* * * * *")
-        sleep(.01)
+        sleep(0.01)
         itr2 = croniter("* * * * *")
         # Greater does not exists in py26
         self.assertTrue(itr2.cur > itr.cur)
