@@ -184,11 +184,9 @@ class croniter(object):
         (1, 12),
         (0, 6),
         (0, 59),
-        (1970, 2099)
+        (1970, 2099),
     )
-    DAYS = (
-        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-    )
+    DAYS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     ALPHACONV = (
         {},  # 0: min
@@ -201,7 +199,7 @@ class croniter(object):
         # 5: second
         {},
         # 6: year
-        {}
+        {},
     )
 
     LOWMAP = (
@@ -211,7 +209,7 @@ class croniter(object):
         {0: 1},
         {7: 0},
         {},
-        {}
+        {},
     )
 
     LEN_MEANS_ALL = (
@@ -221,7 +219,7 @@ class croniter(object):
         12,
         7,
         60,
-        130
+        130,
     )
 
     def __init__(
@@ -699,14 +697,15 @@ class croniter(object):
                 d += relativedelta(second=0)
             return False, d
 
-        procs = [proc_year,
-                 proc_month,
-                 proc_day_of_month,
-                 (proc_day_of_week_nth if nth_weekday_of_month
-                     else proc_day_of_week),
-                 proc_hour,
-                 proc_minute,
-                 proc_second]
+        procs = [
+            proc_year,
+            proc_month,
+            proc_day_of_month,
+            (proc_day_of_week_nth if nth_weekday_of_month else proc_day_of_week),
+            proc_hour,
+            proc_minute,
+            proc_second,
+        ]
 
         while abs(year - current_year) <= self._max_years_between_matches:
             next = False
@@ -1396,6 +1395,8 @@ class HashExpander:
             )
 
 
-EXPANDERS = OrderedDict([
-    ("hash", HashExpander),
-])
+EXPANDERS = OrderedDict(
+    [
+        ("hash", HashExpander),
+    ]
+)
