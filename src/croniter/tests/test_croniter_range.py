@@ -103,12 +103,16 @@ class CroniterRangeTest(base.TestCase):
         cron = "0 3 * * *"
         start = datetime_tz(2020, 3, 7, tzinfo=tz)
         end = datetime_tz(2020, 3, 11, tzinfo=tz)
-        ret = [ i.isoformat() for i in croniter_range(start, end, cron) ]
-        self.assertEqual(ret, [
-            "2020-03-07T03:00:00-05:00",
-            "2020-03-08T03:00:00-04:00",
-            "2020-03-09T03:00:00-04:00",
-            "2020-03-10T03:00:00-04:00"])
+        ret = [i.isoformat() for i in croniter_range(start, end, cron)]
+        self.assertEqual(
+            ret,
+            [
+                "2020-03-07T03:00:00-05:00",
+                "2020-03-08T03:00:00-04:00",
+                "2020-03-09T03:00:00-04:00",
+                "2020-03-10T03:00:00-04:00",
+            ],
+        )
 
     def test_issue145_getnext(self):
         # Example of quarterly event cron schedule
@@ -146,7 +150,15 @@ class CroniterRangeTest(base.TestCase):
                 return croniter.expand(expr_format, *args, **kwargs)
 
         cron = "0 13 8 1,4,7,10 wed"
-        matches = list(croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, day_or=False, _croniter=croniter_nosec))
+        matches = list(
+            croniter_range(
+                datetime(2020, 1, 1),
+                datetime(2020, 12, 31),
+                cron,
+                day_or=False,
+                _croniter=croniter_nosec,
+            )
+        )
         self.assertEqual(len(matches), 3)
 
         cron = "0 1 8 1,15,L wed 15,45"
@@ -156,7 +168,12 @@ class CroniterRangeTest(base.TestCase):
 
         with self.assertRaises(CroniterBadCronError):
             # Should similarly fail because the custom class rejects seconds expr
-            i = croniter_range(datetime(2020, 1, 1), datetime(2020, 12, 31), cron, _croniter=croniter_nosec)
+            i = croniter_range(
+                datetime(2020, 1, 1),
+                datetime(2020, 12, 31),
+                cron,
+                _croniter=croniter_nosec,
+            )
             next(i)
 
     def test_dt_types(self):

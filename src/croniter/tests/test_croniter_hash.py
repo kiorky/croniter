@@ -10,9 +10,7 @@ class CroniterHashBase(base.TestCase):
     epoch = datetime(2020, 1, 1, 0, 0)
     hash_id = "hello"
 
-    def _test_iter(
-        self, definition, expectations, delta, epoch=None, hash_id=None, next_type=None
-    ):
+    def _test_iter(self, definition, expectations, delta, epoch=None, hash_id=None, next_type=None):
         if epoch is None:
             epoch = self.epoch
         if hash_id is None:
@@ -61,18 +59,14 @@ class CroniterHashTest(CroniterHashBase):
 
         If a sixth field is provided, seconds are included in the datetime()
         """
-        self._test_iter(
-            "H H * * * H", datetime(2020, 1, 1, 11, 10, 32), timedelta(days=1)
-        )
+        self._test_iter("H H * * * H", datetime(2020, 1, 1, 11, 10, 32), timedelta(days=1))
 
     def test_hash_year(self):
         """Test years
 
         provide a seventh field as year
         """
-        self._test_iter(
-            "H H * * * H H", datetime(2066, 1, 1, 11, 10, 32), timedelta(days=1)
-        )
+        self._test_iter("H H * * * H H", datetime(2066, 1, 1, 11, 10, 32), timedelta(days=1))
 
     def test_hash_id_change(self):
         """Test a different hash_id returns different results given same definition and epoch"""
@@ -96,12 +90,8 @@ class CroniterHashTest(CroniterHashBase):
 
     def test_hash_range(self):
         """Test a hashed range definition"""
-        self._test_iter(
-            "H H H(3-5) * *", datetime(2020, 1, 5, 11, 10), timedelta(days=31)
-        )
-        self._test_iter(
-            "H H * * * 0 H(2025-2030)", datetime(2029, 1, 1, 11, 10), timedelta(days=1)
-        )
+        self._test_iter("H H H(3-5) * *", datetime(2020, 1, 5, 11, 10), timedelta(days=31))
+        self._test_iter("H H * * * 0 H(2025-2030)", datetime(2029, 1, 1, 11, 10), timedelta(days=1))
 
     def test_hash_division(self):
         """Test a hashed division definition"""
@@ -110,19 +100,14 @@ class CroniterHashTest(CroniterHashBase):
 
     def test_hash_range_division(self):
         """Test a hashed range + division definition"""
-        self._test_iter(
-            "H(30-59)/10 H * * *", datetime(2020, 1, 1, 11, 30), timedelta(minutes=10)
-        )
+        self._test_iter("H(30-59)/10 H * * *", datetime(2020, 1, 1, 11, 30), timedelta(minutes=10))
 
     def test_hash_invalid_range(self):
         """Test validation logic for range_begin and range_end values"""
         try:
-            self._test_iter(
-                "H(11-10) H * * *", datetime(2020, 1, 1, 11, 31), timedelta(minutes=10)
-            )
+            self._test_iter("H(11-10) H * * *", datetime(2020, 1, 1, 11, 31), timedelta(minutes=10))
         except (CroniterBadCronError) as ex:
-            self.assertEqual("{0}".format(ex),
-                "Range end must be greater than range begin")
+            self.assertEqual("{0}".format(ex), "Range end must be greater than range begin")
 
     def test_hash_id_bytes(self):
         """Test hash_id as a bytes object"""
@@ -182,15 +167,11 @@ class CroniterWordAliasTest(CroniterHashBase):
 
     def test_hash_word_monthly(self):
         """Test built-in @monthly"""
-        self._test_iter(
-            "@monthly", datetime(2020, 1, 1, 11, 10, 32), timedelta(days=31)
-        )
+        self._test_iter("@monthly", datetime(2020, 1, 1, 11, 10, 32), timedelta(days=31))
 
     def test_hash_word_yearly(self):
         """Test built-in @yearly"""
-        self._test_iter(
-            "@yearly", datetime(2020, 9, 1, 11, 10, 32), timedelta(days=365)
-        )
+        self._test_iter("@yearly", datetime(2020, 9, 1, 11, 10, 32), timedelta(days=365))
 
     def test_hash_word_annually(self):
         """Test built-in @annually
@@ -207,9 +188,7 @@ class CroniterHashExpanderBase(base.TestCase):
     def setUp(self):
         _rd = random.Random()
         _rd.seed(100)
-        self.HASH_IDS = [
-            uuid.UUID(int=_rd.getrandbits(128)).bytes for _ in range(350)
-        ]
+        self.HASH_IDS = [uuid.UUID(int=_rd.getrandbits(128)).bytes for _ in range(350)]
 
 
 class CroniterHashExpanderExpandMinutesTest(CroniterHashExpanderBase):
