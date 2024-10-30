@@ -8,7 +8,8 @@ from .croniter import (
     CroniterBadTypeRangeError,  # noqa
     CroniterBadDateError,  # noqa
     CroniterBadCronError,  # noqa
-    CroniterNotAlphaError, # noqa
-    CroniterUnsupportedSyntaxError, #noqa
+    CroniterNotAlphaError,  # noqa
+    CroniterUnsupportedSyntaxError,  # noqa
 )  # noqa
+
 croniter.__name__  # make flake8 happy
