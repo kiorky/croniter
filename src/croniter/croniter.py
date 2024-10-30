@@ -259,7 +259,8 @@ class croniter(object):
                 hash_id = hash_id.encode("UTF-8")
 
         self._max_years_btw_matches_explicitly_set = (
-            max_years_between_matches is not None)
+            max_years_between_matches is not None
+        )
         if not self._max_years_btw_matches_explicitly_set:
             max_years_between_matches = 50
         self._max_years_between_matches = max(int(max_years_between_matches), 1)
@@ -417,20 +418,15 @@ class croniter(object):
 
         # DST Handling for cron job spanning across days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
-        dtstarttime_utcoffset = (
-            dtstarttime.utcoffset() or datetime.timedelta(0))
+        dtstarttime_utcoffset = dtstarttime.utcoffset() or datetime.timedelta(0)
         dtresult = self._timestamp_to_datetime(result)
         lag = lag_hours = 0
         # do we trigger DST on next crontab (handle backward changes)
         dtresult_utcoffset = dtstarttime_utcoffset
         if dtresult and self.tzinfo:
             dtresult_utcoffset = dtresult.utcoffset()
-            lag_hours = (
-                self._timedelta_to_seconds(dtresult - dtstarttime) / (60 * 60)
-            )
-            lag = self._timedelta_to_seconds(
-                dtresult_utcoffset - dtstarttime_utcoffset
-            )
+            lag_hours = self._timedelta_to_seconds(dtresult - dtstarttime) / (60 * 60)
+            lag = self._timedelta_to_seconds(dtresult_utcoffset - dtstarttime_utcoffset)
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
             if (
@@ -498,7 +494,7 @@ class croniter(object):
                 raise
 
     def iter(self, *args, **kwargs):
-        return (self._is_prev and self.all_prev or self.all_next)
+        return self._is_prev and self.all_prev or self.all_next
 
     def __iter__(self):
         return self
@@ -813,8 +809,8 @@ class croniter(object):
         if candidate > range_val:
             # fix crontab "0 6 30 3 *" condidates only a element,
             # then get_prev error return 2021-03-02 06:00:00
-            return - x
-        return (candidate - x - range_val)
+            return -x
+        return candidate - x - range_val
 
     @staticmethod
     def _get_nth_weekday_of_month(year, month, day_of_week):
@@ -932,7 +928,7 @@ class croniter(object):
                             e = he
                             try:
                                 nth = int(last)
-                                assert (nth >= 1 and nth <= 5)
+                                assert nth >= 1 and nth <= 5
                             except (KeyError, ValueError, AssertionError):
                                 raise CroniterBadCronError(
                                     "[{0}] is not acceptable. Invalid day_of_week "
@@ -995,7 +991,10 @@ class croniter(object):
                                 )
                             )
 
-                    low, high = [cls.value_alias(int(_val), field_index, expressions) for _val in (low, high)]
+                    low, high = [
+                        cls.value_alias(int(_val), field_index, expressions)
+                        for _val in (low, high)
+                    ]
 
                     if (
                         max(low, high) > max(cls.RANGES[field_index][0], cls.RANGES[field_index][1])
@@ -1279,7 +1278,10 @@ def croniter_range(
             "The start and stop must be same type.  {0} != {1}".
             format(type(start), type(stop)))
     if isinstance(start, (float, int)):
-        start, stop = (datetime.datetime.fromtimestamp(t, tzutc()).replace(tzinfo=None) for t in (start, stop))
+        start, stop = (
+            datetime.datetime.fromtimestamp(t, tzutc()).replace(tzinfo=None)
+            for t in (start, stop)
+        )
         auto_rt = float
     if ret_type is None:
         ret_type = auto_rt
