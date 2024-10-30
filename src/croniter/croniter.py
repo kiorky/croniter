@@ -491,6 +491,7 @@ class croniter(object):
 
     def __iter__(self):
         return self
+
     __next__ = next = _get_next
 
     def _calc(self, now, expanded, nth_weekday_of_month, is_prev):
@@ -1273,10 +1274,10 @@ def croniter_range(
         ret_type = auto_rt
     if not exclude_ends:
         ms1 = relativedelta(microseconds=1)
-        if start < stop:    # Forward (normal) time order
+        if start < stop:  # Forward (normal) time order
             start -= ms1
             stop += ms1
-        else:               # Reverse time order
+        else:  # Reverse time order
             start += ms1
             stop -= ms1
     year_span = math.floor(abs(stop.year - start.year)) + 1
@@ -1285,13 +1286,17 @@ def croniter_range(
                    second_at_beginning=second_at_beginning,
                    expand_from_start_time=expand_from_start_time)
     # define a continue (cont) condition function and step function for the main while loop
-    if start < stop:        # Forward
+    if start < stop:  # Forward
+
         def cont(v):
             return v < stop
+
         step = ic.get_next
-    else:                   # Reverse
+    else:  # Reverse
+
         def cont(v):
             return v > stop
+
         step = ic.get_prev
     try:
         dt = step()
@@ -1307,7 +1312,6 @@ def croniter_range(
 
 
 class HashExpander:
-
     def __init__(self, cronit):
         self.cron = cronit
 
