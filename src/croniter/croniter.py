@@ -11,7 +11,6 @@ import re
 import sys
 import struct
 
-import inspect
 from time import time
 import datetime
 from dateutil.relativedelta import relativedelta
@@ -135,18 +134,6 @@ def datetime_to_timestamp(d):
         d = d.replace(tzinfo=None) - d.utcoffset()
 
     return timedelta_to_seconds(d - datetime.datetime(1970, 1, 1))
-
-
-def _get_caller_globals_and_locals():
-    """
-    Returns the globals and locals of the calling frame.
-
-    Is there an alternative to frame hacking here?
-    """
-    caller_frame = inspect.stack()[2]
-    myglobals = caller_frame[0].f_globals
-    mylocals = caller_frame[0].f_locals
-    return myglobals, mylocals
 
 
 class CroniterError(ValueError):
@@ -1068,7 +1055,6 @@ class croniter(object):
                 raise
             if int(sys.version[0]) >= 3:
                 trace = _traceback.format_exc()
-                globs, locs = _get_caller_globals_and_locals()
                 raise CroniterBadCronError(trace)
             else:
                 raise CroniterBadCronError("{0}".format(exc))
