@@ -437,10 +437,12 @@ class croniter(object):
     # or for combining multiple croniters into single
     # dates feed using 'itertools' module
     def all_next(self, ret_type=None, start_time=None, update_current=None):
-        '''Generator of all consecutive dates. Can be used instead of
-        implicit call to __iter__, whenever non-default
-        'ret_type' has to be specified.
-        '''
+        """
+        Returns a generator yielding consecutive dates.
+
+        May be used instead of an implicit call to __iter__ whenever a
+        non-default `ret_type` needs to be specified.
+        """
         # In a Python 3.7+ world:  contextlib.suppress and contextlib.nullcontext could be used instead
         try:
             while True:
@@ -455,7 +457,9 @@ class croniter(object):
                 raise
 
     def all_prev(self, ret_type=None, start_time=None, update_current=None):
-        '''Generator of all previous dates.'''
+        """
+        Returns a generator yielding previous dates.
+        """
         try:
             while True:
                 self._is_prev = True
