@@ -6,3 +6,5 @@ black==21.11b1
 # https://github.com/psf/black/issues/2964. This was fixed in a newever version
 # of black that we cannot use.
 click==8.0.2
+
+isort

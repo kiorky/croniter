@@ -5,19 +5,21 @@ import unittest
 from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
+
+import dateutil.tz
 import pytz
-from croniter.croniter import VALID_LEN_EXPRESSION
+
 from croniter import (
-    croniter,
-    CroniterBadDateError,
+    OVERFLOW32B_MODE,
     CroniterBadCronError,
-    datetime_to_timestamp,
+    CroniterBadDateError,
     CroniterNotAlphaError,
     CroniterUnsupportedSyntaxError,
-    OVERFLOW32B_MODE,
+    croniter,
+    datetime_to_timestamp,
 )
+from croniter.croniter import VALID_LEN_EXPRESSION
 from croniter.tests import base
-import dateutil.tz
 
 
 class CroniterTest(base.TestCase):

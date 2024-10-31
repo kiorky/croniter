@@ -1,8 +1,8 @@
-import uuid
 import random
+import uuid
 from datetime import datetime, timedelta
 
-from croniter import croniter, CroniterNotAlphaError, CroniterBadCronError
+from croniter import CroniterBadCronError, CroniterNotAlphaError, croniter
 from croniter.tests import base
 
 

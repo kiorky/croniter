@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+
 from .croniter import (
-    croniter,
     OVERFLOW32B_MODE,
-    datetime_to_timestamp,
+    CroniterBadCronError,
+    CroniterBadDateError,
+    CroniterBadTypeRangeError,
+    CroniterNotAlphaError,
+    CroniterUnsupportedSyntaxError,
+    croniter,
     croniter_range,
-    CroniterBadTypeRangeError,  # noqa
-    CroniterBadDateError,  # noqa
-    CroniterBadCronError,  # noqa
-    CroniterNotAlphaError,  # noqa
-    CroniterUnsupportedSyntaxError,  # noqa
-)  # noqa
+    datetime_to_timestamp,
+)
 
 croniter.__name__  # make flake8 happy
