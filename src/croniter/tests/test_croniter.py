@@ -10,7 +10,6 @@ import dateutil.tz
 import pytz
 
 from croniter import (
-    OVERFLOW32B_MODE,
     CroniterBadCronError,
     CroniterBadDateError,
     CroniterNotAlphaError,
