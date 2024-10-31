@@ -794,48 +794,81 @@ class CroniterTest(base.TestCase):
         ct = croniter("*/30 * * * *", tz.localize(start))
         self.assertScheduleTimezone(lambda: ct.get_prev(datetime), reversed(expected_schedule))
 
-    def test_std_dst(self):
+    def test_std_dst_warsaw(self):
         """
-        DST tests
-
-        This fixes https://github.com/taichino/croniter/issues/82
-
+        Fixes https://github.com/taichino/croniter/issues/82
         """
+        # Warsaw DST starts the last sunday of march at 1:59:59 (2 AM) and
+        # moves forward one hour, and ends the last sunday of october at
+        # 1:59:59 and moves back one hour
         tz = pytz.timezone("Europe/Warsaw")
-        # -> 2017-03-26 01:59+1:00 -> 03:00+2:00
-        local_date = tz.localize(datetime(2017, 3, 26))
-        val = croniter("0 0 * * *", local_date).get_next(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 3, 27)))
-        #
-        local_date = tz.localize(datetime(2017, 3, 26, 1))
-        cr = croniter("0 * * * *", local_date)
-        val = cr.get_next(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 3, 26, 3)))
-        val = cr.get_current(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 3, 26, 3)))
 
-        # -> 2017-10-29 02:59+2:00 -> 02:00+1:00
-        local_date = tz.localize(datetime(2017, 10, 29))
-        val = croniter("0 0 * * *", local_date).get_next(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 10, 30)))
-        local_date = tz.localize(datetime(2017, 10, 29, 1, 59))
-        val = croniter("0 * * * *", local_date).get_next(datetime)
+        # Midnight schedule crosses DST start boundary:
+        #
+        # Sunday March 26th 2017 00:00 (CET,  UTC+1:00)
+        # Monday March 26th 2017 00:00 (CEST, UTC+2:00)
+        start_date = tz.localize(datetime(2017, 3, 26))
         self.assertEqual(
-            val.replace(tzinfo=None),
-            tz.localize(datetime(2017, 10, 29, 2)).replace(tzinfo=None),
+            croniter("0 0 * * *", start_date).get_next(datetime),
+            tz.localize(datetime(2017, 3, 27)),
         )
-        local_date = tz.localize(datetime(2017, 10, 29, 2))
-        val = croniter("0 * * * *", local_date).get_next(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 3)))
-        local_date = tz.localize(datetime(2017, 10, 29, 3))
-        val = croniter("0 * * * *", local_date).get_next(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 4)))
-        local_date = tz.localize(datetime(2017, 10, 29, 4))
-        val = croniter("0 * * * *", local_date).get_next(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 5)))
-        local_date = tz.localize(datetime(2017, 10, 29, 5))
-        val = croniter("0 * * * *", local_date).get_next(datetime)
-        self.assertEqual(val, tz.localize(datetime(2017, 10, 29, 6)))
+
+        # Midnight schedule crosses DST end boundary:
+        #
+        # Sunday October 29th 2017 00:00 (CEST, UTC+2:00)
+        # Sunday Monday  30th 2017 00:00 (EST,  UTC+1:00)
+        start_date = tz.localize(datetime(2017, 10, 29))
+        self.assertEqual(
+            croniter("0 0 * * *", start_date).get_next(datetime),
+            tz.localize(datetime(2017, 10, 30)),
+        )
+
+        # Every hour schedule crosses DST start boundary:
+        #
+        # Sunday March 26th 2017 01:00 (CET,  UTC+1:00)
+        # Monday March 26th 2017 03:00 (CEST, UTC+2:00)
+        start_date = tz.localize(datetime(2017, 3, 26, 1, 0))
+        self.assertEqual(
+            croniter("0 * * * *", start_date).get_next(datetime),
+            tz.localize(datetime(2017, 3, 26, 3, 0)),
+        )
+
+        # Every hour schedule crosses DST end boundary.
+        #
+        # During this crossover we move back an hour and we will produce two
+        # iterations of 02:00. One at UTC+2 and one at UTC+1.
+        #
+        # XXX: It's unclear if this is the correct behavior? It seems like
+        #      instead of producing a 02:00 at UTFC+2:00 we should produce a
+        #      second 01:00 at UTC+1:00.
+        start_time = tz.localize(datetime(2017, 10, 29, 1, 59))
+        iter = croniter("0 * * * *", start_time)
+
+        # First iteration at 02:00 UTC+2:00
+        self.assertEqual(
+            iter.get_next(datetime),
+            tz.localize(datetime(2017, 10, 29, 2, 0), is_dst=True),
+        )
+
+        # Second iteration at 02:00 UTC+1:00
+        self.assertEqual(
+            iter.get_next(datetime),
+            tz.localize(datetime(2017, 10, 29, 2, 0), is_dst=False),
+        )
+
+        # Additional iterations are at expected times
+        self.assertEqual(
+            iter.get_next(datetime),
+            tz.localize(datetime(2017, 10, 29, 3, 0)),
+        )
+        self.assertEqual(
+            iter.get_next(datetime),
+            tz.localize(datetime(2017, 10, 29, 4, 0)),
+        )
+        self.assertEqual(
+            iter.get_next(datetime),
+            tz.localize(datetime(2017, 10, 29, 5, 0)),
+        )
 
     def test_std_dst2(self):
         """
