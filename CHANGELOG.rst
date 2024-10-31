@@ -4,6 +4,7 @@ Changelog
 5.0.2 (unreleased)
 ------------------
 
+- Apply isort formatter [kiorky]
 - Apply black formatter [evanpurkhiser, kiorky]
 - Code quality changes by evanpurkhiser:
     - Remove unused _get_caller_globals_and_locals [evanpurkhiser]

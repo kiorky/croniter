@@ -1,27 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function, division
+from __future__ import absolute_import, division, print_function
 
-import traceback as _traceback
+import binascii
+import calendar
 import copy
+import datetime
 import math
 import platform
-import re
-import sys
-import struct
-
-from time import time
-import datetime
-from dateutil.relativedelta import relativedelta
-from dateutil.tz import tzutc
-import calendar
-import binascii
 import random
+import re
+import struct
+import sys
+import traceback as _traceback
+from time import time
 
 # as pytz is optional in thirdparty libs but we need it for good support under
 # python2, just test that it's well installed
 import pytz  # noqa
+from dateutil.relativedelta import relativedelta
+from dateutil.tz import tzutc
 
 
 def is_32bit():
@@ -149,8 +148,6 @@ def datetime_to_timestamp(d):
 class CroniterError(ValueError):
     """General top-level Croniter base exception"""
 
-    pass
-
 
 class CroniterBadTypeRangeError(TypeError):
     """."""
@@ -159,8 +156,6 @@ class CroniterBadTypeRangeError(TypeError):
 class CroniterBadCronError(CroniterError):
     """Syntax, unknown value, or range error within a cron expression"""
 
-    pass
-
 
 class CroniterUnsupportedSyntaxError(CroniterBadCronError):
     """Valid cron syntax, but likely to produce inaccurate results"""
@@ -168,19 +163,14 @@ class CroniterUnsupportedSyntaxError(CroniterBadCronError):
     # Extending CroniterBadCronError, which may be contridatory, but this allows
     # catching both errors with a single exception.  From a user perspective
     # these will likely be handled the same way.
-    pass
 
 
 class CroniterBadDateError(CroniterError):
     """Unable to find next/prev timestamp match"""
 
-    pass
-
 
 class CroniterNotAlphaError(CroniterBadCronError):
     """Cron syntax contains an invalid day or month abbreviation"""
-
-    pass
 
 
 class croniter(object):
