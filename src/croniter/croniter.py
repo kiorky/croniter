@@ -261,14 +261,13 @@ class croniter(object):
         self.tzinfo = None
 
         self.start_time = None
-        self.dst_start_time = None
         self.cur = None
         self.set_current(start_time, force=False)
 
         self.expanded, self.nth_weekday_of_month = self.expand(
             expr_format,
             hash_id=hash_id,
-            from_timestamp=self.dst_start_time if self._expand_from_start_time else None,
+            from_timestamp=self.start_time if self._expand_from_start_time else None,
             second_at_beginning=second_at_beginning,
         )
         self.fields = CRON_FIELDS[len(self.expanded)]
@@ -313,7 +312,6 @@ class croniter(object):
                 start_time = self.datetime_to_timestamp(start_time)
 
             self.start_time = start_time
-            self.dst_start_time = start_time
             self.cur = start_time
         return self.cur
 
@@ -414,29 +412,7 @@ class croniter(object):
         if not dom_dow_exception_processed:
             result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
 
-        # DST Handling for cron job spanning across days
-        dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
-        dtstarttime_utcoffset = dtstarttime.utcoffset() or datetime.timedelta(0)
         dtresult = self.timestamp_to_datetime(result)
-        lag = lag_hours = 0
-        # do we trigger DST on next crontab (handle backward changes)
-        dtresult_utcoffset = dtstarttime_utcoffset
-        if dtresult and self.tzinfo:
-            dtresult_utcoffset = dtresult.utcoffset()
-            lag_hours = self._timedelta_to_seconds(dtresult - dtstarttime) / (60 * 60)
-            lag = self._timedelta_to_seconds(dtresult_utcoffset - dtstarttime_utcoffset)
-        hours_before_midnight = 24 - dtstarttime.hour
-        if dtresult_utcoffset != dtstarttime_utcoffset:
-            if (lag > 0 and abs(lag_hours) >= hours_before_midnight) or (
-                lag < 0 and ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600)
-            ):
-                dtresult_adjusted = dtresult - datetime.timedelta(seconds=lag)
-                result_adjusted = self._datetime_to_timestamp(dtresult_adjusted)
-                # Do the actual adjust only if the result time actually exists
-                if self._timestamp_to_datetime(result_adjusted).tzinfo == dtresult_adjusted.tzinfo:
-                    dtresult = dtresult_adjusted
-                    result = result_adjusted
-                self.dst_start_time = result
         if update_current:
             self.cur = result
         if issubclass(ret_type, datetime.datetime):
@@ -507,9 +483,9 @@ class croniter(object):
             sign = 1
             offset = 1 if (len(expanded) > UNIX_CRON_LEN) else 60
 
-        dst = now = self.timestamp_to_datetime(now + sign * offset)
+        now = self.timestamp_to_datetime(now + sign * offset)
 
-        month, year = dst.month, dst.year
+        month, year = now.month, now.year
         current_year = now.year
         DAYS = self.DAYS
 
@@ -696,21 +672,21 @@ class croniter(object):
             next = False
             stop = False
             for proc in procs:
-                (changed, dst) = proc(dst)
+                (changed, now) = proc(now)
                 # `None` can be set mostly for year processing
                 # so please see proc_year / _get_prev_nearest_diff / _get_next_nearest_diff
                 if changed is None:
                     stop = True
                     break
                 if changed:
-                    month, year = dst.month, dst.year
+                    month, year = now.month, now.year
                     next = True
                     break
             if stop:
                 break
             if next:
                 continue
-            return self.datetime_to_timestamp(dst.replace(microsecond=0))
+            return self.datetime_to_timestamp(now.replace(microsecond=0))
 
         if is_prev:
             raise CroniterBadDateError("failed to find prev date")
