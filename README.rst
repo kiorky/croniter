@@ -96,30 +96,57 @@ You can validate your crons using ``is_valid`` class method. (>= 0.3.18)::
 
 About DST
 =========
-Be sure to init your croniter instance with a TZ aware datetime for this to work!
+
+**If you can, avoid messing with DST by using UTC in your program, meaning only using naive datetime.**
+
+Using your croniter instance with a TZ aware datetime (or non-naive) will activate croniter DST support.
+We use something similar than in most unixes which says:
+
+    | Special considerations exist when the clock is changed by less than 3 hours, for example at
+    | the beginning and end of daylight savings time. If the time has moved forwards,
+    | those jobs which would have run in the time that was skipped will be run soon after the change.
+    | Conversely, if the time has moved backwards by less than 3 hours, those jobs that fall into
+    | the repeated time will not be re-run.
+
+Idea is to reschedule jobs when their starttime intersects and are within the blackout (timechange) window.
+We will for this just reschedule them just before or after the DST window weither you are using the iterator forward or backward.
+A special case in when the iteration happens exactly on the minute of the timechange, here we will runthe job:
+    - on the next minute if going forward
+    - on the previous minute if going backward.
+Hopefully, after the iterator will continue its course to get next values as we will be out of the DST window.
+
+As examples:
+- if time change is heading **forward** 1H between ``08:00`` & ``08:59`` (will be ``09:00`` after ``07:59``):
+    - cron at ``08:00`` will be rescheduled at ``09:00`` (``08:00`` in old TZ).
+    - cron between ``08:01`` & ``08:59`` will be rescheduled at ``09:XX`` (``08:XX``).
+- if time change is heading **backwards** 1H between ``08:00`` & ``08:59`` (will be ``07:00`` after ``07:59``):
+    - cron at ``08:00`` will be rescheduled at ``09:00`` (``08:00`` in old TZ).
+    - cron between ``08:01`` & ``08:59`` will be rescheduled at ``09:XX`` (``08:XX``).
 
 Example using pytz::
 
     >>> import pytz
     >>> tz = pytz.timezone("Europe/Paris")
-    >>> local_date = tz.localize(datetime(2017, 3, 26))
+    >>> local_date = tz.localize(datetime(2017, 3, 26, 0, 0))
     >>> val = croniter('0 0 * * *', local_date).get_next(datetime)
 
 Example using python_dateutil::
 
     >>> import dateutil.tz
     >>> tz = dateutil.tz.gettz('Asia/Tokyo')
-    >>> local_date = datetime(2017, 3, 26, tzinfo=tz)
+    >>> local_date = datetime(2017, 3, 26, 0, 0, tzinfo=tz)
     >>> val = croniter('0 0 * * *', local_date).get_next(datetime)
 
 Example using python built in module::
 
     >>> from datetime import datetime, timezone
-    >>> local_date = datetime(2017, 3, 26, tzinfo=timezone.utc)
+    >>> local_date = datetime(2017, 3, 26, 0, 0, tzinfo=timezone.utc)
     >>> val = croniter('0 0 * * *', local_date).get_next(datetime)
 
-About second repeats
+
+About second repeats                                       t
 =====================
+
 Croniter is able to do second repetition crontabs form and by default seconds are the 6th field::
 
     >>> base = datetime(2012, 4, 6, 13, 26, 10)
@@ -394,4 +421,5 @@ If you have contributed and your name is not listed below please let us know.
     - shazow
     - yuzawa-san
     - zed2015
+
 

@@ -17,6 +17,11 @@ import traceback as _traceback
 from time import time
 
 try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
+try:
     import pytz
 except ImportError:
     pytz = None
@@ -35,6 +40,48 @@ HAS_ZONEINFO = bool(pytz)
 # as pytz is optional in thirdparty libs but we need it for good support under
 # python2, just test that it's well installed
 from dateutil.relativedelta import relativedelta
+
+
+def get_tz(tz):
+    if isinstance(tz, str):
+        if ZoneInfo:
+            return ZoneInfo(tz)
+        if pytz:
+            return pytz.timezone(tz)
+        raise SystemError("We should either have pytz or ZoneInfo")
+    return tz
+
+
+def as_tz(dt, tz):
+    return dt.astimezone(get_tz(tz))
+
+
+def tz_localize(dt, tz):
+    tz = get_tz(tz)
+    if ZoneInfo:
+        if dt.tzinfo:
+            dt = as_tz(dt, tz)
+        else:
+            dt = dt.replace(tzinfo=tz)
+        return dt
+    if pytz:
+        if dt.tzinfo:
+            dt = as_tz(dt, tz)
+        else:
+            dt = tz.localize(dt)
+        return dt
+    raise SystemError("We should either have pytz or ZoneInfo")
+
+
+def get_tz_id(tzinfo):
+    if tzinfo:
+        try:
+            return tzinfo.key  # zoneinfo
+        except AttributeError:
+            try:
+                return tzinfo.zone  # pytz
+            except AttributeError:
+                return tzinfo._filename  # dateutil
 
 
 def is_32bit():
@@ -141,12 +188,17 @@ YEAR_CRON_LEN = len(YEAR_FIELDS)
 # retrocompat
 VALID_LEN_EXPRESSION = set(a for a in CRON_FIELDS if isinstance(a, int))
 TIMESTAMP_TO_DT_CACHE = {}
+DST_SEARCH_CACHE = {}
+M_DST_SEARCH_CACHE = {}
 EXPRESSIONS = {}
 HOUR_SECS = 60 * 60
 MARKER = object()
+IS_PYTHON3_ONWARD = int(sys.version[0]) >= 3
 
 
 def timedelta_to_seconds(td):
+    if IS_PYTHON3_ONWARD:
+        return td.total_seconds()
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6
 
 
@@ -155,6 +207,201 @@ def datetime_to_timestamp(d):
         d = d.replace(tzinfo=None) - d.utcoffset()
 
     return timedelta_to_seconds(d - datetime.datetime(1970, 1, 1))
+
+
+def timestamp_to_datetime(timestamp, tzinfo=None):
+    """
+    Converts a UNIX timestamp `timestamp` into a `datetime` object.
+    """
+    k = timestamp
+    if tzinfo:
+        k = (timestamp, repr(tzinfo))
+    try:
+        return TIMESTAMP_TO_DT_CACHE[k]
+    except KeyError:
+        pass
+    if OVERFLOW32B_MODE:
+        # degraded mode to workaround Y2038
+        # see https://github.com/python/cpython/issues/101069
+        result = EPOCH + datetime.timedelta(seconds=timestamp)
+    else:
+        result = datetime.datetime.fromtimestamp(timestamp, tz=UTC_DT).replace(tzinfo=None)
+    if tzinfo:
+        result = result.replace(tzinfo=UTC_DT).astimezone(tzinfo)
+    TIMESTAMP_TO_DT_CACHE[(result, repr(result.tzinfo))] = result
+    return result
+
+
+def reset_datetime_dst(d, tzinfo=None):
+    """
+    Be sure that the datetime is epressed in the appropriate DST period.
+    (avoid pytz bug where sumed timedeltas stick to the previous DST.
+    """
+    ts = datetime_to_timestamp(d)
+    # for pytz, be sure to have the new datetime DST taken in account
+    # if d.tzinfo and 'pytz' in d.tzinfo.__module__:
+    d = timestamp_to_datetime(ts, tzinfo=tzinfo or d.tzinfo)
+    return d, ts
+
+
+def alt_search_dst_bounds(dt, search_window=3 * 3600, ts_upper_bound=None, ts_lower_bound=None):
+    """
+    (NON OPTIMIZED VERSION)
+    Return the nearest DST bounds for a non-naive datetime if found.
+
+    dt should be a non naive datetime
+
+    The search window is +/- 3 hours from the hour of dt.
+
+    Will return either:
+
+        - None if not on a DST window
+        - A tuple (start_datetime, start_timestamp, end_datetime, end_timestamp, lag (int)) otherwise
+    """
+    if not isinstance(dt, (datetime.datetime)) or not dt.tzinfo:
+        raise CroniterError("dt should be a non naive datetime")
+    tzid = get_tz_id(dt.tzinfo)
+    exact_cache_key = (tzid, dt.year, dt.month, dt.hour, search_window)
+    try:
+        return DST_SEARCH_CACHE[exact_cache_key]
+    except KeyError:
+        pass
+    dto = dt.utcoffset()
+    # we first approximatevely see is there is a DST change in the search window
+    # by small halfhour steps up to 3h to narrow the search window
+    ts = datetime_to_timestamp(dt)
+    search_window = abs(search_window)
+    if not ts_lower_bound:
+        ts_lower_bound = ts - search_window
+    if not ts_upper_bound:
+        ts_upper_bound = ts + search_window
+    d_lower_bound = reset_datetime_dst(timestamp_to_datetime(ts_lower_bound, tzinfo=dt.tzinfo))[0]
+    dto_lower = d_lower_bound.utcoffset()
+    d_upper_bound = reset_datetime_dst(timestamp_to_datetime(ts_upper_bound, tzinfo=dt.tzinfo))[0]
+    dto_upper = d_upper_bound.utcoffset()
+    # narrow the window weither the input DT is already in one side of the DST window
+    if dto_lower == dto:
+        d_lower_bound = dt
+    if dto_upper == dto:
+        d_upper_bound = dt
+    if dto_lower == dto_upper:
+        return ()
+    # But if lag is found we are on DST window and need to search more precisely
+    # when are the DST bounds relative to the input datetime
+    # we first search using dichotomous bounds when exactly DST starts
+    bounds = {"dt": None, "ts": None, "r": ts_upper_bound, "l": ts_lower_bound, "it": 0, "max": 100}
+    while (bounds["r"] - bounds["l"]) >= 0.5 and bounds["it"] <= bounds["max"]:
+        bounds["ts"] = (bounds["l"] + bounds["r"]) / 2
+        bounds["dt"] = timestamp_to_datetime(bounds["ts"], tzinfo=dt.tzinfo)
+        bounds[bounds["dt"].utcoffset() == dto_lower and "l" or "r"] = bounds["ts"]
+        bounds["it"] += 1
+    if bounds["it"] == bounds["max"]:  # if we reached max it, DST change was not found, so we may not be on DST
+        return ()
+    start_ts = round(bounds["ts"])
+    start = timestamp_to_datetime(start_ts, tzinfo=d_lower_bound.tzinfo)
+    # then deduce from that startpoint and DST lag where the window ends
+    lag = timedelta_to_seconds(start.utcoffset() - dto_lower)
+    # may we got a precision problem and in fact we could not found a DST window
+    if not lag:
+        return ()
+    end_ts = int(start_ts + abs(lag))
+    end = timestamp_to_datetime(end_ts, tzinfo=d_upper_bound.tzinfo)
+    ret = start, start_ts, end, end_ts, lag
+    DST_SEARCH_CACHE[exact_cache_key] = ret
+    return ret
+
+
+def get_surrounding_months(dt, window=1):
+    """
+    Return the month previous and after `dt` corresponding to `window` size
+    Note: handle for now only <= 12 intervals
+    """
+    last_month_year, last_month = dt.year, dt.month - window
+    next_month_year, next_month = dt.year, dt.month + window
+    # 1
+    if last_month < 1:
+        last_month_year -= 1
+        last_month = {0: 12}.get(last_month, last_month)
+    if next_month > 12:
+        next_month_year += 1
+        next_month = {13: 1}.get(next_month, next_month)
+    last_month_day, next_month_day = 1, calendar.monthrange(next_month_year, next_month)[1]
+    last_month_dt = datetime.datetime(last_month_year, last_month, last_month_day, tzinfo=dt.tzinfo)
+    next_month_dt = datetime.datetime(next_month_year, next_month, next_month_day, tzinfo=dt.tzinfo)
+    return last_month_dt, next_month_dt
+
+
+def dst_cache(cache, k, ret):
+    # do not override an already found DST if we did not found anything in this iteration
+    if not ret:
+        cache.setdefault(k, ret)
+    else:
+        cache[k] = ret
+    return ret
+
+
+def search_dst_bounds(dt, **kw):
+    """
+    Return the nearest DST bounds for a non-naive datetime if found.
+
+    dt should be a non naive datetime
+
+    Will return either:
+
+        - None if no DST is found in the previous, current and next month.
+        - Otherwise a tuple informaing about the dst in the form:
+          (start (datetime), startts (int), end (datetime), endts (int), lag (int))
+    """
+    if not isinstance(dt, (datetime.datetime)) or not dt.tzinfo:
+        raise CroniterError("dt should be a non naive datetime")
+    tzid = get_tz_id(dt.tzinfo)
+    last_month, next_month = get_surrounding_months(dt)
+    month_cache_keys = [
+        (tzid, dt.year, dt.month),
+        (tzid, last_month.year, last_month.month),
+        (tzid, next_month.year, next_month.month),
+    ]
+    for k in month_cache_keys:
+        try:
+            # try to search for an already matching result in the 3 months near the current dt
+            # as DST are normally separated from more than 4 monthes in a year
+            return M_DST_SEARCH_CACHE[k]
+        except KeyError:
+            continue
+    k = month_cache_keys[0]
+    dto_upper = next_month.utcoffset()
+    ret, start, end = None, None, None
+    ts_lower_bound = datetime_to_timestamp(last_month) - 24 * 3600
+    ts_upper_bound = datetime_to_timestamp(next_month) + 24 * 3600
+    # But if lag is found we are on DST window and need to search more precisely
+    # when are the DST bounds relative to the input datetime
+    # we first search using dichotomous bounds when exactly DST starts
+    bounds = {"dt": None, "ts": None, "r": ts_upper_bound, "l": ts_lower_bound, "it": 0, "max": 10000}
+    while (bounds["r"] - bounds["l"]) >= 0.5 and bounds["it"] <= bounds["max"]:
+        bounds["ts"] = (bounds["l"] + bounds["r"]) / 2
+        bounds["dt"] = timestamp_to_datetime(bounds["ts"], tzinfo=dt.tzinfo)
+        bounds[bounds["dt"].utcoffset() == dto_upper and "r" or "l"] = bounds["ts"]
+        bounds["it"] += 1
+    if bounds["it"] != bounds["max"]:  # if we reached too much iterations, DST was not found
+        start_ts = round(bounds["ts"])
+        start = timestamp_to_datetime(start_ts, tzinfo=next_month.tzinfo)
+        # then deduce from that startpoint: DST lag
+        lag = timedelta_to_seconds(start.utcoffset() - reset_datetime_dst(last_month)[0].utcoffset())
+        # ensure that we didnt got a precision problem and in fact we could not found a DST window
+        if lag:
+            # and we proceed to finally deduce where the window ends
+            end_ts = int(start_ts + abs(lag))
+            end = timestamp_to_datetime(end_ts, tzinfo=next_month.tzinfo)
+            ret = start, start_ts, end, end_ts, lag
+            for k in month_cache_keys:
+                dst_cache(M_DST_SEARCH_CACHE, k, ret)
+    return dst_cache(M_DST_SEARCH_CACHE, k, ret)
+
+
+def get_cron_time_kw(is_prev, extra=None):
+    ret = {"hour": 23, "minute": 59, "second": 59} if is_prev else {"hour": 0, "minute": 0, "second": 0}
+    ret.update(extra or {})
+    return ret
 
 
 class CroniterError(ValueError):
@@ -183,6 +430,10 @@ class CroniterBadDateError(CroniterError):
 
 class CroniterNotAlphaError(CroniterBadCronError):
     """Cron syntax contains an invalid day or month abbreviation"""
+
+
+class InfiniteLoop(CroniterError):
+    """."""
 
 
 class croniter(object):
@@ -268,21 +519,23 @@ class croniter(object):
         if start_time is None:
             start_time = time()
 
+        self.start_time = start_time
         self.tzinfo = None
-
-        self.start_time = None
         self.cur = None
-        self.set_current(start_time, force=False)
+        self.set_current(start_time, force=True)
 
+        self.expr_format = expr_format
         self.expanded, self.nth_weekday_of_month = self.expand(
             expr_format,
             hash_id=hash_id,
-            from_timestamp=self.start_time if self._expand_from_start_time else None,
+            from_timestamp=self.cur if self._expand_from_start_time else None,
             second_at_beginning=second_at_beginning,
         )
         self.fields = CRON_FIELDS[len(self.expanded)]
         self.expressions = EXPRESSIONS[(expr_format, hash_id, second_at_beginning)]
         self._is_prev = is_prev
+        self.previous_iterations = OrderedDict()
+        self._old_nows = []
 
     @classmethod
     def _alphaconv(cls, index, key, expressions):
@@ -315,15 +568,28 @@ class croniter(object):
             return self.timestamp_to_datetime(self.cur)
         return self.cur
 
-    def set_current(self, start_time, force=True):
-        if (force or (self.cur is None)) and start_time is not None:
-            if isinstance(start_time, datetime.datetime):
-                self.tzinfo = start_time.tzinfo
-                start_time = self.datetime_to_timestamp(start_time)
+    def set_current(self, current=None, force=True, start_time=MARKER):
+        """
+        Set current iteration start_point.
 
-            self.start_time = start_time
-            self.cur = start_time
-        return self.cur
+        start_time is a synonym for current and is only there for API retrocompatibility
+        """
+        current = start_time if start_time is not MARKER else current  # retrocompat
+        dtime = None
+        if (force or (self.cur is None)) and current is not None:
+            if isinstance(current, datetime.datetime):
+                if current.tzinfo:
+                    self.tzinfo = current.tzinfo
+                dtime, current = current, self.datetime_to_timestamp(current)
+            elif isinstance(current, (int, float)):
+                dtime = self.timestamp_to_datetime(current)
+            else:
+                raise CroniterError("current should be either datetime, float, int: {0}".format(current))
+            self.cur = self.start_time = current
+        else:
+            if self.cur:
+                dtime = self.timestamp_to_datetime(self.cur)
+        return self.cur, dtime
 
     @staticmethod
     def datetime_to_timestamp(d):
@@ -340,23 +606,7 @@ class croniter(object):
         """
         if tzinfo is MARKER:  # allow to give tzinfo=None even if self.tzinfo is set
             tzinfo = self.tzinfo
-        k = timestamp
-        if tzinfo:
-            k = (timestamp, repr(tzinfo))
-        try:
-            return TIMESTAMP_TO_DT_CACHE[k]
-        except KeyError:
-            pass
-        if OVERFLOW32B_MODE:
-            # degraded mode to workaround Y2038
-            # see https://github.com/python/cpython/issues/101069
-            result = EPOCH + datetime.timedelta(seconds=timestamp)
-        else:
-            result = datetime.datetime.fromtimestamp(timestamp, tz=UTC_DT).replace(tzinfo=None)
-        if tzinfo:
-            result = result.replace(tzinfo=UTC_DT).astimezone(tzinfo)
-        TIMESTAMP_TO_DT_CACHE[(result, repr(result.tzinfo))] = result
-        return result
+        return timestamp_to_datetime(timestamp, tzinfo=tzinfo)
 
     _timestamp_to_datetime = timestamp_to_datetime  # retrocompat
 
@@ -381,53 +631,99 @@ class croniter(object):
     ):
         if update_current is None:
             update_current = True
-        self.set_current(start_time, force=True)
+        if start_time:
+            cur, dcur = self.set_current(start_time, force=True)
+        else:
+            cur = self.get_current(float)
+            dcur = self.timestamp_to_datetime(cur)
         if is_prev is None:
             is_prev = self._is_prev
         self._is_prev = is_prev
         expanded = self.expanded[:]
         nth_weekday_of_month = self.nth_weekday_of_month.copy()
 
-        ret_type = ret_type or self._ret_type
+        ret_type, result = ret_type or self._ret_type, None
 
         if not issubclass(ret_type, (float, datetime.datetime)):
             raise TypeError("Invalid ret_type, only 'float' or 'datetime' is acceptable.")
 
-        # exception to support day of month and day of week as defined in cron
-        dom_dow_exception_processed = False
-        if (expanded[DAY_FIELD][0] != "*" and expanded[DOW_FIELD][0] != "*") and self._day_or:
-            # If requested, handle a bug in vixie cron/ISC cron where day_of_month and day_of_week form
-            # an intersection (AND) instead of a union (OR) if either field is an asterisk or starts with an asterisk
-            # (https://crontab.guru/cron-bug.html)
-            if self._implement_cron_bug and (
-                re_star.match(self.expressions[DAY_FIELD]) or re_star.match(self.expressions[DOW_FIELD])
-            ):
-                # To produce a schedule identical to the cron bug, we'll bypass the code that
-                # makes a union of DOM and DOW, and instead skip to the code that does an intersect instead
-                pass
-            else:
-                bak = expanded[DOW_FIELD]
-                expanded[DOW_FIELD] = ["*"]
-                t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
-                expanded[DOW_FIELD] = bak
-                expanded[DAY_FIELD] = ["*"]
-
-                t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
-                if not is_prev:
-                    result = t1 if t1 < t2 else t2
+        # return cached result if we can
+        k = (self.expr_format, cur, get_tz_id(dcur.tzinfo), is_prev)
+        try:
+            result, dtresult = self.previous_iterations[k]
+            if cur == result:
+                raise InfiniteLoop("eternal loop detected, last ts: {0}".format(k))
+        except KeyError:
+            # exception to support day of month and day of week as defined in cron
+            dom_dow_exception_processed = False
+            if (expanded[DAY_FIELD][0] != "*" and expanded[DOW_FIELD][0] != "*") and self._day_or:
+                # If requested, handle a bug in vixie cron/ISC cron where day_of_month and day_of_week form
+                # an intersection (AND) instead of a union (OR)
+                # if either field is an asterisk or starts with an asterisk
+                # (https://crontab.guru/cron-bug.html)
+                if self._implement_cron_bug and (
+                    re_star.match(self.expressions[DAY_FIELD]) or re_star.match(self.expressions[DOW_FIELD])
+                ):
+                    # To produce a schedule identical to the cron bug, we'll bypass the code that
+                    # makes a union of DOM and DOW, and instead skip to the code that does an intersect instead
+                    pass
                 else:
-                    result = t1 if t1 > t2 else t2
-                dom_dow_exception_processed = True
+                    bak = expanded[DOW_FIELD]
+                    expanded[DOW_FIELD] = ["*"]
+                    t1 = self._calc(cur, expanded, nth_weekday_of_month, is_prev)
+                    expanded[DOW_FIELD] = bak
+                    expanded[DAY_FIELD] = ["*"]
 
-        if not dom_dow_exception_processed:
-            result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
+                    t2 = self._calc(cur, expanded, nth_weekday_of_month, is_prev)
+                    if not is_prev:
+                        result = t1 if t1 < t2 else t2
+                    else:
+                        result = t1 if t1 > t2 else t2
+                    dom_dow_exception_processed = True
 
-        dtresult = self.timestamp_to_datetime(result)
+            if not dom_dow_exception_processed:
+                result = self._calc(cur, expanded, nth_weekday_of_month, is_prev)
+
+            dtresult = self.timestamp_to_datetime(result)
+            self.previous_iterations[k] = (result, dtresult)
         if update_current:
-            self.cur = result
+            self.set_current(result, force=True)
         if issubclass(ret_type, datetime.datetime):
             result = dtresult
         return result
+
+    def adjust_dst_hour(self, dtime=None, is_prev=False, timestamp=None):
+        """
+        DST HANDLING: PLEASE CAREFULLY READ README section "About DST"
+
+        Will return:
+            tuple: (timestamp, relative datetime, BOOL (True if DST is detected))
+        """
+        if not dtime.tzinfo:
+            raise CroniterError("You can't use a non naive datetime")
+        if timestamp is None and dtime and dtime.tzinfo:
+            timestamp = self.datetime_to_timestamp(dtime)
+        dst_bounds = self.search_dst_bounds(dtime)
+        otimestamp = timestamp
+        if dst_bounds:
+            start, start_ts, end, end_ts, lag = dst_bounds
+            # on_dst_minute = start_ts - 59 <= timestamp <= start_ts + 59
+            if lag <= -1 or lag >= 1:
+                if start_ts <= timestamp <= end_ts:
+                    if is_prev:
+                        if lag >= 1:
+                            timestamp -= 0 * abs(lag)
+        has_changed = timestamp != otimestamp
+        if has_changed:
+            dtime = self.timestamp_to_datetime(timestamp, tzinfo=dtime.tzinfo)
+        return timestamp, dtime, has_changed
+
+    @staticmethod
+    def search_dst_bounds(*a, **kw):
+        """
+        Wrapper to module method
+        """
+        return search_dst_bounds(*a, **kw)
 
     # iterator protocol, to enable direct use of croniter
     # objects in a loop, like "for dt in croniter("5 0 * * *'): ..."
@@ -481,112 +777,99 @@ class croniter(object):
 
     __next__ = next = _get_next
 
-    def _calc(self, now, expanded, nth_weekday_of_month, is_prev):
+    def _calc(self, ts, expanded, nth_weekday_of_month, is_prev):
+        cron_time_kw = get_cron_time_kw(is_prev)
         if is_prev:
-            now = math.ceil(now)
+            ts = math.ceil(ts)
             nearest_diff_method = self._get_prev_nearest_diff
             sign = -1
-            offset = 1 if (len(expanded) > UNIX_CRON_LEN or now % 60 > 0) else 60
+            offset = 1 if (len(expanded) > UNIX_CRON_LEN or ts % 60 > 0) else 60
         else:
-            now = math.floor(now)
+            ts = math.floor(ts)
             nearest_diff_method = self._get_next_nearest_diff
             sign = 1
             offset = 1 if (len(expanded) > UNIX_CRON_LEN) else 60
 
-        now = self.timestamp_to_datetime(now + sign * offset)
+        # As we offset early one second, we will need to inversely add/subtract the DST window
+        # if we trigger a DST change
+        now = self.timestamp_to_datetime(ts + sign * offset)
 
         month, year = now.month, now.year
         current_year = now.year
         DAYS = self.DAYS
 
-        def proc_year(d):
+        def proc_year(d, ts, dst_updated=False):
+            changed = False
             if len(expanded) == YEAR_CRON_LEN:
                 try:
                     expanded[YEAR_FIELD].index("*")
                 except ValueError:
                     # use None as range_val to indicate no loop
-                    diff_year = nearest_diff_method(d.year, expanded[YEAR_FIELD], None)
+                    diff_year = nearest_diff_method(d.year, expanded[YEAR_FIELD], None, YEAR_FIELD)
                     if diff_year is None:
-                        return None, d
+                        return None, d, ts, dst_updated
                     if diff_year != 0:
-                        if is_prev:
-                            d += relativedelta(
-                                years=diff_year,
-                                month=12,
-                                day=31,
-                                hour=23,
-                                minute=59,
-                                second=59,
-                            )
-                        else:
-                            d += relativedelta(
-                                years=diff_year,
-                                month=1,
-                                day=1,
-                                hour=0,
-                                minute=0,
-                                second=0,
-                            )
-                        return True, d
-            return False, d
+                        d += relativedelta(
+                            years=diff_year,
+                            **get_cron_time_kw(
+                                is_prev, {"month": 12, "day": 31} if is_prev else {"month": 1, "day": 1}
+                            ),
+                        )
+                        ts = self.datetime_to_timestamp(d)
+                        changed = True
+            return changed, d, ts, dst_updated
 
-        def proc_month(d):
+        def proc_month(d, ts, dst_updated=False):
+            changed = False
             try:
                 expanded[MONTH_FIELD].index("*")
             except ValueError:
-                diff_month = nearest_diff_method(d.month, expanded[MONTH_FIELD], self.MONTHS_IN_YEAR)
-                reset_day = 1
-
+                diff_month = nearest_diff_method(d.month, expanded[MONTH_FIELD], self.MONTHS_IN_YEAR, MONTH_FIELD)
                 if diff_month is not None and diff_month != 0:
-                    if is_prev:
-                        d += relativedelta(months=diff_month)
-                        reset_day = DAYS[d.month - 1]
-                        if d.month == 2 and self.is_leap(d.year) is True:
-                            reset_day += 1
-                        d += relativedelta(day=reset_day, hour=23, minute=59, second=59)
-                    else:
-                        d += relativedelta(months=diff_month, day=reset_day, hour=0, minute=0, second=0)
-                    return True, d
-            return False, d
+                    d += relativedelta(months=diff_month)
+                    r_day = (
+                        1
+                        if not is_prev
+                        else (DAYS[d.month - 1] + (1 if d.month == 2 and self.is_leap(d.year) is True else 0))
+                    )
+                    d += relativedelta(day=r_day, **cron_time_kw)
+                    ts = self.datetime_to_timestamp(d)
+                    changed = True
+            return changed, d, ts, dst_updated
 
-        def proc_day_of_month(d):
+        def proc_day_of_month(d, ts, dst_updated=False):
+            changed = False
             try:
                 expanded[DAY_FIELD].index("*")
             except ValueError:
-                days = DAYS[month - 1]
-                if month == 2 and self.is_leap(year) is True:
-                    days += 1
+                days = DAYS[month - 1] + (1 if month == 2 and self.is_leap(year) is True else 0)
                 if "l" in expanded[DAY_FIELD] and days == d.day:
-                    return False, d
+                    return False, d, ts, dst_updated
 
-                if is_prev:
-                    days_in_prev_month = DAYS[(month - 2) % self.MONTHS_IN_YEAR]
-                    diff_day = nearest_diff_method(d.day, expanded[DAY_FIELD], days_in_prev_month)
-                else:
-                    diff_day = nearest_diff_method(d.day, expanded[DAY_FIELD], days)
+                days = days if not is_prev else DAYS[(month - 2) % self.MONTHS_IN_YEAR]
+                diff_day = nearest_diff_method(d.day, expanded[DAY_FIELD], days, DAY_FIELD)
 
                 if diff_day is not None and diff_day != 0:
-                    if is_prev:
-                        d += relativedelta(days=diff_day, hour=23, minute=59, second=59)
-                    else:
-                        d += relativedelta(days=diff_day, hour=0, minute=0, second=0)
-                    return True, d
-            return False, d
+                    d += relativedelta(days=diff_day, **cron_time_kw)
+                    changed = True
+            if changed:
+                ts = self.datetime_to_timestamp(d)
+            return changed, d, ts, dst_updated
 
-        def proc_day_of_week(d):
+        def proc_day_of_week(d, ts, dst_updated=False):
+            changed = False
             try:
                 expanded[DOW_FIELD].index("*")
             except ValueError:
-                diff_day_of_week = nearest_diff_method(d.isoweekday() % 7, expanded[DOW_FIELD], 7)
+                diff_day_of_week = nearest_diff_method(d.isoweekday() % 7, expanded[DOW_FIELD], 7, DOW_FIELD)
                 if diff_day_of_week is not None and diff_day_of_week != 0:
-                    if is_prev:
-                        d += relativedelta(days=diff_day_of_week, hour=23, minute=59, second=59)
-                    else:
-                        d += relativedelta(days=diff_day_of_week, hour=0, minute=0, second=0)
-                    return True, d
-            return False, d
+                    d += relativedelta(days=diff_day_of_week, **cron_time_kw)
+                    ts = self.datetime_to_timestamp(d)
+                    changed = True
+            return changed, d, ts, dst_updated
 
-        def proc_day_of_week_nth(d):
+        def proc_day_of_week_nth(d, ts, dst_updated=False):
+            changed = False
             if "*" in nth_weekday_of_month:
                 s = nth_weekday_of_month["*"]
                 for i in range(0, 7):
@@ -610,63 +893,85 @@ class croniter(object):
                         candidates.append(candidate)
 
             if not candidates:
-                if is_prev:
-                    d += relativedelta(days=-d.day, hour=23, minute=59, second=59)
-                else:
-                    days = DAYS[month - 1]
-                    if month == 2 and self.is_leap(year) is True:
-                        days += 1
-                    d += relativedelta(days=(days - d.day + 1), hour=0, minute=0, second=0)
-                return True, d
+                days = (
+                    -d.day
+                    if is_prev
+                    else (-d.day + 1 + DAYS[month - 1] + (1 if month == 2 and self.is_leap(year) is True else 0))
+                )
+                d += relativedelta(days=days, **cron_time_kw)
+                ts = self.datetime_to_timestamp(d)
+                return True, d, ts, dst_updated
 
             candidates.sort()
             diff_day = (candidates[-1] if is_prev else candidates[0]) - d.day
             if diff_day != 0:
-                if is_prev:
-                    d += relativedelta(days=diff_day, hour=23, minute=59, second=59)
-                else:
-                    d += relativedelta(days=diff_day, hour=0, minute=0, second=0)
-                return True, d
-            return False, d
+                d += relativedelta(days=diff_day, **cron_time_kw)
+                ts = self.datetime_to_timestamp(d)
+                changed = True
+            return changed, d, ts, dst_updated
 
-        def proc_hour(d):
+        def proc_dst(d, ts, item, field, dst_updated=False):
+            wanted = expanded[field]
+            item_in_second = {HOUR_FIELD: 3600, MINUTE_FIELD: 60, SECOND_FIELD: 1}[field]
+            range_val = {HOUR_FIELD: 24, MINUTE_FIELD: 60, SECOND_FIELD: 60}[field]
+            diff = nearest_diff_method(item, wanted, range_val, field)
+            if diff is not None and diff != 0:  # try first to calc without DST calculation to save cycles
+                nts = ts + diff * item_in_second
+                nd = self.timestamp_to_datetime(nts, tzinfo=d.tzinfo)
+                # then apply DST if not already applied
+                if (
+                    not dst_updated and item_in_second > 1 and d.utcoffset() != nd.utcoffset()
+                ):  # but recalc as soon as any DST is detected
+                    dst_diff = nearest_diff_method(item, wanted, range_val, field=field, current=d)
+                    dst_updated = dst_diff != diff
+                    if dst_diff is not None and dst_updated:
+                        if dst_diff != 0:
+                            nts = ts + dst_diff * item_in_second
+                            nd = self.timestamp_to_datetime(nts, tzinfo=d.tzinfo)
+                        else:
+                            nd, nts = d, ts
+                    diff = dst_diff
+                d, ts = nd, nts
+            return diff, d, ts, dst_updated
+
+        def proc_hour(d, ts, dst_updated=False):
+            changed = False
             try:
                 expanded[HOUR_FIELD].index("*")
             except ValueError:
-                diff_hour = nearest_diff_method(d.hour, expanded[HOUR_FIELD], 24)
-                if diff_hour is not None and diff_hour != 0:
-                    if is_prev:
-                        d += relativedelta(hours=diff_hour, minute=59, second=59)
-                    else:
-                        d += relativedelta(hours=diff_hour, minute=0, second=0)
-                    return True, d
-            return False, d
+                diff, d, ts, dst_updated = proc_dst(d, ts, d.hour, HOUR_FIELD, dst_updated=dst_updated)
+                if diff is not None and diff != 0:
+                    first_or_last = 59 if is_prev else 0
+                    d = d.replace(minute=first_or_last, second=first_or_last)
+                    d, ts = reset_datetime_dst(d)
+                    changed = True
+            return changed, d, ts, dst_updated
 
-        def proc_minute(d):
+        def proc_minute(d, ts, dst_updated=False):
+            changed = False
             try:
                 expanded[MINUTE_FIELD].index("*")
             except ValueError:
-                diff_min = nearest_diff_method(d.minute, expanded[MINUTE_FIELD], 60)
-                if diff_min is not None and diff_min != 0:
-                    if is_prev:
-                        d += relativedelta(minutes=diff_min, second=59)
-                    else:
-                        d += relativedelta(minutes=diff_min, second=0)
-                    return True, d
-            return False, d
+                diff, d, ts, dst_updated = proc_dst(d, ts, d.minute, MINUTE_FIELD, dst_updated=dst_updated)
+                if diff is not None and diff != 0:
+                    d = d.replace(second=59 if is_prev else 0)
+                    d, ts = reset_datetime_dst(d)
+                    changed = True
+            return changed, d, ts, dst_updated
 
-        def proc_second(d):
+        def proc_second(d, ts, dst_updated=False):
+            changed = False
             if len(expanded) > UNIX_CRON_LEN:
                 try:
                     expanded[SECOND_FIELD].index("*")
                 except ValueError:
-                    diff_sec = nearest_diff_method(d.second, expanded[SECOND_FIELD], 60)
-                    if diff_sec is not None and diff_sec != 0:
-                        d += relativedelta(seconds=diff_sec)
-                        return True, d
-            else:
-                d += relativedelta(second=0)
-            return False, d
+                    diff, d, ts, dst_updated = proc_dst(d, ts, d.second, SECOND_FIELD, dst_updated=dst_updated)
+                    if diff is not None and diff != 0:
+                        changed = True
+            elif d.second != 0:  # fields cron form does not have second granularity so we normalize to 0
+                d = d.replace(second=0)
+                d, ts = reset_datetime_dst(d)
+            return changed, d, ts, dst_updated
 
         procs = [
             proc_year,
@@ -678,11 +983,26 @@ class croniter(object):
             proc_second,
         ]
 
+        # unless other procs*, proc_hours, proc_minutes, proc_seconds are using timestamps
+        # to handle DST changes more accurately
+        self._old_nows = [[now, ts, now.utcoffset()]]
+        dst_updated = False
+        ## pdb=0
+        ## if now.day == 8:
+        ##     import pdb;pdb.set_trace()  ## Breakpoint ##
+        ##     pdb =1
         while abs(year - current_year) <= self._max_years_between_matches:
             next = False
             stop = False
+            dst_updated = False
             for proc in procs:
-                (changed, now) = proc(now)
+                # if proc in [proc_hour, proc_minute, proc_second] and ts <= 1583654399.0:
+                #     import pdb;pdb.set_trace()  ## Breakpoint ##
+                ## if pdb and proc == proc_minute:
+                ##     import pdb;pdb.set_trace()  ## Breakpoint ##
+                changed, now, ts, dst_updated = proc(now, ts, dst_updated)
+                if ts != self._old_nows[-1][1]:
+                    self._old_nows.append([now, ts, now.utcoffset(), proc])
                 # `None` can be set mostly for year processing
                 # so please see proc_year / _get_prev_nearest_diff / _get_next_nearest_diff
                 if changed is None:
@@ -719,7 +1039,7 @@ class croniter(object):
         return small[0]
 
     @staticmethod
-    def _get_next_nearest_diff(x, to_check, range_val):
+    def _get_next_nearest_diff(x, to_check, range_val, field, current=None):
         """
         `range_val` is the range of a field.
         If no available time, we can move to next loop(like next month).
@@ -739,40 +1059,87 @@ class croniter(object):
             return None
         return to_check[0] - x + range_val
 
-    @staticmethod
-    def _get_prev_nearest_diff(x, to_check, range_val):
+    @classmethod
+    def _get_prev_nearest_diff(cls, x, to_check, range_val, field, current=None):
         """
         `range_val` is the range of a field.
         If no available time, we can move to previous loop(like previous month).
         Range_val can also be set to `None` to indicate that there is no loop.
         ( Currently should only used for `year` field )
         """
-        candidates = to_check[:]
+        ret, currentts, candidate, candidates = MARKER, None, None, to_check[:]
+        bounds, lag, dst_start_hour, from_dst, startts, stopts = None, None, None, 0, 0, 0
+        def_range_val = {HOUR_FIELD: 24, MINUTE_FIELD: 60}.get(field, 0)
+        max_start_hour, min_start_hour = 0, 0
         candidates.reverse()
+        if current and current.tzinfo:
+            # be sure that current datetime is using right side of the DST
+            current, currentts = reset_datetime_dst(current)
+            # search if there is any DST change near the current time
+            bounds = search_dst_bounds(current)
+        # if DST detected and if needed, adjust cron time candidates occurences and prepare to adjust
+        # but if current time is already under DST, or over 24H from it, there is no need to adjust.
+        if field in (HOUR_FIELD, MINUTE_FIELD) and bounds and 24 * 3600 + bounds[1] >= currentts >= bounds[1]:
+            start, startts, stop, stopts, lag = bounds
+            dst_start_hour = start.hour + (-1 if lag > 0 else 1) * lag / 3600
+            dst_start_hour = dst_start_hour if dst_start_hour < 24 else dst_start_hour - 24
+            max_start_hour = max(start.hour, dst_start_hour)
+            min_start_hour = min(start.hour, dst_start_hour)
+            dst_transform = {start.hour if lag > 0 else dst_start_hour: dst_start_hour if lag > 0 else start.hour}
+            from_dst = abs(currentts - startts)
+            if from_dst < def_range_val * 3600 - abs(lag):
+                # in the complete current (day) period apply DST to candidates if needed
+                for i, d in enumerate(candidates):
+                    candidates[i] = dst_transform.get(d, d)
+                x = dst_transform.get(x, x)  # and also normalize time jump to the old hour
+        # cron components are under the current checked component, eg: run @ 01:00, and it's 02:00
         for d in candidates:
-            if d != "l" and d <= x:
-                return d - x
-        if "l" in candidates:
-            return -x
+            if d is not None and d != "l" and d <= x:
+                candidate, ret = d, d - x
+                break
+        if ret is not MARKER:
+            pass
+        elif "l" in candidates:
+            candidate, ret = cls.RANGES[field][0], -x
         # When range_val is None and x not exists in to_check,
         # `None` will be returned to suggest no more available time
-        if range_val is None:
-            return None
-        candidate = candidates[0]
-        for c in candidates:
-            # fixed: c < range_val
-            # this code will reject all 31 day of month, 12 month, 59 second,
-            # 23 hour and so on.
-            # if candidates has just a element, this will not harmful.
-            # but candidates have multiple elements, then values equal to
-            # range_val will rejected.
-            if c <= range_val:
-                candidate = c
-                break
-        # fix crontab "0 6 30 3 *" condidates only a element, then get_prev error return 2021-03-02 06:00:00
-        if candidate > range_val:
-            return -range_val
-        return candidate - x - range_val
+        elif range_val is None:
+            ret = None
+        else:
+            candidate = candidates[0]
+            # fixed: c <= range_val
+            # this code will reject all 31 day of month, 12 month, 59 second, 23 hour and so on.
+            # if candidates has just a element, this will not be harmful.
+            # but candidates have multiple elements, then values equal to range_val will rejected.
+            for c in candidates:
+                if c is not None and c <= range_val:
+                    candidate = c
+                    break
+
+            # fix crontab "0 6 30 3 *" condidates only a element, then get_prev error return 2021-03-02 06:00:00
+            # idea is to go back to the start of the time period), and the next loop complete the work
+            if candidate > range_val:
+                candidate, ret = 0, -(candidate % range_val)
+            # default: cron component is after the current checked component, eg: run @ 04:00, and it's 02:00
+            else:
+                ret = candidate - x - range_val
+        if dst_start_hour is not None and ret is not None:
+            if field == HOUR_FIELD:
+                cdate, sdate = current.date(), start.date()
+                on_dst_day = 0 <= int(currentts - startts) / 3600 < def_range_val - 1
+                # cron candidate and current time are exactly both on DST, but may be written in different
+                # old/new DST forms, so we need here to explicitly say that we are on same timespan (0)
+                if candidate in (dst_start_hour, start.hour) and (startts <= currentts < stopts) and cdate == sdate:
+                    ret = 0
+                # neither if current time and candidate are both on the same side and over the DST window
+                elif x >= candidate >= max_start_hour + 1 and currentts >= startts:
+                    pass
+                # if DST is traversed, then we need apply reverse DST drift
+                elif on_dst_day:
+                    itv_dst = min_start_hour - x if min_start_hour < x else min_start_hour - def_range_val - x
+                    if ret <= itv_dst:
+                        ret += (1 if lag > 0 else -1) * lag / 3600.0
+        return ret
 
     @staticmethod
     def _get_nth_weekday_of_month(year, month, day_of_week):
@@ -1105,7 +1472,7 @@ class croniter(object):
         except (ValueError,) as exc:
             if isinstance(exc, CroniterError):
                 raise
-            if int(sys.version[0]) >= 3:
+            if IS_PYTHON3_ONWARD:
                 trace = _traceback.format_exc()
                 raise CroniterBadCronError(trace)
             raise CroniterBadCronError("{0}".format(exc))
@@ -1167,7 +1534,7 @@ class croniter(object):
         )
         tdp = cron.get_current(datetime.datetime)
         if not tdp.microsecond:
-            tdp += relativedelta(microseconds=1)
+            tdp += datetime.timedelta(microseconds=1)
         cron.set_current(tdp, force=True)
         try:
             tdt = cron.get_prev()
@@ -1210,7 +1577,7 @@ def croniter_range(
     if ret_type is None:
         ret_type = auto_rt
     if not exclude_ends:
-        ms1 = relativedelta(microseconds=1)
+        ms1 = datetime.timedelta(microseconds=1)
         if start < stop:  # Forward (normal) time order
             start -= ms1
             stop += ms1

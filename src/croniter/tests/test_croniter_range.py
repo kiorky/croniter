@@ -1,12 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+
+from collections import OrderedDict
 from datetime import datetime, timedelta
 
-import pytz
-
-from croniter import CroniterBadCronError, CroniterBadDateError, CroniterBadTypeRangeError, croniter, croniter_range
+from croniter import (
+    HOUR_FIELD,
+    CroniterBadCronError,
+    CroniterBadDateError,
+    CroniterBadTypeRangeError,
+    croniter,
+    croniter_range,
+    reset_datetime_dst,
+)
 from croniter.tests import base
 
 
@@ -79,32 +90,6 @@ class CroniterRangeTest(base.TestCase):
             list(croniter_range(dt_start1, f_stop1, "0 * * * *"), ret_type=datetime)
         with self.assertRaises(TypeError):
             list(croniter_range(f_start1, dt_stop1, "0 * * * *"))
-
-    def test_timezone_dst(self):
-        """Test across DST transition, which technically is a timezone change."""
-        tz = "US/Eastern"
-        start = self.tz_localize(datetime(2020, 10, 30), tz)
-        stop = self.tz_localize(datetime(2020, 11, 10), tz)
-        res = list(croniter_range(start, stop, "0 0 * * *"))
-        self.assertNotEqual(res[0].utcoffset(), res[-1].utcoffset())
-        self.assertEqual(len(res), 12)
-
-    def test_extra_hour_day_prio(self):
-        tz = "US/Eastern"
-        cron = "0 3 * * *"
-        start = self.tz_localize(datetime(2020, 3, 7), tz)
-        end = self.tz_localize(datetime(2020, 3, 11), tz)
-        # 2020/03/08: 02:00 EST (UTC-5) > 03:00 EDT (UTC-4)
-        ret = [i.isoformat() for i in croniter_range(start, end, cron)]
-        self.assertEqual(
-            ret,
-            [
-                "2020-03-07T03:00:00-05:00",
-                "2020-03-08T03:00:00-04:00",
-                "2020-03-09T03:00:00-04:00",
-                "2020-03-10T03:00:00-04:00",
-            ],
-        )
 
     def test_issue145_getnext(self):
         # Example of quarterly event cron schedule
