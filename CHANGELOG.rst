@@ -1,12 +1,18 @@
 Changelog
 ==============
 
-5.0.2 (unreleased)
+6.0.0 (unreleased)
 ------------------
 
+- MOST IMPORTANT & NON RETROCOMPATIBLE CHANGES:
+    - Reimplement DST handling from scratch, see README [kiorky]
+    - Use ZoneInfo on py39+ [kiorky]
+- Rework timestamp_to_datetime to use whatever timezone [kiorky]
+- Make datetime_to_timestamp & timestamp_to_datetime public [kiorky]
 - Apply isort formatter [kiorky]
+- Reintegrate test_speed [kiorky]
 - Apply black formatter [evanpurkhiser, kiorky]
-- Code quality changes by evanpurkhiser:
+- Code quality changes [evanpurkhiser, kiorky]
     - Remove unused _get_caller_globals_and_locals [evanpurkhiser]
     - Remove single-use bad_length [evanpurkhiser]
     - Remove unused `days` in `proc_month` [evanpurkhiser]
@@ -16,6 +22,7 @@ Changelog
     - Remove unusd call to sys.exc_info [evanpurkhiser]
     - Remove unused `ALPHAS` [evanpurkhiser]
     - Improve `croniter.expand` documentation [evanpurkhiser]
+- Fix EPOCH calculation in case of non UTC & 32 bits based systems [kiorky]
 
 5.0.1 (2024-10-29)
 ------------------
