@@ -301,14 +301,14 @@ class croniter(object):
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
         if issubclass(ret_type, datetime.datetime):
-            return self._timestamp_to_datetime(self.cur)
+            return self.timestamp_to_datetime(self.cur)
         return self.cur
 
     def set_current(self, start_time, force=True):
         if (force or (self.cur is None)) and start_time is not None:
             if isinstance(start_time, datetime.datetime):
                 self.tzinfo = start_time.tzinfo
-                start_time = self._datetime_to_timestamp(start_time)
+                start_time = self.datetime_to_timestamp(start_time)
 
             self.start_time = start_time
             self.dst_start_time = start_time
@@ -316,13 +316,15 @@ class croniter(object):
         return self.cur
 
     @staticmethod
-    def _datetime_to_timestamp(d):
+    def datetime_to_timestamp(d):
         """
         Converts a `datetime` object `d` into a UNIX timestamp.
         """
         return datetime_to_timestamp(d)
 
-    def _timestamp_to_datetime(self, timestamp):
+    _datetime_to_timestamp = datetime_to_timestamp  # retrocompat
+
+    def timestamp_to_datetime(self, timestamp):
         """
         Converts a UNIX timestamp `timestamp` into a `datetime` object.
         """
@@ -337,8 +339,10 @@ class croniter(object):
 
         return result
 
+    _timestamp_to_datetime = timestamp_to_datetime  # retrocompat
+
     @staticmethod
-    def _timedelta_to_seconds(td):
+    def timedelta_to_seconds(td):
         """
         Converts a 'datetime.timedelta' object `td` into seconds contained in
         the duration.
@@ -346,6 +350,8 @@ class croniter(object):
         supported by Python 2.6.
         """
         return timedelta_to_seconds(td)
+
+    _timedelta_to_seconds = timedelta_to_seconds  # retrocompat
 
     def _get_next(
         self,
@@ -400,7 +406,7 @@ class croniter(object):
         # DST Handling for cron job spanning across days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
         dtstarttime_utcoffset = dtstarttime.utcoffset() or datetime.timedelta(0)
-        dtresult = self._timestamp_to_datetime(result)
+        dtresult = self.timestamp_to_datetime(result)
         lag = lag_hours = 0
         # do we trigger DST on next crontab (handle backward changes)
         dtresult_utcoffset = dtstarttime_utcoffset
@@ -490,7 +496,7 @@ class croniter(object):
             sign = 1
             offset = 1 if (len(expanded) > UNIX_CRON_LEN) else 60
 
-        dst = now = self._timestamp_to_datetime(now + sign * offset)
+        dst = now = self.timestamp_to_datetime(now + sign * offset)
 
         month, year = dst.month, dst.year
         current_year = now.year
@@ -693,7 +699,7 @@ class croniter(object):
                 break
             if next:
                 continue
-            return self._datetime_to_timestamp(dst.replace(microsecond=0))
+            return self.datetime_to_timestamp(dst.replace(microsecond=0))
 
         if is_prev:
             raise CroniterBadDateError("failed to find prev date")
