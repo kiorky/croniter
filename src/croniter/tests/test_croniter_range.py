@@ -81,24 +81,20 @@ class CroniterRangeTest(base.TestCase):
             list(croniter_range(f_start1, dt_stop1, "0 * * * *"))
 
     def test_timezone_dst(self):
-        """Test across DST transition, which technically is a timzone change."""
-        tz = pytz.timezone("US/Eastern")
-        start = tz.localize(datetime(2020, 10, 30))
-        stop = tz.localize(datetime(2020, 11, 10))
+        """Test across DST transition, which technically is a timezone change."""
+        tz = "US/Eastern"
+        start = self.tz_localize(datetime(2020, 10, 30), tz)
+        stop = self.tz_localize(datetime(2020, 11, 10), tz)
         res = list(croniter_range(start, stop, "0 0 * * *"))
-        self.assertNotEqual(res[0].tzinfo, res[-1].tzinfo)
+        self.assertNotEqual(res[0].utcoffset(), res[-1].utcoffset())
         self.assertEqual(len(res), 12)
 
     def test_extra_hour_day_prio(self):
-        def datetime_tz(*args, **kw):
-            """Defined this in another branch.  single-use-version"""
-            tzinfo = kw.pop("tzinfo")
-            return tzinfo.localize(datetime(*args))
-
-        tz = pytz.timezone("US/Eastern")
+        tz = "US/Eastern"
         cron = "0 3 * * *"
-        start = datetime_tz(2020, 3, 7, tzinfo=tz)
-        end = datetime_tz(2020, 3, 11, tzinfo=tz)
+        start = self.tz_localize(datetime(2020, 3, 7), tz)
+        end = self.tz_localize(datetime(2020, 3, 11), tz)
+        # 2020/03/08: 02:00 EST (UTC-5) > 03:00 EDT (UTC-4)
         ret = [i.isoformat() for i in croniter_range(start, end, cron)]
         self.assertEqual(
             ret,
