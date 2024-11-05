@@ -16,11 +16,26 @@ import sys
 import traceback as _traceback
 from time import time
 
+try:
+    import pytz
+except ImportError:
+    pytz = None
+HAS_PYTZ = bool(pytz)
+try:
+    # py3 3.9+
+    from zoneinfo import ZoneInfo
+
+    UTC_DT = ZoneInfo("UTC")
+except ImportError:
+    ZoneInfo = None
+    if not HAS_PYTZ:
+        raise ImportError("Please either run on python3.9+ or install pytz")
+    UTC_DT = pytz.utc
+HAS_ZONEINFO = bool(pytz)
+
 # as pytz is optional in thirdparty libs but we need it for good support under
 # python2, just test that it's well installed
-import pytz  # noqa
 from dateutil.relativedelta import relativedelta
-from dateutil.tz import tzutc
 
 
 def is_32bit():
@@ -128,11 +143,6 @@ YEAR_CRON_LEN = len(YEAR_FIELDS)
 VALID_LEN_EXPRESSION = set(a for a in CRON_FIELDS if isinstance(a, int))
 TIMESTAMP_TO_DT_CACHE = {}
 EXPRESSIONS = {}
-try:
-    # py3 recent
-    UTC_DT = datetime.timezone.utc
-except AttributeError:
-    UTC_DT = pytz.utc
 MARKER = object()
 
 
@@ -344,7 +354,7 @@ class croniter(object):
             # see https://github.com/python/cpython/issues/101069
             result = EPOCH + datetime.timedelta(seconds=timestamp)
         else:
-            result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
+            result = datetime.datetime.fromtimestamp(timestamp, tz=UTC_DT).replace(tzinfo=None)
         if tzinfo:
             result = result.replace(tzinfo=UTC_DT).astimezone(tzinfo)
         TIMESTAMP_TO_DT_CACHE[(result, repr(result.tzinfo))] = result
@@ -1219,7 +1229,7 @@ def croniter_range(
             "The start and stop must be same type.  {0} != {1}".format(type(start), type(stop))
         )
     if isinstance(start, (float, int)):
-        start, stop = (datetime.datetime.fromtimestamp(t, tzutc()).replace(tzinfo=None) for t in (start, stop))
+        start, stop = (datetime.datetime.fromtimestamp(t, UTC_DT).replace(tzinfo=None) for t in (start, stop))
         auto_rt = float
     if ret_type is None:
         ret_type = auto_rt
