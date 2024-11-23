@@ -12,3 +12,4 @@
 .coverage
 /venv*
 .python-version
+/local
