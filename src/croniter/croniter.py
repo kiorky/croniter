@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, print_function, division
 
+import copy
 import math
 import re
 import sys
@@ -21,10 +22,20 @@ except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
 
+M_ALPHAS = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+            'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
+DOW_ALPHAS = {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6}
+ALPHAS = {}
+for i in M_ALPHAS, DOW_ALPHAS:
+    ALPHAS.update(i)
 step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
 only_int_re = re.compile(r'^\d+$')
+
+WEEKDAYS = '|'.join(DOW_ALPHAS.keys())
+MONTHS = '|'.join(M_ALPHAS.keys())
 star_or_int_re = re.compile(r'^(\d+|\*)$')
-special_weekday_re = re.compile(r'^(\w+)#(\d+)|l(\d+)$')
+special_dow_re = re.compile(rf'^(?P<pre>((?P<he>(({WEEKDAYS})(-({WEEKDAYS}))?)'
+                            rf'|(({MONTHS})(-({MONTHS}))?)|\w+)#)|l)(?P<last>\d+)$')
 hash_expression_re = re.compile(
     r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
 )
@@ -106,10 +117,9 @@ class croniter(object):
         {},  # 1: hour
         {"l": "l"},  # 2: dom
         # 3: mon
-        {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},
+        copy.deepcopy(M_ALPHAS),
         # 4: dow
-        {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},
+        copy.deepcopy(DOW_ALPHAS),
         # command/user
         {}
     )
@@ -635,27 +645,26 @@ class croniter(object):
 
             while len(e_list) > 0:
                 e = e_list.pop()
+                nth = None
 
                 if i == 4:
-                    # Handle special case in the day-of-week expression
-                    m = special_weekday_re.match(str(e))
-                    if m:
-                        orig_e = e
-                        e, nth, last = m.groups()
-                        if nth:
+                    # Handle special case in the dow expression: 2#3, l3
+                    special_dow_rem = special_dow_re.match(str(e))
+                    if special_dow_rem:
+                        g = special_dow_rem.groupdict()
+                        he, last = g.get('he', ''), g.get('last', '')
+                        if he:
+                            e = he
                             try:
-                                nth = int(nth)
+                                nth = int(last)
                                 assert (nth >= 1 and nth <= 5)
-                            except (ValueError, AssertionError):
+                            except (KeyError, ValueError, AssertionError):
                                 raise CroniterBadCronError(
                                     "[{0}] is not acceptable.  Invalid day_of_week "
-                                    "value: '{1}'".format(expr_format, orig_e))
+                                    "value: '{1}'".format(expr_format, nth))
                         elif last:
-                            nth = "l"
                             e = last
-                        del last, orig_e
-                    else:
-                        nth = None
+                            nth = g['pre']  # 'l'
 
                 # Before matching step_search_re, normalize "*" to "{min}-{max}".
                 # Example: in the minute field, "*/5" normalizes to "0-59/5"
