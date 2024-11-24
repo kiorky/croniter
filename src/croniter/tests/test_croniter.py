@@ -1473,6 +1473,68 @@ class CroniterTest(base.TestCase):
 
         self.assertEqual(n1, datetime_to_timestamp(base) + 60)
 
+    def test_issue_k33(self):
+        y = 2018
+        # At 11:30 PM, between day 1 and 7 of the month, Monday through Friday, only in January
+        ret = []
+        for i in range(10):
+            cron = croniter("30 23 1-7 JAN MON-FRI#1", datetime(y+i, 1, 1), ret_type=datetime)
+            for j in range(7):
+                d = cron.get_next()
+                if d.year == y + i:
+                    ret.append(d)
+        rets = [datetime(2018, 1, 1, 23, 30),
+                datetime(2018, 1, 2, 23, 30),
+                datetime(2018, 1, 3, 23, 30),
+                datetime(2018, 1, 4, 23, 30),
+                datetime(2018, 1, 5, 23, 30),
+                datetime(2019, 1, 1, 23, 30),
+                datetime(2019, 1, 2, 23, 30),
+                datetime(2019, 1, 3, 23, 30),
+                datetime(2019, 1, 4, 23, 30),
+                datetime(2019, 1, 7, 23, 30),
+                datetime(2020, 1, 1, 23, 30),
+                datetime(2020, 1, 2, 23, 30),
+                datetime(2020, 1, 3, 23, 30),
+                datetime(2020, 1, 6, 23, 30),
+                datetime(2020, 1, 7, 23, 30),
+                datetime(2021, 1, 1, 23, 30),
+                datetime(2021, 1, 4, 23, 30),
+                datetime(2021, 1, 5, 23, 30),
+                datetime(2021, 1, 6, 23, 30),
+                datetime(2021, 1, 7, 23, 30),
+                datetime(2022, 1, 3, 23, 30),
+                datetime(2022, 1, 4, 23, 30),
+                datetime(2022, 1, 5, 23, 30),
+                datetime(2022, 1, 6, 23, 30),
+                datetime(2022, 1, 7, 23, 30),
+                datetime(2023, 1, 2, 23, 30),
+                datetime(2023, 1, 3, 23, 30),
+                datetime(2023, 1, 4, 23, 30),
+                datetime(2023, 1, 5, 23, 30),
+                datetime(2023, 1, 6, 23, 30),
+                datetime(2024, 1, 1, 23, 30),
+                datetime(2024, 1, 2, 23, 30),
+                datetime(2024, 1, 3, 23, 30),
+                datetime(2024, 1, 4, 23, 30),
+                datetime(2024, 1, 5, 23, 30),
+                datetime(2025, 1, 1, 23, 30),
+                datetime(2025, 1, 2, 23, 30),
+                datetime(2025, 1, 3, 23, 30),
+                datetime(2025, 1, 6, 23, 30),
+                datetime(2025, 1, 7, 23, 30),
+                datetime(2026, 1, 1, 23, 30),
+                datetime(2026, 1, 2, 23, 30),
+                datetime(2026, 1, 5, 23, 30),
+                datetime(2026, 1, 6, 23, 30),
+                datetime(2026, 1, 7, 23, 30),
+                datetime(2027, 1, 1, 23, 30),
+                datetime(2027, 1, 4, 23, 30),
+                datetime(2027, 1, 5, 23, 30),
+                datetime(2027, 1, 6, 23, 30),
+                datetime(2027, 1, 7, 23, 30)]
+        self.assertEqual(ret, rets)
+        croniter.expand("30 6 1-7 MAY MON#1")
 
 if __name__ == '__main__':
     unittest.main()
