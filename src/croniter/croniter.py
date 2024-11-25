@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, print_function, division
 
+import traceback as _traceback
 import copy
 import math
 import re
@@ -785,13 +786,14 @@ class croniter(object):
         """Shallow non Croniter ValueError inside a nice CroniterBadCronError"""
         try:
             return cls._expand(expr_format, hash_id=hash_id)
-        except ValueError as exc:
+        except (ValueError,) as exc:
             error_type, error_instance, traceback = sys.exc_info()
             if isinstance(exc, CroniterError):
                 raise
             if int(sys.version[0]) >= 3:
+                trace = _traceback.format_exc()
                 globs, locs = _get_caller_globals_and_locals()
-                exec("raise CroniterBadCronError from  exc", globs, locs)
+                raise CroniterBadCronError(trace)
             else:
                 raise CroniterBadCronError("{0}".format(exc))
 

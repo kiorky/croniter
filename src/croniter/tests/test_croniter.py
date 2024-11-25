@@ -1473,6 +1473,10 @@ class CroniterTest(base.TestCase):
 
         self.assertEqual(n1, datetime_to_timestamp(base) + 60)
 
+    def test_issue_k34(self):
+        # invalid cron, but should throw appropriate exception
+        self.assertRaises(CroniterBadCronError, croniter, "4 0 L/2 2 0")
+
     def test_issue_k33(self):
         y = 2018
         # At 11:30 PM, between day 1 and 7 of the month, Monday through Friday, only in January
