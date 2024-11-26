@@ -1,11 +1,11 @@
 Changelog
 ==============
 
-1.3.9 (unreleased)
-------------------
+1.3.10 (unreleased)
+-------------------
 
-- Nothing changed yet.
-
+- Fix DOW hash parsing [kiorky]
+- better error handling on py3 [kiorky]
 
 1.3.8 (2022-11-22)
 ------------------
