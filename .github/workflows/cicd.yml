@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, "3.10", "3.11"]
+        python-version: [3.8, 3.9, "3.10", "3.11"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -15,8 +15,8 @@ jobs:
     - name: Install dependencies
       run: |
         set -ex
-        python -m pip install --upgrade pip
-        pip install -r requirements/test.txt
+        python -m pip install --upgrade --use-pep517 pip
+        pip install --use-pep517 -r requirements/test.txt
     - name: Test with pytest
       run: |
            pyver=$(python --version 2>&1 | awk '{print substr($2, 0, 4)}' | awk '{ sub(/[ \t]+$/, ""); print }');
