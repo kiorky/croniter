@@ -1,3 +1,8 @@
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+
 from datetime import datetime, timedelta
 
 from croniter import croniter
@@ -42,3 +47,7 @@ class CroniterRandomTest(base.TestCase):
         result = obj.get_next(datetime)
         self.assertGreaterEqual(result.year, 2025)
         self.assertLessEqual(result.year, 2030)
+
+
+if __name__ == "__main__":
+    unittest.main()
