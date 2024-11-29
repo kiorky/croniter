@@ -4,7 +4,7 @@ Changelog
 1.3.11 (unreleased)
 -------------------
 
-- Nothing changed yet.
+-  Do not expose `i` into global namespace
 
 
 1.3.10 (2023-04-07)
