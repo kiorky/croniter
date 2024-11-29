@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+from . import croniter as cron_m
 from .croniter import (
     HAS_PYTZ,
     HAS_ZONEINFO,
