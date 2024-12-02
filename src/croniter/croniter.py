@@ -134,7 +134,7 @@ except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
 
-EPOCH = datetime.datetime.fromtimestamp(0)
+EPOCH = datetime.datetime.fromtimestamp(0, UTC_DT)
 
 # fmt: off
 M_ALPHAS = {
@@ -211,7 +211,7 @@ def datetime_to_timestamp(d):
 
 def timestamp_to_datetime(timestamp, tzinfo=None):
     """
-    Converts a UNIX timestamp `timestamp` into a `datetime` object.
+    Converts a UNIX `timestamp` into a `datetime` object.
     """
     k = timestamp
     if tzinfo:
@@ -223,7 +223,7 @@ def timestamp_to_datetime(timestamp, tzinfo=None):
     if OVERFLOW32B_MODE:
         # degraded mode to workaround Y2038
         # see https://github.com/python/cpython/issues/101069
-        result = EPOCH + datetime.timedelta(seconds=timestamp)
+        result = EPOCH.replace(tzinfo=None) + datetime.timedelta(seconds=timestamp)
     else:
         result = datetime.datetime.fromtimestamp(timestamp, tz=UTC_DT).replace(tzinfo=None)
     if tzinfo:
