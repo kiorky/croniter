@@ -36,8 +36,10 @@ only_int_re = re.compile(r'^\d+$')
 WEEKDAYS = '|'.join(DOW_ALPHAS.keys())
 MONTHS = '|'.join(M_ALPHAS.keys())
 star_or_int_re = re.compile(r'^(\d+|\*)$')
-special_dow_re = re.compile(rf'^(?P<pre>((?P<he>(({WEEKDAYS})(-({WEEKDAYS}))?)'
-                            rf'|(({MONTHS})(-({MONTHS}))?)|\w+)#)|l)(?P<last>\d+)$')
+special_dow_re = re.compile(
+    (r'^(?P<pre>((?P<he>(({WEEKDAYS})(-({WEEKDAYS}))?)').format(WEEKDAYS=WEEKDAYS) +
+    (r'|(({MONTHS})(-({MONTHS}))?)|\w+)#)|l)(?P<last>\d+)$').format(MONTHS=MONTHS)
+)
 hash_expression_re = re.compile(
     r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
 )
