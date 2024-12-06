@@ -98,7 +98,7 @@ class CroniterHashTest(CroniterHashBase):
         self._test_iter(
             'H(30-59)/10 H * * *', datetime(2020, 1, 1, 11, 31), timedelta(minutes=10)
         )
-    
+
     def test_hash_invalid_range(self):
         """Test validation logic for range_begin and range_end values"""
         try:
