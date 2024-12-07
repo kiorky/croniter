@@ -911,7 +911,7 @@ class HashExpander:
             raise CroniterBadCronError('Hashed definitions must include hash_id')
 
         if m['range_begin'] and m['range_end']:
-            if int(m['range_begin']) >=  int(m['range_end']):
+            if int(m['range_begin']) >= int(m['range_end']):
                 raise CroniterBadCronError('Range end must be greater than range begin')
 
         if m['range_begin'] and m['range_end'] and m['divisor']:
