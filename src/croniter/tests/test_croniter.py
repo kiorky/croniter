@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
-import unittest
 from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
@@ -2113,21 +2116,8 @@ class CroniterTest(base.TestCase):
             raise Exception("overflow not fixed!")
 
     def test_revert_issue_90_aka_support_DOW7(self):
-        base = datetime(2040, 1, 1, 0, 0)
-        itr = croniter("* * * * 1-7").get_next()
         self.assertTrue(croniter.is_valid("* * * * 1-7"))
         self.assertTrue(croniter.is_valid("* * * * 7"))
-
-    def test_sunday_ranges_to(self):
-        self._test_sunday_ranges(
-            "0 0 * * Sun-Sun",
-            # fmt: off
-            [
-                2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-            ],
-            # fmt: on
-        )
 
     def test_sunday_ranges_to(self):
         self._test_sunday_ranges(
@@ -2346,55 +2336,59 @@ class CroniterTest(base.TestCase):
             # fmt: on
         )
 
-    def _test_cron_ranges(self, res_generator, expr, wanted, iterations=None, start_time=None):
-        rets = res_generator(expr, iterations=iterations, start_time=start_time)
+    def _test_cron_ranges(self, expr, wanted, generator=None, loops=None, start=None, is_prev=None):
+        rets = (generator or gen_x_results)(
+            expr, loops=loops or 10, start=start or datetime(2024, 1, 1), is_prev=is_prev
+        )
         for ret in rets:
             self.assertEqual(wanted, ret)
 
-    def _test_mth_cron_ranges(self, expr, wanted, iterations=None, res_generator=None, start_time=None):
+    def _test_mth_cron_ranges(self, expr, wanted, loops=None, start=None, is_prev=None):
         return self._test_cron_ranges(
-            gen_x_mth_results,
             expr,
             wanted,
-            iterations=iterations,
-            start_time=start_time,
+            generator=gen_x_mth_results,
+            loops=loops or 16,
+            start=start,
+            is_prev=is_prev,
         )
 
-    def _test_sunday_ranges(self, expr, wanted, iterations=None, start_time=None):
+    def _test_sunday_ranges(self, expr, wanted, loops=None, start=None, is_prev=None):
         return self._test_cron_ranges(
-            gen_all_sunday_forms,
             expr,
             wanted,
-            iterations=iterations,
-            start_time=start_time,
+            generator=gen_all_sunday_forms,
+            loops=loops or 30,
+            start=start,
+            is_prev=is_prev,
         )
 
 
-def gen_x_mth_results(expr, iterations=None, start_time=None):
-    start_time = start_time or datetime(2024, 1, 1)
-    cron = croniter(expr, start_time=start_time)
-    return [
-        [
-            "{0} {1}".format(str(a.year)[-2:], a.month)
-            for a in [cron.get_next(datetime) for i in range(iterations or 16)]
-        ]
-    ]
+def gen_x_mth_results(expr, loops=None, start=None, is_prev=None):
+    start = start or datetime(2024, 1, 1)
+    cron = croniter(expr, start_time=start)
+    n = cron.get_prev if is_prev else cron.get_next
+    return [["{0} {1}".format(str(a.year)[-2:], a.month) for a in [n(datetime) for i in range(loops or 16)]]]
 
 
-def gen_x_results(expr, iterations=None, start_time=None):
-    start_time = start_time or datetime(2024, 1, 1)
-    cron = croniter(expr, start_time=start_time)
-    return [[a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]]
+def gen_x_results(expr, loops=None, start=None, is_prev=None):
+    start = start or datetime(2024, 1, 1)
+    cron = croniter(expr, start_time=start)
+    n = cron.get_prev if is_prev else cron.get_next
+    return [[a.isoformat() for a in [n(datetime) for i in range(loops or 30)]]]
 
 
-def gen_all_sunday_forms(expr, iterations=None, start_time=None):
-    start_time = start_time or datetime(2024, 1, 1)
-    cron = croniter(expr, start_time=start_time)
-    ret1 = [a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]
-    cron = croniter(expr.lower().replace("sun", "7"), start_time=start_time)
-    ret2 = [a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]
-    cron = croniter(expr.lower().replace("sun", "0"), start_time=start_time)
-    ret3 = [a.day for a in [cron.get_next(datetime) for i in range(iterations or 30)]]
+def gen_all_sunday_forms(expr, loops=None, start=None, is_prev=None):
+    start = start or datetime(2024, 1, 1)
+    cron = croniter(expr, start_time=start)
+    n = cron.get_prev if is_prev else cron.get_next
+    ret1 = [a.day for a in [n(datetime) for i in range(loops or 30)]]
+    cron = croniter(expr.lower().replace("sun", "7"), start_time=start)
+    n = cron.get_prev if is_prev else cron.get_next
+    ret2 = [a.day for a in [n(datetime) for i in range(loops or 30)]]
+    cron = croniter(expr.lower().replace("sun", "0"), start_time=start)
+    n = cron.get_prev if is_prev else cron.get_next
+    ret3 = [a.day for a in [n(datetime) for i in range(loops or 30)]]
     return ret1, ret2, ret3
 
 

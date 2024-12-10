@@ -1,12 +1,15 @@
 Changelog
 ==============
 
-5.0.2 (unreleased)
+6.0.0 (unreleased)
 ------------------
-
+- MOST IMPORTANT & NON RETROCOMPATIBLE CHANGES:
+    - Use ZoneInfo on py39+ [kiorky]
+- Fix EPOCH calculation in case of non UTC & 32 bits based systems [kiorky]
 - Apply isort formatter [kiorky]
+- Reintegrate test_speed [kiorky]
 - Apply black formatter [evanpurkhiser, kiorky]
-- Code quality changes by evanpurkhiser:
+- Code quality changes [evanpurkhiser, kiorky]
     - Remove unused _get_caller_globals_and_locals [evanpurkhiser]
     - Remove single-use bad_length [evanpurkhiser]
     - Remove unused `days` in `proc_month` [evanpurkhiser]

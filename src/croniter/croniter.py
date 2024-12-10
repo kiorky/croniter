@@ -16,11 +16,68 @@ import sys
 import traceback as _traceback
 from time import time
 
+try:
+    import pytz
+except ImportError:
+    pytz = None
+HAS_PYTZ = bool(pytz)
+try:
+    # py3 3.9+
+    from zoneinfo import ZoneInfo
+
+    UTC_DT = ZoneInfo("UTC")
+except ImportError:
+    ZoneInfo = None
+    if not HAS_PYTZ:
+        raise ImportError("Please either run on python3.9+ or install pytz")
+    UTC_DT = pytz.utc
+HAS_ZONEINFO = bool(pytz)
+
 # as pytz is optional in thirdparty libs but we need it for good support under
 # python2, just test that it's well installed
-import pytz  # noqa
 from dateutil.relativedelta import relativedelta
-from dateutil.tz import tzutc
+
+
+def get_tz(tz):
+    if isinstance(tz, str):
+        if ZoneInfo:
+            return ZoneInfo(tz)
+        if pytz:
+            return pytz.timezone(tz)
+        raise SystemError("We should either have pytz or ZoneInfo")
+    return tz
+
+
+def as_tz(dt, tz):
+    return dt.astimezone(get_tz(tz))
+
+
+def tz_localize(dt, tz):
+    tz = get_tz(tz)
+    if ZoneInfo:
+        if dt.tzinfo:
+            dt = as_tz(dt, tz)
+        else:
+            dt = dt.replace(tzinfo=tz)
+        return dt
+    if pytz:
+        if dt.tzinfo:
+            dt = as_tz(dt, tz)
+        else:
+            dt = tz.localize(dt)
+        return dt
+    raise SystemError("We should either have pytz or ZoneInfo")
+
+
+def get_tz_id(tzinfo):
+    if tzinfo:
+        try:
+            return tzinfo.key  # zoneinfo
+        except AttributeError:
+            try:
+                return tzinfo.zone  # pytz
+            except AttributeError:
+                return tzinfo._filename  # dateutil
 
 
 def is_32bit():
@@ -73,7 +130,7 @@ except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
 
-EPOCH = datetime.datetime.fromtimestamp(0)
+EPOCH = datetime.datetime.fromtimestamp(0, UTC_DT)
 
 # fmt: off
 M_ALPHAS = {
@@ -126,12 +183,9 @@ SECOND_CRON_LEN = len(SECOND_FIELDS)
 YEAR_CRON_LEN = len(YEAR_FIELDS)
 # retrocompat
 VALID_LEN_EXPRESSION = set(a for a in CRON_FIELDS if isinstance(a, int))
+TIMESTAMP_TO_DT_CACHE = {}
 EXPRESSIONS = {}
-try:
-    # py3 recent
-    UTC_DT = datetime.timezone.utc
-except AttributeError:
-    UTC_DT = pytz.utc
+MARKER = object()
 
 
 def timedelta_to_seconds(td):
@@ -301,14 +355,14 @@ class croniter(object):
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
         if issubclass(ret_type, datetime.datetime):
-            return self._timestamp_to_datetime(self.cur)
+            return self.timestamp_to_datetime(self.cur)
         return self.cur
 
     def set_current(self, start_time, force=True):
         if (force or (self.cur is None)) and start_time is not None:
             if isinstance(start_time, datetime.datetime):
                 self.tzinfo = start_time.tzinfo
-                start_time = self._datetime_to_timestamp(start_time)
+                start_time = self.datetime_to_timestamp(start_time)
 
             self.start_time = start_time
             self.dst_start_time = start_time
@@ -316,29 +370,42 @@ class croniter(object):
         return self.cur
 
     @staticmethod
-    def _datetime_to_timestamp(d):
+    def datetime_to_timestamp(d):
         """
         Converts a `datetime` object `d` into a UNIX timestamp.
         """
         return datetime_to_timestamp(d)
 
-    def _timestamp_to_datetime(self, timestamp):
+    _datetime_to_timestamp = datetime_to_timestamp  # retrocompat
+
+    def timestamp_to_datetime(self, timestamp, tzinfo=MARKER):
         """
-        Converts a UNIX timestamp `timestamp` into a `datetime` object.
+        Converts a UNIX `timestamp` into a `datetime` object.
         """
+        if tzinfo is MARKER:  # allow to give tzinfo=None even if self.tzinfo is set
+            tzinfo = self.tzinfo
+        k = timestamp
+        if tzinfo:
+            k = (timestamp, repr(tzinfo))
+        try:
+            return TIMESTAMP_TO_DT_CACHE[k]
+        except KeyError:
+            pass
         if OVERFLOW32B_MODE:
             # degraded mode to workaround Y2038
             # see https://github.com/python/cpython/issues/101069
-            result = EPOCH + datetime.timedelta(seconds=timestamp)
+            result = EPOCH.replace(tzinfo=None) + datetime.timedelta(seconds=timestamp)
         else:
-            result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
-        if self.tzinfo:
-            result = result.replace(tzinfo=tzutc()).astimezone(self.tzinfo)
-
+            result = datetime.datetime.fromtimestamp(timestamp, tz=UTC_DT).replace(tzinfo=None)
+        if tzinfo:
+            result = result.replace(tzinfo=UTC_DT).astimezone(tzinfo)
+        TIMESTAMP_TO_DT_CACHE[(result, repr(result.tzinfo))] = result
         return result
 
+    _timestamp_to_datetime = timestamp_to_datetime  # retrocompat
+
     @staticmethod
-    def _timedelta_to_seconds(td):
+    def timedelta_to_seconds(td):
         """
         Converts a 'datetime.timedelta' object `td` into seconds contained in
         the duration.
@@ -346,6 +413,8 @@ class croniter(object):
         supported by Python 2.6.
         """
         return timedelta_to_seconds(td)
+
+    _timedelta_to_seconds = timedelta_to_seconds  # retrocompat
 
     def _get_next(
         self,
@@ -400,7 +469,7 @@ class croniter(object):
         # DST Handling for cron job spanning across days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
         dtstarttime_utcoffset = dtstarttime.utcoffset() or datetime.timedelta(0)
-        dtresult = self._timestamp_to_datetime(result)
+        dtresult = self.timestamp_to_datetime(result)
         lag = lag_hours = 0
         # do we trigger DST on next crontab (handle backward changes)
         dtresult_utcoffset = dtstarttime_utcoffset
@@ -490,7 +559,7 @@ class croniter(object):
             sign = 1
             offset = 1 if (len(expanded) > UNIX_CRON_LEN) else 60
 
-        dst = now = self._timestamp_to_datetime(now + sign * offset)
+        dst = now = self.timestamp_to_datetime(now + sign * offset)
 
         month, year = dst.month, dst.year
         current_year = now.year
@@ -693,7 +762,7 @@ class croniter(object):
                 break
             if next:
                 continue
-            return self._datetime_to_timestamp(dst.replace(microsecond=0))
+            return self.datetime_to_timestamp(dst.replace(microsecond=0))
 
         if is_prev:
             raise CroniterBadDateError("failed to find prev date")
@@ -766,10 +835,9 @@ class croniter(object):
             if c <= range_val:
                 candidate = c
                 break
+        # fix crontab "0 6 30 3 *" condidates only a element, then get_prev error return 2021-03-02 06:00:00
         if candidate > range_val:
-            # fix crontab "0 6 30 3 *" condidates only a element,
-            # then get_prev error return 2021-03-02 06:00:00
-            return -x
+            return -range_val
         return candidate - x - range_val
 
     @staticmethod
@@ -824,7 +892,7 @@ class croniter(object):
         }
 
         efl = expr_format.lower()
-        hash_id_expr = hash_id is not None and 1 or 0
+        hash_id_expr = 1 if hash_id is not None else 0
         try:
             efl = expr_aliases[efl][hash_id_expr]
         except KeyError:
@@ -1203,7 +1271,7 @@ def croniter_range(
             "The start and stop must be same type.  {0} != {1}".format(type(start), type(stop))
         )
     if isinstance(start, (float, int)):
-        start, stop = (datetime.datetime.fromtimestamp(t, tzutc()).replace(tzinfo=None) for t in (start, stop))
+        start, stop = (datetime.datetime.fromtimestamp(t, UTC_DT).replace(tzinfo=None) for t in (start, stop))
         auto_rt = float
     if ret_type is None:
         ret_type = auto_rt
