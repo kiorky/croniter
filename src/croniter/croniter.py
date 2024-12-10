@@ -38,6 +38,48 @@ HAS_ZONEINFO = bool(pytz)
 from dateutil.relativedelta import relativedelta
 
 
+def get_tz(tz):
+    if isinstance(tz, str):
+        if ZoneInfo:
+            return ZoneInfo(tz)
+        if pytz:
+            return pytz.timezone(tz)
+        raise SystemError("We should either have pytz or ZoneInfo")
+    return tz
+
+
+def as_tz(dt, tz):
+    return dt.astimezone(get_tz(tz))
+
+
+def tz_localize(dt, tz):
+    tz = get_tz(tz)
+    if ZoneInfo:
+        if dt.tzinfo:
+            dt = as_tz(dt, tz)
+        else:
+            dt = dt.replace(tzinfo=tz)
+        return dt
+    if pytz:
+        if dt.tzinfo:
+            dt = as_tz(dt, tz)
+        else:
+            dt = tz.localize(dt)
+        return dt
+    raise SystemError("We should either have pytz or ZoneInfo")
+
+
+def get_tz_id(tzinfo):
+    if tzinfo:
+        try:
+            return tzinfo.key  # zoneinfo
+        except AttributeError:
+            try:
+                return tzinfo.zone  # pytz
+            except AttributeError:
+                return tzinfo._filename  # dateutil
+
+
 def is_32bit():
     """
     Detect if Python is running in 32-bit mode.
@@ -88,7 +130,7 @@ except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
 
-EPOCH = datetime.datetime.fromtimestamp(0)
+EPOCH = datetime.datetime.fromtimestamp(0, UTC_DT)
 
 # fmt: off
 M_ALPHAS = {
@@ -338,7 +380,7 @@ class croniter(object):
 
     def timestamp_to_datetime(self, timestamp, tzinfo=MARKER):
         """
-        Converts a UNIX timestamp `timestamp` into a `datetime` object.
+        Converts a UNIX `timestamp` into a `datetime` object.
         """
         if tzinfo is MARKER:  # allow to give tzinfo=None even if self.tzinfo is set
             tzinfo = self.tzinfo
@@ -352,7 +394,7 @@ class croniter(object):
         if OVERFLOW32B_MODE:
             # degraded mode to workaround Y2038
             # see https://github.com/python/cpython/issues/101069
-            result = EPOCH + datetime.timedelta(seconds=timestamp)
+            result = EPOCH.replace(tzinfo=None) + datetime.timedelta(seconds=timestamp)
         else:
             result = datetime.datetime.fromtimestamp(timestamp, tz=UTC_DT).replace(tzinfo=None)
         if tzinfo:
