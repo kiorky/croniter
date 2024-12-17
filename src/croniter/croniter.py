@@ -126,12 +126,14 @@ SECOND_CRON_LEN = len(SECOND_FIELDS)
 YEAR_CRON_LEN = len(YEAR_FIELDS)
 # retrocompat
 VALID_LEN_EXPRESSION = set(a for a in CRON_FIELDS if isinstance(a, int))
+TIMESTAMP_TO_DT_CACHE = {}
 EXPRESSIONS = {}
 try:
     # py3 recent
     UTC_DT = datetime.timezone.utc
 except AttributeError:
     UTC_DT = pytz.utc
+MARKER = object()
 
 
 def timedelta_to_seconds(td):
@@ -324,19 +326,28 @@ class croniter(object):
 
     _datetime_to_timestamp = datetime_to_timestamp  # retrocompat
 
-    def timestamp_to_datetime(self, timestamp):
+    def timestamp_to_datetime(self, timestamp, tzinfo=MARKER):
         """
         Converts a UNIX timestamp `timestamp` into a `datetime` object.
         """
+        if tzinfo is MARKER:  # allow to give tzinfo=None even if self.tzinfo is set
+            tzinfo = self.tzinfo
+        k = timestamp
+        if tzinfo:
+            k = (timestamp, repr(tzinfo))
+        try:
+            return TIMESTAMP_TO_DT_CACHE[k]
+        except KeyError:
+            pass
         if OVERFLOW32B_MODE:
             # degraded mode to workaround Y2038
             # see https://github.com/python/cpython/issues/101069
             result = EPOCH + datetime.timedelta(seconds=timestamp)
         else:
             result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
-        if self.tzinfo:
-            result = result.replace(tzinfo=tzutc()).astimezone(self.tzinfo)
-
+        if tzinfo:
+            result = result.replace(tzinfo=UTC_DT).astimezone(tzinfo)
+        TIMESTAMP_TO_DT_CACHE[(result, repr(result.tzinfo))] = result
         return result
 
     _timestamp_to_datetime = timestamp_to_datetime  # retrocompat
