@@ -3,6 +3,7 @@ Changelog
 
 6.0.0 (unreleased)
 ------------------
+- Announce for now that croniter dev is ended (CRA).
 - Rework timestamp_to_datetime to use whatever timezone [kiorky]
 - Make datetime_to_timestamp & timestamp_to_datetime public [kiorky]
 - Fix EPOCH calculation in case of non UTC & 32 bits based systems [kiorky]
