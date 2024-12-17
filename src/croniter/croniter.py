@@ -73,7 +73,12 @@ except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
 
-EPOCH = datetime.datetime.fromtimestamp(0)
+try:
+    # py3 recent
+    UTC_DT = datetime.timezone.utc
+except AttributeError:
+    UTC_DT = pytz.utc
+EPOCH = datetime.datetime.fromtimestamp(0, UTC_DT)
 
 # fmt: off
 M_ALPHAS = {
@@ -128,11 +133,6 @@ YEAR_CRON_LEN = len(YEAR_FIELDS)
 VALID_LEN_EXPRESSION = set(a for a in CRON_FIELDS if isinstance(a, int))
 TIMESTAMP_TO_DT_CACHE = {}
 EXPRESSIONS = {}
-try:
-    # py3 recent
-    UTC_DT = datetime.timezone.utc
-except AttributeError:
-    UTC_DT = pytz.utc
 MARKER = object()
 
 
@@ -328,7 +328,7 @@ class croniter(object):
 
     def timestamp_to_datetime(self, timestamp, tzinfo=MARKER):
         """
-        Converts a UNIX timestamp `timestamp` into a `datetime` object.
+        Converts a UNIX `timestamp` into a `datetime` object.
         """
         if tzinfo is MARKER:  # allow to give tzinfo=None even if self.tzinfo is set
             tzinfo = self.tzinfo
@@ -342,7 +342,7 @@ class croniter(object):
         if OVERFLOW32B_MODE:
             # degraded mode to workaround Y2038
             # see https://github.com/python/cpython/issues/101069
-            result = EPOCH + datetime.timedelta(seconds=timestamp)
+            result = EPOCH.replace(tzinfo=None) + datetime.timedelta(seconds=timestamp)
         else:
             result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
         if tzinfo:
