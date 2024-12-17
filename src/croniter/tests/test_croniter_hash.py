@@ -1,5 +1,11 @@
 import random
 import uuid
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+
 from datetime import datetime, timedelta
 
 from croniter import CroniterBadCronError, CroniterNotAlphaError, croniter
@@ -545,3 +551,7 @@ class CroniterHashExpanderExpandYearsTest(CroniterHashExpanderBase):
         assert len(years) == 31
         assert min(years) == 2020
         assert max(years) == 2050
+
+
+if __name__ == "__main__":
+    unittest.main()
