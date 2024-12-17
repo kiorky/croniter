@@ -1,6 +1,12 @@
 Changelog
 ==============
 
+6.0.1 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 6.0.0 (2024-12-17)
 ------------------
 - Announce for now that croniter dev is ended (CRA).
