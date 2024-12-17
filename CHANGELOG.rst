@@ -1,7 +1,7 @@
 Changelog
 ==============
 
-6.0.0 (unreleased)
+6.0.0 (2024-12-17)
 ------------------
 - Announce for now that croniter dev is ended (CRA).
 - Rework timestamp_to_datetime to use whatever timezone [kiorky]
