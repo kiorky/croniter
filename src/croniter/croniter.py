@@ -824,7 +824,7 @@ class croniter(object):
         }
 
         efl = expr_format.lower()
-        hash_id_expr = hash_id is not None and 1 or 0
+        hash_id_expr = 1 if hash_id is not None else 0
         try:
             efl = expr_aliases[efl][hash_id_expr]
         except KeyError:
