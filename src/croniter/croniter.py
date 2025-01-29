@@ -45,6 +45,7 @@ hash_expression_re = re.compile(
     r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
 )
 VALID_LEN_EXPRESSION = [5, 6]
+EXPRESSIONS = {}
 
 
 def timedelta_to_seconds(td):
@@ -179,7 +180,8 @@ class croniter(object):
         self.cur = None
         self.set_current(start_time, force=False)
 
-        self.expanded, self.nth_weekday_of_month, self.expressions = self.expand(expr_format, hash_id=hash_id)
+        self.expanded, self.nth_weekday_of_month = self.expand(expr_format, hash_id=hash_id)
+        self.expressions = EXPRESSIONS[(expr_format, hash_id)]
         self._is_prev = is_prev
 
     @classmethod
@@ -795,7 +797,8 @@ class croniter(object):
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
                     "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
 
-        return expanded, nth_weekday_of_month, expressions
+        EXPRESSIONS[(expr_format, hash_id)] = expressions
+        return expanded, nth_weekday_of_month
 
     @classmethod
     def expand(cls, expr_format, hash_id=None):
