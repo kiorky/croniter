@@ -48,7 +48,10 @@ re_star = re.compile('[*]')
 hash_expression_re = re.compile(
     r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
 )
-VALID_LEN_EXPRESSION = [5, 6]
+UNIX_CRON_LEN = 5
+SECOND_CRON_LEN = 6
+YEAR_CRON_LEN = 7
+VALID_LEN_EXPRESSION = set([UNIX_CRON_LEN, SECOND_CRON_LEN])
 EXPRESSIONS = {}
 
 
