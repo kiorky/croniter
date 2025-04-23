@@ -4,8 +4,7 @@ Changelog
 2.0.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Support hashid strings in is_valid [george-kuanli-peng, kiorky]
 
 2.0.3 (2024-03-19)
 ------------------
