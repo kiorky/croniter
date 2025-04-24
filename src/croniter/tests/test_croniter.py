@@ -344,14 +344,14 @@ class CroniterTest(base.TestCase):
         # Test each field individually
         self.assertEqual(croniter('0-59 0 1 1 0').expanded[m], wildcard)
         self.assertEqual(croniter('0 0-23 1 1 0').expanded[h], wildcard)
-        self.assertNotEqual(croniter('0 0 1-31 1 0').expanded[d], wildcard)
+        self.assertEqual(croniter('0 0 1-31 1 0').expanded[dow], [0])
         self.assertEqual(croniter('0 0 1-31 1 *').expanded[d], wildcard)
         self.assertEqual(croniter('0 0 1 1-12 0').expanded[mon], wildcard)
-        self.assertNotEqual(croniter('0 0 1 1 0-6').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 1 1 0-6').expanded[dow], [0, 1, 2, 3, 4, 5, 6])
         self.assertEqual(croniter('0 0 * 1 0-6').expanded[dow], wildcard)
-        self.assertNotEqual(croniter('0 0 1 1 1-7').expanded[dow], wildcard)
+        self.assertEqual(croniter('0 0 1 1 1-7').expanded[dow], [0, 1, 2, 3, 4, 5, 6])
+        self.assertEqual(croniter('0 0 1 1 1-7,sat#3').expanded[dow], [0, 1, 2, 3, 4, 5, 6])
         self.assertEqual(croniter('0 0 * 1 1-7').expanded[dow], wildcard)
-        self.assertNotEqual(croniter('0 0 1 1 1-7,sat#3').expanded[dow], wildcard)
         self.assertEqual(croniter('0 0 * 1 1-7,sat#3').expanded[dow], wildcard)
         self.assertEqual(croniter('0 0 1 1 0 0-59').expanded[s], wildcard)
         # Real life examples
