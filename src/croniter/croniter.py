@@ -788,8 +788,10 @@ class croniter(object):
             res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
             if len(res) == cls.LEN_MEANS_ALL[i]:
                 # Make sure the wildcard is used in the correct way (avoid over-optimization)
-                if ((i == 2 and '*' not in expressions[4]) or
-                    (i == 4 and '*' not in expressions[2])):
+                if (
+                    (i == 2 and '*' not in expressions[4]) or
+                    (i == 4 and '*' not in expressions[2])
+                ):
                     pass
                 else:
                     res = ['*']
