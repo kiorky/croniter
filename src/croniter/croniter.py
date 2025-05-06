@@ -48,6 +48,24 @@ re_star = re.compile('[*]')
 hash_expression_re = re.compile(
     r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
 )
+MINUTE_FIELD = 0
+HOUR_FIELD = 1
+DAY_FIELD = 2
+MONTH_FIELD = 3
+DOW_FIELD = 4
+SECOND_FIELD = 5
+YEAR_FIELD = 6
+UNIX_FIELDS = (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD)
+SECOND_FIELDS = (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD, SECOND_FIELD)
+YEAR_FIELDS = (MINUTE_FIELD, HOUR_FIELD, DAY_FIELD, MONTH_FIELD, DOW_FIELD, SECOND_FIELD, YEAR_FIELD)
+CRON_FIELDS = {
+    'unix': UNIX_FIELDS,
+    'second': SECOND_FIELDS,
+    'year': UNIX_FIELDS,
+    len(UNIX_FIELDS): UNIX_FIELDS,
+    len(SECOND_FIELDS): SECOND_FIELDS,
+    len(YEAR_FIELDS): UNIX_FIELDS,
+}
 UNIX_CRON_LEN = 5
 SECOND_CRON_LEN = 6
 YEAR_CRON_LEN = 7
@@ -196,6 +214,7 @@ class croniter(object):
             from_timestamp=self.dst_start_time if self._expand_from_start_time else None,
             second_at_beginning=second_at_beginning
         )
+        self.fields = CRON_FIELDS[len(self.expanded)]
         self.expressions = EXPRESSIONS[(expr_format, hash_id, second_at_beginning)]
         self._is_prev = is_prev
 
