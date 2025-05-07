@@ -120,9 +120,8 @@ Example using python built in module::
 
 About second repeats
 =====================
-Croniter is able to do second repetition crontabs form::
+Croniter is able to do second repetition crontabs form and by default seconds are the 6th field::
 
-    >>> croniter('* * * * * 1', local_date).get_next(datetime)
     >>> base = datetime(2012, 4, 6, 13, 26, 10)
     >>> itr = croniter('* * * * * 15,25', base)
     >>> itr.get_next(datetime) # 4/6 13:26:15
@@ -133,9 +132,9 @@ You can also note that this expression will repeat every second from the start d
 
     >>> croniter('* * * * * *', local_date).get_next(datetime)
 
-You can also use seconds as first slot::
+You can also use seconds as first field::
 
-    >>> croniter('* * * * * *', local_date, second_at_beginning=True).get_next(datetime)
+    >>> itr = croniter('15,25 * * * * *', base, second_at_beginning=True)
 
 
 Support for start_time shifts
