@@ -4,7 +4,7 @@ Changelog
 2.0.8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Ensure match return false when not time available (#81) [zhouyizhen, kiorky]
 
 
 2.0.7 (2024-07-16)
