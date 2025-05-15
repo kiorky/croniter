@@ -4,6 +4,7 @@ Changelog
 2.0.8 (unreleased)
 ------------------
 
+- Support for year field [zhouyizhen, kiorky]
 - Better support for 6 fields (second), and 7 fields crons [zhouyizhen, kiorky]
 - Better fix hashed expressions omitting some entries (#82, #42, #30) fix is retained over #42 initial fix [zhouyizhen, kiorky]
 - Ensure match return false when not time available (#81) [zhouyizhen, kiorky]
