@@ -4,8 +4,7 @@ Changelog
 3.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Add an `update_current` argument to get_next/get_prev/all_next/all_prev to facilitate writing of some downstream code, see #83. [kiorky]
 
 3.0.0 (2024-07-23)
 ------------------

@@ -232,14 +232,13 @@ class croniter(object):
             raise CroniterNotAlphaError(
                 "[{0}] is not acceptable".format(" ".join(expressions)))
 
-    def get_next(self, ret_type=None, start_time=None):
+    def get_next(self, ret_type=None, start_time=None, update_current=True):
         if start_time and self._expand_from_start_time:
             raise ValueError("start_time is not supported when using expand_from_start_time = True.")
-        self.set_current(start_time, force=True)
-        return self._get_next(ret_type or self._ret_type, is_prev=False)
+        return self._get_next(ret_type or self._ret_type, is_prev=False, update_current=update_current)
 
-    def get_prev(self, ret_type=None):
-        return self._get_next(ret_type or self._ret_type, is_prev=True)
+    def get_prev(self, ret_type=None, start_time=None, update_current=True):
+        return self._get_next(ret_type or self._ret_type, is_prev=True, update_current=update_current)
 
     def get_current(self, ret_type=None):
         ret_type = ret_type or self._ret_type
@@ -285,7 +284,9 @@ class croniter(object):
         """
         return timedelta_to_seconds(td)
 
-    def _get_next(self, ret_type=None, start_time=None, is_prev=None):
+    def _get_next(self, ret_type=None, start_time=None, is_prev=None, update_current=None):
+        if update_current is None:
+            update_current = True
         self.set_current(start_time, force=True)
         if is_prev is None:
             is_prev = self._is_prev
@@ -360,7 +361,8 @@ class croniter(object):
                     dtresult = dtresult_adjusted
                     result = result_adjusted
                 self.dst_start_time = result
-        self.cur = result
+        if update_current:
+            self.cur = result
         if issubclass(ret_type, datetime.datetime):
             result = dtresult
         return result
@@ -369,7 +371,7 @@ class croniter(object):
     # objects in a loop, like "for dt in croniter('5 0 * * *'): ..."
     # or for combining multiple croniters into single
     # dates feed using 'itertools' module
-    def all_next(self, ret_type=None):
+    def all_next(self, ret_type=None, start_time=None, update_current=None):
         '''Generator of all consecutive dates. Can be used instead of
         implicit call to __iter__, whenever non-default
         'ret_type' has to be specified.
@@ -378,19 +380,21 @@ class croniter(object):
         try:
             while True:
                 self._is_prev = False
-                yield self._get_next(ret_type or self._ret_type)
+                yield self._get_next(ret_type or self._ret_type,
+                                     start_time=start_time, update_current=update_current)
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
                 return
             else:
                 raise
 
-    def all_prev(self, ret_type=None):
+    def all_prev(self, ret_type=None, start_time=None, update_current=None):
         '''Generator of all previous dates.'''
         try:
             while True:
                 self._is_prev = True
-                yield self._get_next(ret_type or self._ret_type)
+                yield self._get_next(ret_type or self._ret_type,
+                                     start_time=start_time, update_current=update_current)
         except CroniterBadDateError:
             if self._max_years_btw_matches_explicitly_set:
                 return
