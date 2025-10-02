@@ -5,6 +5,7 @@ Changelog
 ------------------
 
 - Add Python 3.12 support [rafsaf]
+- Make major release instructions [kiorky]
 
 
 1.4.1 (2023-06-15)

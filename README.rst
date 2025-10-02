@@ -241,6 +241,14 @@ What they evaluate to depends on whether you supply hash_id: no hash_id correspo
     ============ ============ ================
 
 
+Upgrading
+==========
+
+To 2.0.0
+---------
+
+- Install or upgrade pytz by using version specified  requirements/base.txt if you have it installed `<=2021.1`.
+
 Develop this package
 ====================
 

@@ -17,6 +17,10 @@ import calendar
 import binascii
 import random
 
+# as pytz is optional in thirdparty libs but we need it for good support under
+# python2, just test that it's well installed
+import pytz  # noqa
+
 try:
     from collections import OrderedDict
 except ImportError:
